@@ -117,7 +117,7 @@
     
     const fbxLoader = new THREE.FBXLoader();
     fbxLoader.load(
-      'openworld/modelpg/Lady in red dress/Lady in red dress.fbx',
+      'openworld/modelpg/Lady_in_red_dress/Lady in red dress.fbx',
       function(object) {
         serenaModel = object;
         object.scale.set(0.01, 0.01, 0.01);
@@ -167,7 +167,7 @@
 
   function applyTexturesToModel(model) {
     const textureLoader = new THREE.TextureLoader();
-    const basePath = 'openworld/modelpg/Lady in red dress/textures/';
+    const basePath = 'openworld/modelpg/Lady_in_red_dress/textures/';
 
     model.traverse(function(child) {
       if (child.isMesh) {
@@ -209,7 +209,7 @@
           console.log('Texture pelle corpo applicate');
         }
         // Capelli
-        else if (name.includes('long_bangs') || name.includes('messy_high') || name.includes('hair')) {
+        else if (name.includes('long_bangs') || name.includes('messy_high') || name.includes('hair') || name.includes('ponytail')) {
           console.log('Caricando texture capelli...');
           const diffuse = textureLoader.load(basePath + 'Hair_Transparency_Diffuse.jpeg');
           const ao = textureLoader.load(basePath + 'Hair_Transparency_ao.png');

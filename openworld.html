@@ -4,29 +4,212 @@
   <meta charset="UTF-8">
   <title>Serena Open World</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
   <style>
-    body { margin: 0; overflow: hidden; }
-    canvas { display: block; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      margin: 0; 
+      overflow: hidden; 
+      background: #000;
+      font-family: Arial, sans-serif;
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    canvas { 
+      display: block; 
+      width: 100vw;
+      height: 100vh;
+      touch-action: none;
+    }
+    
+    /* Controlli touch per mobile */
+    #touchControls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: none;
+    }
+    
+    .joystick-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+    }
+    
+    .joystick-base {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .joystick-handle {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.6);
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      pointer-events: none;
+      transition: none;
+    }
+    
+    /* Pulsante fullscreen */
+    #fullscreenBtn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 1001;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    #fullscreenBtn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.6);
+    }
+    
+    /* Info panel */
     #info {
       position: absolute;
       top: 10px;
       left: 10px;
       color: white;
       background: rgba(0,0,0,0.7);
-      padding: 10px;
-      border-radius: 5px;
+      padding: 15px;
+      border-radius: 10px;
       font-family: Arial, sans-serif;
+      max-width: 300px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    #info h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      color: #FFB6C1;
+    }
+    
+    #info p {
+      margin: 5px 0;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+      #info {
+        top: 60px;
+        left: 10px;
+        right: 10px;
+        max-width: none;
+        padding: 10px;
+      }
+      
+      #info h3 {
+        font-size: 16px;
+      }
+      
+      #info p {
+        font-size: 12px;
+      }
+      
+      #touchControls {
+        display: block;
+      }
+      
+      #fullscreenBtn {
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+    }
+    
+    /* Loading screen */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    
+    .loading-content {
+      text-align: center;
+    }
+    
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
+  <!-- Loading screen -->
+  <div id="loading">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <h2>🌸 Serena Open World 🌸</h2>
+      <p>Caricamento del mondo...</p>
+    </div>
+  </div>
+
   <!-- Canvas WebGL per Serena -->
   <canvas id="openworldCanv"></canvas>
   
+  <!-- Controlli touch per mobile -->
+  <div id="touchControls">
+    <div class="joystick-container">
+      <div class="joystick-base">
+        <div class="joystick-handle"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Pulsante fullscreen -->
+  <button id="fullscreenBtn">📱 Fullscreen</button>
+  
+  <!-- Info panel -->
   <div id="info">
-    <h3>Serena Open World</h3>
-    <p>Usa WASD o frecce per muoverti</p>
-    <p>Mouse per guardarti intorno</p>
+    <h3>🌸 Serena Open World</h3>
+    <p><strong>Desktop:</strong> WASD o frecce per muoverti</p>
+    <p><strong>Mobile:</strong> Usa il joystick virtuale</p>
+    <p>📱 Premi Fullscreen per modalità APK</p>
   </div>
 
   <!-- Libreria three.js -->
@@ -38,5 +221,44 @@
   
   <!-- Bridge per Serena -->
   <script src="serena-openworld-bridge.js"></script>
+  
+  <!-- Mobile controls script -->
+  <script>
+    // Rileva se è mobile
+    function isMobile() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+             (window.innerWidth <= 768);
+    }
+    
+    // Fullscreen
+    document.getElementById('fullscreenBtn').addEventListener('click', function() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log('Errore fullscreen:', err);
+        });
+        this.textContent = '🔒 Exit Fullscreen';
+      } else {
+        document.exitFullscreen();
+        this.textContent = '📱 Fullscreen';
+      }
+    });
+    
+    // Nascondi loading quando la scena è pronta
+    window.addEventListener('load', function() {
+      setTimeout(() => {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          loading.style.opacity = '0';
+          loading.style.transition = 'opacity 0.5s ease';
+          setTimeout(() => loading.style.display = 'none', 500);
+        }
+      }, 2000);
+    });
+    
+    // Mostra/nascondi controlli touch
+    if (isMobile()) {
+      document.getElementById('touchControls').style.display = 'block';
+    }
+  </script>
 </body>
 </html>
