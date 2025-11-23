@@ -4346,46 +4346,4 @@ function gameOver() {
     document.getElementById('gameOver').classList.remove('hidden');
 }
 
-// Victory
-// Victory function with level progression
-function victory() {
-    gameRunning = false;
-    score += 1000;
-
-    // Solo il livello 1 esiste in questo motore. Dopo il livello 1 si passa al mondo openworld.
-    if (level === 1) {
-        document.getElementById('victory').innerHTML = `
-            <div class="modal-content">
-                <h2>Livello 1 Completato!</h2>
-                <p>Serena sta entrando in un nuovo mondo realistico verso Benevento...</p>
-                <p>Punteggio: ${score}</p>
-                <button onclick="nextLevel()">Entra nel nuovo mondo</button>
-            </div>
-        `;
-        document.getElementById('victory').classList.remove('hidden');
-        return;
-    }
-
-    // Non dovremmo mai arrivare qui, ma per sicurezza gestiamo altri casi
-    document.getElementById('victory').innerHTML = `
-        <div class="modal-content">
-            <h2>🎉 Vittoria Finale! 🎉</h2>
-            <p>Serena ha finalmente raggiunto il principe Stefano a Benevento! ❤️</p>
-            <p>Punteggio finale: ${score}</p>
-            <button onclick="restartGame()">Gioca Ancora</button>
-        </div>
-    `;
-    document.getElementById('victory').classList.remove('hidden');
-}
-
-function nextLevel() {
-    // Solo il livello 1 esiste in questo motore. Dopo il livello 1 si passa al mondo openworld.
-    if (level === 1) {
-        window.location.href = 'openworld.html?fromLevel=2';
-        return;
-    }
-
-    // Per qualsiasi altro caso, riavvia il gioco
-    restartGame();
-}
 }
