@@ -98,8 +98,8 @@
         const name = child.name.toLowerCase();
         let material = null;
 
-        // Abito (QiPao)
-        if (name.includes('dress') || name.includes('qipao') || name.includes('body') || name.includes('cloth')) {
+        // Abito (Miao_new_suit)
+        if (name.includes('miao_new_suit') || name.includes('suit') || name.includes('dress')) {
           const diffuse = textureLoader.load(basePath + 'QiPao_MetallicAlpha.png');
           const roughness = textureLoader.load(basePath + 'QiPao_roughness.png');
           const metallic = textureLoader.load(basePath + 'QiPao_metallic.png');
@@ -107,19 +107,21 @@
             map: diffuse,
             roughnessMap: roughness,
             metalnessMap: metallic,
+            skinning: true,
           });
         }
-        // Pelle (testa, corpo, braccia, gambe)
-        else if (name.includes('head') || name.includes('skin') || name.includes('arm') || name.includes('leg') || name.includes('body')) {
-          const diffuse = textureLoader.load(basePath + 'Std_Skin_Head_MetallicAlpha.png');
-          const roughness = textureLoader.load(basePath + 'Std_Skin_Head_roughness.png');
+        // Pelle (CC_Base_Body)
+        else if (name.includes('cc_base_body')) {
+          const diffuse = textureLoader.load(basePath + 'Std_Skin_Body_MetallicAlpha.png');
+          const roughness = textureLoader.load(basePath + 'Std_Skin_Body_roughness.png');
           material = new THREE.MeshStandardMaterial({
             map: diffuse,
             roughnessMap: roughness,
+            skinning: true,
           });
         }
-        // Capelli
-        else if (name.includes('hair')) {
+        // Capelli (Long_bangs, Long_wavy_ponytail, Messy_high)
+        else if (name.includes('long_bangs') || name.includes('long_wavy_ponytail') || name.includes('messy_high') || name.includes('hair')) {
           const diffuse = textureLoader.load(basePath + 'Hair_Transparency_MetallicAlpha.png');
           const ao = textureLoader.load(basePath + 'Hair_Transparency_ao.png');
           material = new THREE.MeshStandardMaterial({
@@ -127,27 +129,61 @@
             aoMap: ao,
             transparent: true,
             alphaTest: 0.5,
+            skinning: true,
           });
         }
-        // Occhi
-        else if (name.includes('eye')) {
+        // Occhi (CC_Base_Eye, CC_Base_EyeOcclusion)
+        else if (name.includes('cc_base_eye')) {
           const diffuse = textureLoader.load(basePath + 'Std_Cornea_L_Sclera.jpg');
           material = new THREE.MeshStandardMaterial({
             map: diffuse,
+            skinning: true,
           });
         }
-        // Scarpe (High Heels)
-        else if (name.includes('heel') || name.includes('shoe')) {
+        // Denti (CC_Base_Teeth)
+        else if (name.includes('cc_base_teeth')) {
+          const diffuse = textureLoader.load(basePath + 'Std_Upper_Teeth_GradAO.jpg');
+          const roughness = textureLoader.load(basePath + 'Std_Upper_Teeth_roughness.png');
+          material = new THREE.MeshStandardMaterial({
+            map: diffuse,
+            roughnessMap: roughness,
+            skinning: true,
+          });
+        }
+        // Lingua (CC_Base_Tongue)
+        else if (name.includes('cc_base_tongue')) {
+          const diffuse = textureLoader.load(basePath + 'Std_Tongue_GradAO.jpg');
+          const roughness = textureLoader.load(basePath + 'Std_Tongue_roughness.png');
+          material = new THREE.MeshStandardMaterial({
+            map: diffuse,
+            roughnessMap: roughness,
+            skinning: true,
+          });
+        }
+        // Scarpe (High_Heels)
+        else if (name.includes('high_heels')) {
           const metallic = textureLoader.load(basePath + 'High_Heels_metallic.png');
           const roughness = textureLoader.load(basePath + 'High_Heels_roughness.png');
           material = new THREE.MeshStandardMaterial({
             metalnessMap: metallic,
             roughnessMap: roughness,
+            skinning: true,
           });
         }
-        // Default (non trovato)
+        // Altro (occlusione, tearline, ecc.)
+        else if (name.includes('cc_base_eyeocclusion') || name.includes('cc_base_tearline') || name.includes('sphere')) {
+          material = new THREE.MeshStandardMaterial({
+            transparent: true,
+            opacity: 0.01,
+            skinning: true,
+          });
+        }
+        // Default
         else {
-          material = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+          material = new THREE.MeshStandardMaterial({ 
+            color: 0xcccccc,
+            skinning: true,
+          });
         }
 
         child.material = material;
