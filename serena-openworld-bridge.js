@@ -31,13 +31,18 @@
     threeControls.enableDamping = true;
     threeControls.dampingFactor = 0.05;
 
-    // Luci
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // Configura le luci
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // Aumentata intensità
     threeScene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(10, 10, 5);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0); // Aumentata intensità
+    directionalLight.position.set(5, 10, 5);
     directionalLight.castShadow = true;
     threeScene.add(directionalLight);
+
+    const pointLight = new THREE.PointLight(0xffffff, 1.0, 100);
+    pointLight.position.set(0, 5, 0);
+    threeScene.add(pointLight);
 
     // Carica il modello FBX di Serena
     const fbxLoader = new THREE.FBXLoader();
@@ -103,9 +108,24 @@
         // Abito (Miao_new_suit) - usa QiPao
         if (name.includes('miao_new_suit') || name.includes('suit') || name.includes('dress')) {
           console.log('Loading dress textures...');
-          const diffuse = textureLoader.load(basePath + 'QiPao_MetallicAlpha.png');
-          const roughness = textureLoader.load(basePath + 'QiPao_roughness.png');
-          const metallic = textureLoader.load(basePath + 'QiPao_metallic.png');
+          const diffuse = textureLoader.load(
+            basePath + 'QiPao_MetallicAlpha.png',
+            (texture) => console.log('Dress diffuse loaded'),
+            undefined,
+            (error) => console.error('Error loading dress diffuse:', error)
+          );
+          const roughness = textureLoader.load(
+            basePath + 'QiPao_roughness.png',
+            (texture) => console.log('Dress roughness loaded'),
+            undefined,
+            (error) => console.error('Error loading dress roughness:', error)
+          );
+          const metallic = textureLoader.load(
+            basePath + 'QiPao_metallic.png',
+            (texture) => console.log('Dress metallic loaded'),
+            undefined,
+            (error) => console.error('Error loading dress metallic:', error)
+          );
           material = new THREE.MeshStandardMaterial({
             map: diffuse,
             roughnessMap: roughness,
@@ -117,8 +137,18 @@
         // Pelle (CC_Base_Body) - usa Std_Skin_Body
         else if (name.includes('cc_base_body')) {
           console.log('Loading body skin textures...');
-          const diffuse = textureLoader.load(basePath + 'Std_Skin_Body_MetallicAlpha.png');
-          const roughness = textureLoader.load(basePath + 'Std_Skin_Body_roughness.png');
+          const diffuse = textureLoader.load(
+            basePath + 'Std_Skin_Body_MetallicAlpha.png',
+            (texture) => console.log('Body diffuse loaded'),
+            undefined,
+            (error) => console.error('Error loading body diffuse:', error)
+          );
+          const roughness = textureLoader.load(
+            basePath + 'Std_Skin_Body_roughness.png',
+            (texture) => console.log('Body roughness loaded'),
+            undefined,
+            (error) => console.error('Error loading body roughness:', error)
+          );
           material = new THREE.MeshStandardMaterial({
             map: diffuse,
             roughnessMap: roughness,
@@ -129,8 +159,18 @@
         // Capelli (Long_bangs, Long_wavy_ponytail, Messy_high)
         else if (name.includes('long_bangs') || name.includes('long_wavy_ponytail') || name.includes('messy_high') || name.includes('hair')) {
           console.log('Loading hair textures...');
-          const diffuse = textureLoader.load(basePath + 'Hair_Transparency_MetallicAlpha.png');
-          const ao = textureLoader.load(basePath + 'Hair_Transparency_ao.png');
+          const diffuse = textureLoader.load(
+            basePath + 'Hair_Transparency_MetallicAlpha.png',
+            (texture) => console.log('Hair diffuse loaded'),
+            undefined,
+            (error) => console.error('Error loading hair diffuse:', error)
+          );
+          const ao = textureLoader.load(
+            basePath + 'Hair_Transparency_ao.png',
+            (texture) => console.log('Hair AO loaded'),
+            undefined,
+            (error) => console.error('Error loading hair AO:', error)
+          );
           material = new THREE.MeshStandardMaterial({
             map: diffuse,
             aoMap: ao,
@@ -143,7 +183,12 @@
         // Occhi (CC_Base_Eye, CC_Base_EyeOcclusion)
         else if (name.includes('cc_base_eye')) {
           console.log('Loading eye textures...');
-          const diffuse = textureLoader.load(basePath + 'Std_Cornea_L_Sclera.jpg');
+          const diffuse = textureLoader.load(
+            basePath + 'Std_Cornea_L_Sclera.jpg',
+            (texture) => console.log('Eye diffuse loaded'),
+            undefined,
+            (error) => console.error('Error loading eye diffuse:', error)
+          );
           material = new THREE.MeshStandardMaterial({
             map: diffuse,
             skinning: true,
@@ -153,8 +198,18 @@
         // Denti (CC_Base_Teeth) - usa Std_Upper_Teeth
         else if (name.includes('cc_base_teeth')) {
           console.log('Loading teeth textures...');
-          const diffuse = textureLoader.load(basePath + 'Std_Upper_Teeth_GradAO.jpg');
-          const roughness = textureLoader.load(basePath + 'Std_Upper_Teeth_roughness.png');
+          const diffuse = textureLoader.load(
+            basePath + 'Std_Upper_Teeth_GradAO.jpg',
+            (texture) => console.log('Teeth diffuse loaded'),
+            undefined,
+            (error) => console.error('Error loading teeth diffuse:', error)
+          );
+          const roughness = textureLoader.load(
+            basePath + 'Std_Upper_Teeth_roughness.png',
+            (texture) => console.log('Teeth roughness loaded'),
+            undefined,
+            (error) => console.error('Error loading teeth roughness:', error)
+          );
           material = new THREE.MeshStandardMaterial({
             map: diffuse,
             roughnessMap: roughness,
@@ -165,8 +220,18 @@
         // Lingua (CC_Base_Tongue)
         else if (name.includes('cc_base_tongue')) {
           console.log('Loading tongue textures...');
-          const diffuse = textureLoader.load(basePath + 'Std_Tongue_GradAO.jpg');
-          const roughness = textureLoader.load(basePath + 'Std_Tongue_roughness.png');
+          const diffuse = textureLoader.load(
+            basePath + 'Std_Tongue_GradAO.jpg',
+            (texture) => console.log('Tongue diffuse loaded'),
+            undefined,
+            (error) => console.error('Error loading tongue diffuse:', error)
+          );
+          const roughness = textureLoader.load(
+            basePath + 'Std_Tongue_roughness.png',
+            (texture) => console.log('Tongue roughness loaded'),
+            undefined,
+            (error) => console.error('Error loading tongue roughness:', error)
+          );
           material = new THREE.MeshStandardMaterial({
             map: diffuse,
             roughnessMap: roughness,
@@ -177,8 +242,18 @@
         // Scarpe (High_Heels)
         else if (name.includes('high_heels')) {
           console.log('Loading shoe textures...');
-          const metallic = textureLoader.load(basePath + 'High_Heels_metallic.png');
-          const roughness = textureLoader.load(basePath + 'High_Heels_roughness.png');
+          const metallic = textureLoader.load(
+            basePath + 'High_Heels_metallic.png',
+            (texture) => console.log('Shoe metallic loaded'),
+            undefined,
+            (error) => console.error('Error loading shoe metallic:', error)
+          );
+          const roughness = textureLoader.load(
+            basePath + 'High_Heels_roughness.png',
+            (texture) => console.log('Shoe roughness loaded'),
+            undefined,
+            (error) => console.error('Error loading shoe roughness:', error)
+          );
           material = new THREE.MeshStandardMaterial({
             metalnessMap: metallic,
             roughnessMap: roughness,
