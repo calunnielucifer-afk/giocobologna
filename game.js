@@ -4349,9 +4349,23 @@ function gameOver() {
 function victory() {
     gameRunning = false;
     score += 1000;
-    
+
+    // Se hai completato il livello 1, dal livello 2 in poi si passa al mondo openworld
+    if (level === 1) {
+        document.getElementById('victory').innerHTML = `
+            <div class="modal-content">
+                <h2>Livello 1 Completato!</h2>
+                <p>Serena sta entrando in un nuovo mondo realistico verso Benevento...</p>
+                <p>Punteggio: ${score}</p>
+                <button onclick="nextLevel()">Entra nel nuovo mondo</button>
+            </div>
+        `;
+        document.getElementById('victory').classList.remove('hidden');
+        return;
+    }
+
+    // Per sicurezza, vecchia logica per altri livelli gestiti da questo engine
     if (level < 4) {
-        // Next level
         level++;
         document.getElementById('victory').innerHTML = `
             <div class="modal-content">
@@ -4373,11 +4387,17 @@ function victory() {
             </div>
         `;
     }
-    
+
     document.getElementById('victory').classList.remove('hidden');
 }
 
 function nextLevel() {
+    // Se hai finito il livello 1, vai alla pagina openworld
+    if (level === 1) {
+        window.location.href = 'openworld.html?fromLevel=2';
+        return;
+    }
+
     document.getElementById('victory').classList.add('hidden');
     init();
     gameRunning = true;

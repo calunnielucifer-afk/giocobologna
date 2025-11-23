@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta http-equiv="pragma" content="no-cache">
+<style>
+    body{margin: 0;}
+    #someCtrl {
+        position: fixed;
+        top: 10px;
+        opacity: 0.5;
+        left: 10px;
+    }
+    #someCtrl button {
+        width: 45px;
+        height: 30px;
+    }
+    .info-modal {
+        position: fixed;
+        background-color: yellowgreen;
+        left: 30px;
+        top: 30px;
+        width: 500px;
+        height: 80vh;
+    }
+</style>
+<canvas id=c style="width:99vw;height:99vh"></canvas>
+<script src="./cannon29kb.js"></script>
+<img src='./texture.jpeg' id=marble hidden>
+<script src="./openworld.js"></script>
+<script src="./index.js" type="module"></script>
+<div id="someCtrl">
+    <button id="btn01" style="width: 105px;">程序说明</button>
+    <button id="btn02" style="width: 105px;">加载示例存档</button>
+    <button id="btn03" style="width: 105px;">到城寨入口</button>
+    <button id="btn04" style="width: 105px;">到坐标原点</button>
+</div>
+<div class="info-modal" id="myinfoModal" hidden>
+    <hr>
+    <h3>我是模态框</h3>
+    <p>这里是模态框的内容...</p>
+    <button id="closeBtn">关闭</button>
+    <hr>
+</div>
+<script>
+
+// 程序说明
+btn01.addEventListener('mousedown', function(event) {
+    document.getElementById('myinfoModal').hidden = false;
+});
+
+// 城寨入口
+btn03.addEventListener('mousedown', function(event) {
+    k.mainVPlayer.body.position.x = 113;
+    k.mainVPlayer.body.position.y = 5;
+    k.mainVPlayer.body.position.z = 495;
+});
+
+// 坐标原点
+btn04.addEventListener('mousedown', function(event) {
+    k.mainVPlayer.body.position.x = 7.6;
+    k.mainVPlayer.body.position.y = 5;
+    k.mainVPlayer.body.position.z = 16.5;
+});
+
+// 关闭 【程序说明】模态框
+document.getElementById('closeBtn').addEventListener('click', function() {
+    document.getElementById('myinfoModal').hidden = true;
+});
+</script>
