@@ -2481,8 +2481,6 @@ function draw() {
         return;
     }
     
-    console.log('Drawing frame - Level:', level, 'Obstacles:', obstacles.length, 'Platforms:', platforms.length, 'Doors:', doors.length);
-    
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -2505,12 +2503,10 @@ function draw() {
     
     // Draw 3D objects (behind 2D elements)
     if (is3DLevel) {
-        console.log('Drawing 3D objects...');
         objects3D.forEach(obj => draw3DObject(obj));
     }
     
     // Draw platforms with enhanced 3D effect
-    console.log('Drawing platforms...');
     for (let platform of platforms) {
         // Platform shadow
         ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
@@ -2720,9 +2716,7 @@ function draw() {
     }
     
     // Draw obstacles
-    console.log('Drawing obstacles...');
     for (let obstacle of obstacles) {
-        console.log('Drawing obstacle:', obstacle.type, obstacle.x, obstacle.y);
         ctx.fillStyle = obstacle.color;
         
         if (obstacle.type === 'snow') {
