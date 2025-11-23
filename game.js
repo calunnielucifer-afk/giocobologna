@@ -915,49 +915,225 @@ function victory() {
     cancelAnimationFrame(animationId);
     
     score += 1000;
-    updateUI();
-    
-    // Solo il livello 1 esiste in questo motore. Dopo il livello 1 si passa al mondo openworld.
+
+    // Se hai completato il livello 1, mostra il dialogo del principe
     if (level === 1) {
+        // Mostra il dialogo del principe
+        showPrinceDialogue();
+        return;
+    }
+
+    // Per sicurezza, vecchia logica per altri livelli gestiti da questo engine
+    if (level < 4) {
+        level++;
         document.getElementById('victory').innerHTML = `
             <div class="modal-content">
-                <h2>Livello 1 Completato!</h2>
-                <p>Serena sta entrando in un nuovo mondo realistico verso Benevento...</p>
+                <h2>Livello ${level - 1} Completato!</h2>
+                <p>Serena sta viaggiando verso Benevento...</p>
                 <p>Punteggio: ${score}</p>
-                <button onclick="nextLevel()">Entra nel nuovo mondo</button>
+                <button onclick="nextLevel()">Prossimo Livello</button>
             </div>
         `;
         document.getElementById('victory').classList.remove('hidden');
-        return;
     }
+}
 
-    // Per qualsiasi altro caso, mostra la vittoria finale
-    const victoryModal = document.getElementById('victory');
-    if (victoryModal) {
-        victoryModal.classList.remove('hidden');
-        
-        const finalScoreElement = document.getElementById('finalScore');
-        if (finalScoreElement) {
-            finalScoreElement.textContent = score;
+// Funzione per mostrare il dialogo del principe
+function showPrinceDialogue() {
+    // Crea un overlay speciale per il dialogo del principe
+    const princeOverlay = document.createElement('div');
+    princeOverlay.id = 'princeDialogue';
+    princeOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        font-family: 'Georgia', serif;
+        animation: fadeIn 1s ease-out;
+    `;
+    
+    princeOverlay.innerHTML = `
+        <div class="dialogue-container" style="
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            animation: slideUp 0.8s ease-out;
+        ">
+            <div class="prince-avatar" style="
+                font-size: 80px;
+                margin-bottom: 20px;
+                animation: bounce 2s infinite;
+            ">🤴</div>
+            
+            <h2 style="
+                color: #4a5568;
+                margin: 0 0 20px 0;
+                font-size: 28px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            ">Il Principe Stefano</h2>
+            
+            <div class="dialogue-text" style="
+                color: #2d3748;
+                font-size: 18px;
+                line-height: 1.8;
+                margin-bottom: 30px;
+                font-style: italic;
+            ">
+                <p style="margin: 0 0 15px 0;">
+                    <strong>"Serena mia dolce principessa..."</strong>
+                </p>
+                <p style="margin: 0 0 15px 0;">
+                    Il tuo sogno sta per diventare realtà. Ho preparato per te un mondo nuovo, 
+                    un regno incantato dove potremo finalmente vivere il nostro amore.
+                </p>
+                <p style="margin: 0 0 15px 0;">
+                    Oltre quella porta ti attende un'avventura meravigliosa, 
+                    un mondo 3D dove ogni passo ci avvicinerà al nostro destino.
+                </p>
+                <p style="margin: 0 0 15px 0; color: #e53e3e; font-weight: bold;">
+                    <strong>Il sogno diventa sempre più reale...</strong>
+                </p>
+                <p style="margin: 0;">
+                    Sei pronta a entrare nel nostro nuovo mondo?
+                </p>
+            </div>
+            
+            <button id="princeOkBtn" style="
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 15px 40px;
+                font-size: 18px;
+                font-weight: bold;
+                border-radius: 30px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+                animation: pulse 2s infinite;
+            ">✨ Sono Principe! ✨</button>
+        </div>
+    `;
+    
+    // Aggiungi stili CSS animati
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-    }
-}
-
-function nextLevel() {
-    // Solo il livello 1 esiste in questo motore. Dopo il livello 1 si passa al mondo openworld.
-    if (level === 1) {
-        window.location.href = 'openworld.html?fromLevel=2';
-        return;
-    }
-
-    // Per qualsiasi altro caso, riavvia il gioco
-    restartGame();
-}
-
-// Drag and drop handlers for puzzles
-function handleDragStart(e) {
-    draggedElement = this;
-    this.style.opacity = '0.5';
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(50px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .dialogue-container {
+                margin: 20px;
+                padding: 30px 20px;
+                max-width: none;
+            }
+            
+            .prince-avatar {
+                font-size: 60px;
+                margin-bottom: 15px;
+            }
+            
+            h2 {
+                font-size: 24px !important;
+                margin-bottom: 15px !important;
+            }
+            
+            .dialogue-text {
+                font-size: 16px !important;
+                line-height: 1.6 !important;
+                margin-bottom: 25px !important;
+            }
+            
+            #princeOkBtn {
+                font-size: 16px !important;
+                padding: 12px 30px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .dialogue-container {
+                margin: 10px;
+                padding: 20px 15px;
+            }
+            
+            .prince-avatar {
+                font-size: 50px;
+            }
+            
+            h2 {
+                font-size: 20px !important;
+            }
+            
+            .dialogue-text {
+                font-size: 14px !important;
+            }
+            
+            #princeOkBtn {
+                font-size: 14px !important;
+                padding: 10px 25px !important;
+            }
+        }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(princeOverlay);
+    
+    // Event listener per il pulsante OK
+    document.getElementById('princeOkBtn').addEventListener('click', function() {
+        // Fade out animation
+        princeOverlay.style.transition = 'opacity 0.5s ease-out';
+        princeOverlay.style.opacity = '0';
+        
+        setTimeout(() => {
+            document.body.removeChild(princeOverlay);
+            document.head.removeChild(style);
+            
+            // Redirect all'openworld
+            window.location.href = 'openworld.html?fromLevel=2';
+        }, 500);
+    });
+    
+    // Aggiungi suono se disponibile (opzionale)
+    try {
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+        audio.volume = 0.3;
+        audio.play().catch(() => {}); // Ignora errori audio
+    } catch (e) {}
 }
 
 function handleDragOver(e) {
