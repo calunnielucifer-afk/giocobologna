@@ -1527,7 +1527,7 @@ function update3DCamera() {
         color: '#8B4513',
         curve: true
     });
-}
+
 
 function createLevel3() {
     // Expert level with maximum difficulty
