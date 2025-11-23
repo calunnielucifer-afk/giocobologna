@@ -1224,106 +1224,150 @@ function createLevel1() {
 }
 
 function createLevel2() {
-    console.log('Creating Level 2 - Pure 3D World');
+    console.log('Creating Level 2 - Minecraft Open World 3D');
     
-    // Clear all 2D elements for pure 3D experience
+    // Clear all 2D elements for pure 3D Minecraft experience
     obstacles = [];
     platforms = [];
     
-    // 3D ground platform
+    // MINECRAFT-STYLE OPEN WORLD TERRAIN
+    
+    // Large ground platform (grass block)
     objects3D.push({
         type: 'platform',
         x: 400,
         y: 350,
         z: 0,
-        width: 800,
+        width: 1200,
         height: 20,
-        depth: 200,
-        color: '#8B4513',
+        depth: 400,
+        color: '#7CFC00',  // Grass green
         rotation: 0
     });
     
-    // 3D floating platforms at different depths
+    // Mountain terrain
     objects3D.push({
         type: 'platform',
         x: 200,
-        y: 280,
-        z: -100,
-        width: 80,
-        height: 15,
-        depth: 60,
-        color: '#FF6B6B',
-        rotation: 0
-    });
-    
-    objects3D.push({
-        type: 'platform',
-        x: 400,
         y: 250,
-        z: -200,
-        width: 100,
-        height: 15,
-        depth: 80,
-        color: '#4ECDC4',
+        z: -100,
+        width: 150,
+        height: 100,
+        depth: 100,
+        color: '#8B7355',  // Mountain brown
         rotation: 0
     });
     
     objects3D.push({
         type: 'platform',
         x: 600,
-        y: 300,
+        y: 280,
         z: -150,
-        width: 90,
-        height: 15,
-        depth: 70,
-        color: '#95E77E',
+        width: 120,
+        height: 70,
+        depth: 80,
+        color: '#8B7355',
         rotation: 0
     });
     
-    // 3D moving obstacles - positioned away from spawn
-    for (let i = 0; i < 3; i++) {
+    // Floating islands (Minecraft style)
+    objects3D.push({
+        type: 'platform',
+        x: 300,
+        y: 200,
+        z: -200,
+        width: 100,
+        height: 15,
+        depth: 100,
+        color: '#7CFC00',
+        rotation: 0
+    });
+    
+    objects3D.push({
+        type: 'platform',
+        x: 500,
+        y: 180,
+        z: -250,
+        width: 80,
+        height: 15,
+        depth: 80,
+        color: '#7CFC00',
+        rotation: 0
+    });
+    
+    // Tree structures
+    for (let i = 0; i < 4; i++) {
+        // Tree trunk
         objects3D.push({
-            type: 'enemy',
-            x: 300 + i * 150,  // Start further from spawn
-            y: 200,
-            z: -50 - i * 50,
-            width: 30,
-            height: 40,
-            depth: 30,
-            color: '#FF4444',
-            speed: 1 + i * 0.5,
-            direction: i % 2 === 0 ? 1 : -1,
-            rotation: 0,
-            rotationSpeed: 0.02
+            type: 'platform',
+            x: 150 + i * 180,
+            y: 320,
+            z: -50 - i * 30,
+            width: 20,
+            height: 30,
+            depth: 20,
+            color: '#8B4513',  // Brown trunk
+            rotation: 0
+        });
+        
+        // Tree leaves
+        objects3D.push({
+            type: 'platform',
+            x: 150 + i * 180,
+            y: 290,
+            z: -50 - i * 30,
+            width: 60,
+            height: 30,
+            depth: 60,
+            color: '#228B22',  // Green leaves
+            rotation: 0
         });
     }
     
-    // 3D collectible items
-    for (let i = 0; i < 5; i++) {
+    // Minecraft-style enemies (Creepers/Zombies)
+    for (let i = 0; i < 4; i++) {
+        objects3D.push({
+            type: 'enemy',
+            x: 250 + i * 140,  // Spread far from spawn
+            y: 300,
+            z: -80 - i * 40,
+            width: 35,
+            height: 45,
+            depth: 35,
+            color: i % 2 === 0 ? '#00FF00' : '#4B0082',  // Green creepers, purple zombies
+            speed: 0.8 + i * 0.3,
+            direction: i % 2 === 0 ? 1 : -1,
+            rotation: 0,
+            rotationSpeed: 0.01
+        });
+    }
+    
+    // Diamond collectibles (Minecraft style)
+    for (let i = 0; i < 6; i++) {
         objects3D.push({
             type: 'collectible',
-            x: 150 + i * 120,
-            y: 150 + Math.sin(i) * 50,
-            z: -100 - i * 30,
-            width: 20,
-            height: 20,
-            depth: 20,
-            color: '#FFD700',
+            x: 180 + i * 100,
+            y: 150 + Math.sin(i * 1.5) * 80,
+            z: -120 - i * 25,
+            width: 25,
+            height: 25,
+            depth: 25,
+            color: '#00CED1',  // Diamond cyan
             collected: false,
             rotation: 0,
             floatOffset: Math.random() * Math.PI * 2
         });
     }
     
-    // Door with advanced puzzle - positioned at the end
+    // Portal door (Nether portal style)
     doors.push({
-        x: 700,
-        y: 280,
-        width: 40,
-        height: 70,
+        x: 750,
+        y: 250,
+        width: 50,
+        height: 80,
         locked: true,
         riddleId: 4,
-        color: '#8B4513',
+        color: '#8B008B',  // Purple portal
         puzzleType: 'puzzle'
     });
 }
@@ -1486,132 +1530,152 @@ function update3DCamera() {
     }
 }
 
-// Complex platforms
-    platforms.push({
-        x: 100,
-        y: 250,
-        width: 80,
-        height: 15,
-        color: '#8B4513',
-        curve: true
+        function createLevel3() {
+    console.log('Creating Level 3 - Minecraft Nether World 3D');
+    
+    // Clear all 2D elements for pure 3D Nether experience
+    obstacles = [];
+    platforms = [];
+    
+    // NETHER WORLD - LAVA AND FIRE
+    
+    // Large lava ground (Nether)
+    objects3D.push({
+        type: 'platform',
+        x: 400,
+        y: 350,
+        z: 0,
+        width: 1400,
+        height: 20,
+        depth: 500,
+        color: '#FF4500',  // Lava red-orange
+        rotation: 0
     });
     
-    platforms.push({
-        x: 220,
-        y: 200,
-        width: 70,
-        height: 15,
-        color: '#8B4513',
-        curve: true
+    // Nether fortress structures
+    objects3D.push({
+        type: 'platform',
+        x: 200,
+        y: 280,
+        z: -150,
+        width: 200,
+        height: 70,
+        depth: 100,
+        color: '#4B0082',  // Dark fortress purple
+        rotation: 0
     });
     
-    platforms.push({
-        x: 340,
-        y: 150,
-        width: 60,
-        height: 15,
-        color: '#8B4513',
-        curve: true
+    objects3D.push({
+        type: 'platform',
+        x: 600,
+        y: 260,
+        z: -200,
+        width: 180,
+        height: 90,
+        depth: 120,
+        color: '#4B0082',
+        rotation: 0
     });
     
-    platforms.push({
-        x: 450,
-        y: 180,
-        width: 80,
+    // Floating lava platforms
+    objects3D.push({
+        type: 'platform',
+        x: 350,
+        y: 220,
+        z: -300,
+        width: 120,
         height: 15,
-        color: '#8B4513',
-        curve: true
+        depth: 120,
+        color: '#FF6347',  // Tomato red lava
+        rotation: 0
     });
     
-    platforms.push({
-        x: 580,
-        y: 130,
-        width: 70,
+    objects3D.push({
+        type: 'platform',
+        x: 550,
+        y: 190,
+        z: -350,
+        width: 100,
         height: 15,
-        color: '#8B4513',
-        curve: true
+        depth: 100,
+        color: '#FF6347',
+        rotation: 0
     });
-
-
-function createLevel3() {
-    // Expert level with maximum difficulty
-    // Fast moving social workers
+    
+    // Nether trees (dead trees)
     for (let i = 0; i < 5; i++) {
-        obstacles.push({
-            x: 120 + i * 120,
+        // Dead tree trunk
+        objects3D.push({
+            type: 'platform',
+            x: 180 + i * 160,
             y: 310,
-            width: 35,
+            z: -100 - i * 40,
+            width: 25,
             height: 40,
-            type: 'socialWorker',
-            color: '#4169E1',
-            speed: 2 + i * 0.2,
+            depth: 25,
+            color: '#2F4F2F',  // Dark green-gray
+            rotation: 0
+        });
+        
+        // Dead branches
+        objects3D.push({
+            type: 'platform',
+            x: 180 + i * 160,
+            y: 270,
+            z: -100 - i * 40,
+            width: 80,
+            height: 40,
+            depth: 80,
+            color: '#2F4F2F',
+            rotation: 0
+        });
+    }
+    
+    // Nether mobs (Ghasts and Pigmen)
+    for (let i = 0; i < 5; i++) {
+        objects3D.push({
+            type: 'enemy',
+            x: 300 + i * 130,  // Far from spawn
+            y: 250,
+            z: -120 - i * 45,
+            width: 40,
+            height: 50,
+            depth: 40,
+            color: i % 2 === 0 ? '#FFFFFF' : '#FFB6C1',  // White ghasts, pink pigmen
+            speed: 1.2 + i * 0.4,
             direction: i % 2 === 0 ? 1 : -1,
-            minX: 100 + i * 120,
-            maxX: 140 + i * 120
+            rotation: 0,
+            rotationSpeed: 0.015
         });
     }
     
-    // Many snow obstacles
-    for (let i = 0; i < 5; i++) {
-        obstacles.push({
-            x: 150 + i * 120,
-            y: 310,
-            width: 40,
-            height: 40,
-            type: 'snow',
-            color: '#FFFFFF',
-            speed: 0
+    // Nether quartz collectibles
+    for (let i = 0; i < 8; i++) {
+        objects3D.push({
+            type: 'collectible',
+            x: 200 + i * 90,
+            y: 120 + Math.sin(i * 2) * 100,
+            z: -150 - i * 30,
+            width: 30,
+            height: 30,
+            depth: 30,
+            color: '#F0E68C',  // Khaki quartz
+            collected: false,
+            rotation: 0,
+            floatOffset: Math.random() * Math.PI * 2
         });
     }
     
-    // Multiple broken roads
-    for (let i = 0; i < 3; i++) {
-        obstacles.push({
-            x: 180 + i * 200,
-            y: 330,
-            width: 70,
-            height: 20,
-            type: 'brokenRoad',
-            color: '#696969',
-            speed: 0,
-            curve: true
-        });
-    }
-    
-    // Many doors with mixed challenges
-    for (let i = 0; i < 4; i++) {
-        doors.push({
-            x: 180 + i * 150,
-            y: 280,
-            width: 40,
-            height: 70,
-            locked: true,
-            riddleId: i,
-            color: '#8B4513',
-            puzzleType: i % 2 === 0 ? 'riddle' : 'puzzle'
-        });
-    }
-    
-    // Complex platform maze
-    const platformPositions = [
-        {x: 80, y: 280, w: 60},
-        {x: 180, y: 230, w: 50},
-        {x: 270, y: 180, w: 60},
-        {x: 380, y: 140, w: 50},
-        {x: 480, y: 170, w: 70},
-        {x: 600, y: 120, w: 60},
-        {x: 700, y: 160, w: 50}
-    ];
-    
-    platformPositions.forEach(pos => {
-        platforms.push({
-            x: pos.x,
-            y: pos.y,
-            width: pos.w,
-            height: 15,
-            color: '#8B4513',
-            curve: true
-        });
+    // End portal door (End dimension style)
+    doors.push({
+        x: 800,
+        y: 220,
+        width: 60,
+        height: 90,
+        locked: true,
+        riddleId: 5,
+        color: '#191970',  // Midnight blue end portal
+        puzzleType: 'puzzle'
     });
 }
 
