@@ -1183,6 +1183,27 @@
       }, 2000);
     }
   });
+  
+  // Gestisci il pulsante di chiusura del pannello info
+  document.addEventListener('DOMContentLoaded', function() {
+    const closeInfoBtn = document.getElementById('closeInfo');
+    const infoPanel = document.getElementById('info');
+    
+    if (closeInfoBtn && infoPanel) {
+      // Event listener per click (desktop)
+      closeInfoBtn.addEventListener('click', function() {
+        infoPanel.style.display = 'none';
+        console.log('Pannello info nascosto (click)');
+      });
+      
+      // Event listener per touch (mobile)
+      closeInfoBtn.addEventListener('touchstart', function(e) {
+        e.preventDefault(); // Previeni comportamento default
+        infoPanel.style.display = 'none';
+        console.log('Pannello info nascosto (touch)');
+      });
+    }
+  });
 
   console.log('Bridge Serena Open World inizializzato.');
 })();
