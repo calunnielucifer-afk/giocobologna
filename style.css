@@ -584,6 +584,21 @@ button:active {
     margin-top: 20px;
 }
 
+/* Shoot button styles */
+.shoot-btn {
+    background: linear-gradient(45deg, #ff6b6b, #ff8787) !important;
+    color: white !important;
+    font-size: 20px !important;
+    grid-column: span 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.shoot-btn:active {
+    transform: scale(0.95);
+    background: linear-gradient(45deg, #ff5252, #ff6b6b) !important;
+}
+
 .puzzle-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

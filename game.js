@@ -74,6 +74,9 @@ window.addEventListener('load', () => {
     init();
     draw();
     
+    // Setup touch controls for mobile
+    setupTouchControls();
+    
     // Event listeners
     const startBtn = document.getElementById('startBtn');
     if (startBtn) {
@@ -283,8 +286,9 @@ function setupTouchControls() {
     const leftBtn = document.getElementById('leftBtn');
     const rightBtn = document.getElementById('rightBtn');
     const jumpBtn = document.getElementById('jumpBtn');
+    const shootBtn = document.getElementById('shootBtn');
     
-    if (leftBtn && rightBtn && jumpBtn) {
+    if (leftBtn && rightBtn && jumpBtn && shootBtn) {
         // Touch start events
         leftBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -299,6 +303,11 @@ function setupTouchControls() {
         jumpBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
             keys.ArrowUp = true;
+        });
+        
+        shootBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys['x'] = true;
         });
         
         // Touch end events
@@ -317,6 +326,11 @@ function setupTouchControls() {
             keys.ArrowUp = false;
         });
         
+        shootBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys['x'] = false;
+        });
+        
         // Mouse events for desktop testing
         leftBtn.addEventListener('mousedown', (e) => {
             keys.ArrowLeft = true;
@@ -330,6 +344,10 @@ function setupTouchControls() {
             keys.ArrowUp = true;
         });
         
+        shootBtn.addEventListener('mousedown', (e) => {
+            keys['x'] = true;
+        });
+        
         leftBtn.addEventListener('mouseup', (e) => {
             keys.ArrowLeft = false;
         });
@@ -340,6 +358,10 @@ function setupTouchControls() {
         
         jumpBtn.addEventListener('mouseup', (e) => {
             keys.ArrowUp = false;
+        });
+        
+        shootBtn.addEventListener('mouseup', (e) => {
+            keys['x'] = false;
         });
         
         console.log('Touch controls setup complete');
