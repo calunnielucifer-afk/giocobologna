@@ -1325,6 +1325,8 @@ function createLevel2() {
     platforms = [];
     objects3D = [];
     
+    console.log('Cleared arrays, creating open world village...');
+    
     // REALISTIC OPEN WORLD VILLAGE - Inspired by openworld-js
     
     // Large realistic terrain with texture variation
@@ -1342,6 +1344,8 @@ function createLevel2() {
         physics: { mass: 0, friction: 0.8 }
     });
     
+    console.log('Added terrain, objects3D length:', objects3D.length);
+    
     // Stone path through village
     for (let i = 0; i < 8; i++) {
         objects3D.push({
@@ -1358,6 +1362,8 @@ function createLevel2() {
             physics: { mass: 0, friction: 0.9 }
         });
     }
+    
+    console.log('Added stone paths, objects3D length:', objects3D.length);
     
     // Realistic houses with proper structure
     for (let i = 0; i < 6; i++) {
@@ -1441,6 +1447,8 @@ function createLevel2() {
         });
     }
     
+    console.log('Added houses, objects3D length:', objects3D.length);
+    
     // Realistic forest with varied trees
     for (let i = 0; i < 15; i++) {
         const treeX = 150 + i * 85;
@@ -1477,6 +1485,8 @@ function createLevel2() {
             physics: { mass: 0, friction: 0.5 }
         });
     }
+    
+    console.log('Added trees, objects3D length:', objects3D.length);
     
     // Village well (centerpiece)
     objects3D.push({
@@ -1531,6 +1541,8 @@ function createLevel2() {
         });
     }
     
+    console.log('Added villagers, objects3D length:', objects3D.length);
+    
     // Collectible items scattered around village
     const collectibles = [
         { color: '#FFD700', name: 'coin', texture: 'metal' },
@@ -1557,6 +1569,8 @@ function createLevel2() {
         });
     }
     
+    console.log('Added collectibles, objects3D length:', objects3D.length);
+    
     // Village exit gate
     doors.push({
         x: 750,
@@ -1568,6 +1582,9 @@ function createLevel2() {
         color: '#8B4513',
         puzzleType: 'memory'
     });
+    
+    console.log('Level 2 creation complete! Total 3D objects:', objects3D.length);
+    console.log('is3DLevel:', is3DLevel, 'advanced3D:', advanced3D);
 }
 
 // Memory card game for level 2
@@ -2595,28 +2612,38 @@ function update() {
     update3DCamera();
     update3DObjects();
     
-    // Handle input - WASD + Space + X controls
-    if (keys['ArrowRight'] || keys['d'] || keys['D']) {
-        serena.velocityX = serena.speed;
-    } else if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
-        serena.velocityX = -serena.speed;
-    } else {
-        serena.velocityX *= 0.8; // Friction
-    }
-    
-    if ((keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' ']) && !serena.isJumping) {
-        serena.velocityY = serena.jumpPower;
-        serena.isJumping = true;
-    }
-    
-    // 3D movement for levels 2+
+    // Handle input - Different controls for 2D vs 3D levels
     if (is3DLevel) {
+        // 3D movement for levels 2+
+        if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+            serena.velocityX = serena.speed;
+        } else if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+            serena.velocityX = -serena.speed;
+        } else {
+            serena.velocityX *= 0.8; // Friction
+        }
+        
         if (keys['s'] || keys['S']) {
             serena.z += 4; // Move backward in 3D space
         }
         if (keys['w'] || keys['W']) {
             serena.z -= 4; // Move forward in 3D space
         }
+    } else {
+        // 2D movement for level 1
+        if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+            serena.velocityX = serena.speed;
+        } else if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+            serena.velocityX = -serena.speed;
+        } else {
+            serena.velocityX *= 0.8; // Friction
+        }
+    }
+    
+    // Jump (works in both 2D and 3D)
+    if ((keys['ArrowUp'] || keys[' '] || keys['w'] || keys['W']) && !serena.isJumping) {
+        serena.velocityY = serena.jumpPower;
+        serena.isJumping = true;
     }
     
     // Handle shooting
