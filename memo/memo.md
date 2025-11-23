@@ -1,0 +1,159 @@
+《物理毛坯工作室》
+
+## bug
+- OK 旋转时的红色 bug，x y 两轴有问题
+- OK 编号 R 方格移出后，依然变红
+- OK 按 X 后， 再返回主页面，原点无退出
+- OK (ignore) R 新方块的 9999 事件 （已经禁用该功能）
+- OK 方向键 step bug
+- OK 颜色信息老是丢失....
+- OK Z 无法鼠标滚动
+- 上下基点好像有问题
+
+## 特性
+
+// today
+
+
+// plan
+- 在 键盘操作 时，基点好像失效了...
+- 形状预设（或者尝试一下，在下一次 X 添加时，也添加这个形状？？）
+- 添加一个调试窗口
+- cookie 记住主角旋转的角度
+- 视角切换 独立插件化（感觉还是需要优化，比如 锁）
+- group 机制
+- 系统设置
+- 代码成品化测试
+- ESC 退出面板
+- 删除的那些，del 类型的元素，之后想办法回收一下
+- OK 左键添加方块，可能更合理（好像有点困难，之后再搞吧）
+
+
+// already ok
+- ok 音乐和音效
+- ok 选中变红
+- ok 按键 X 能够新增加方块
+- OK 将 红点选中 这个功能单拎出来，独立为一个插件，复杂度已经上来了，刻不容缓！
+- OK 所有数值都最多保留两位小数
+- OK 将 init 里的内容也整理出去
+- OK 设定一个标识，标出新的 cube 的位置示意，按键是 Z，三种模式
+- OK 加速时，切换为物理引擎模式
+- OK 红点选中时，提示要给出 长宽高
+- OK 编辑器的整数化、归 0 按钮
+- OK 加上删除
+- OK 人物运动的动画（简单型）
+- OK 优先在编辑盘，显示左右（在编辑页面，上下左右默认是调整位置的），以及一些特殊参数
+- OK 基于是否是上下左右的基点的形变修改
+- OK 可移动的编辑框
+- OK 四种视角模式
+- OK 神奇数字叠加值
+- OK 颜色
+- OK 分离 inputPanel.js，调整其他文件 （有效 js 代码不超过 150 行）
+- OK 保存和缓存到 浏览器 中，方便建造
+- OK 更改纹理试一下，调调心情
+- OK 面板默认显示在左方
+
+
+-------
+
+## 其他
+
+- 将 addobj 给优化掉，想办法优雅一下
+- 尝试静止时候，旋转摄像头而不旋转人物
+- bug 中心圆点，在改变屏幕大小时，会消失
+- 一些长宽高大小预设
+- 让 gemini 优化一下一些函数，或许也能找一下更优化的架构方案
+- 有时候，红色高亮还是没有被全消掉
+- 保险期间，后续还是使用 NaiveBroadphase ，太可怕了。
+- 将取消键的那两个比较雷同的函数，规整化一下
+- 随机长宽？？试试
+- BUG 单击 R 键添加时，回到第三视角，依然还有白点的 bug
+- 一定要添加【简易代码扩展】，简易应对扯皮
+- 尝试全部将 G 给搞进去
+- 之后的说明文档里要写，为什么要搞这个键、这个功能呢？
+- 目前的动画，很难调试，得单独开发页面，先将就用吧，勿浪费时间
+- 模拟爬山？
+- 9.15 - 9.20 建立实例（和）
+- 不要追求大，先实现一些一堵墙、一个小场景、一个什么什么，小场景
+- 极端的模块化、显式接口、严格的调用顺序！
+- 长期的撤销和重做
+- 为了防止复杂度上升，每个 js 的有效 js 代码（不包含 HTML CSS 或 其他数据），不能超过 150 行，特殊情况应在 250 行之内（如独立插件）。
+- 彻底标红去除的选项，完全杜绝那个 bug
+- 13:{x: 5, y: 5, z: 5, w: 1, h: 1, d: 1} 里面的默认值也剔除掉
+- 有些 G 可以使用成 g
+- （暂不考虑）添加的是否是物理体
+- 人太宽了，变细瘦一点
+- 预设，改为反转
+- 基点，坐标也要跟着加一个参考值
+- OK 魔法数值 支持 .
+- 必须得支持自由视角，太难调了...
+- 可能，需要加一个中间基点，总是误触....
+- OK 可以在按动 E 键时，解除 F 冰冻，加速也可以考虑这种哲学
+- DPZ 的添加（暂时放弃吧，因为拾取也是一个问题，而且，我不认为在毛坯工作室里，这个问题很严重）
+- 关于 DPZ , 有空要研究，因为在真实使用里，它肯定很有用。但最好是智能确定 DPZ
+- 单独开辟一个非 webgl 网页，用于添加内容等等。搞得太复杂的不行。
+- 看来得实时生成 cubesdata.json
+- 移动窗口，需要限制位置
+- 慢走的速度，也得使用物理速度
+- 突然发现，将物体搞到远方后，物理失效了
+- 数字 onchange 事件时，最好红色高亮一下
+- 增加个锁定模式，即便是在选中下，依然能够使物体前后上下移动
+- 引入音乐？？每个书架，放置一个音乐？
+- 后续得搞一个每个方块的命名 ID 系统
+- 书架房间内显示当前屋人数
+- 基点对齐和滚轮那个，一定要搞好！！
+- 移动物体，超出 DPZ ，会焦点丢失... 要修复
+- 可以设置一个新模式，叫做手动加载书目，手动单击红色悬浮来确认，防止一些人喊卡
+- 增加一个屏蔽用户？？
+- 中文名就叫 无垠地带 。
+
+
+1. 注意，我把 git 命令改了，`git config --global http.version HTTP/1.1` 如果要改回来，我需要 `git config --global --unset http.version`。
+2. python3 -m http.server 7890  是启动本地服务器
+3. 目前的想法是，添加三个工具，【位置变换】【对称】【偏移】。按照操作方式，将它们的操作步骤，放入 json 里，以便后期复原。
+4. font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft Yahei', 'Heiti SC', 'Source Han Sans SC', sans-serif;   svg 比较安全的字体
+5. font-family="Georgia, 'Times New Roman', Songti SC, SimSun, Noto Serif CJK SC, serif"  // 衬线字体
+6. 排名来源： https://tranco-list.eu/
+
+常见的 webgl 崩溃
+1. w_ins_lab.js:309 Uncaught InvalidStateError: Failed to execute 'toString' on 'DOMMatrixReadOnly': DOMMatrix cannot be serialized with NaN or Infinity values.
+    at Object.render (w_ins_lab.js:309:18)
+    at draw (w_ins_lab.js:248:19)
+
+2. w_ins_lab.js:311 Uncaught InvalidStateError: Failed to execute 'toString' on 'DOMMatrixReadOnly': DOMMatrix cannot be serialized with NaN or Infinity values.
+    at Object.render (w_ins_lab.js:311:18)
+    at draw (w_ins_lab.js:250:19)
+
+3. w_ins_lab.js:311 Uncaught InvalidStateError: Failed to execute 'toString' on 'DOMMatrixReadOnly': DOMMatrix cannot be serialized with NaN or Infinity values.
+    at Object.render (w_ins_lab.js:311:18)
+    at draw (w_ins_lab.js:250:19)
+4. Uncaught InvalidStateError: Failed to execute 'toString' on 'DOMMatrixReadOnly': DOMMatrix cannot be serialized with NaN or Infinity values.
+    at Object.render (w_ins_lab.js:317:18)
+    at draw (w_ins_lab.js:256:19)
+5. 609w_ins_lab.js:317 Uncaught InvalidStateError: Failed to execute 'toString' on 'DOMMatrixReadOnly': DOMMatrix cannot be serialized with NaN or Infinity values.
+    at Object.render (w_ins_lab.js:317:18)
+    at draw (w_ins_lab.js:256:19)
+6. w_ins_lab.js:527 Uncaught InvalidStateError: Failed to execute 'toString' on 'DOMMatrixReadOnly': DOMMatrix cannot be serialized with NaN or Infinity values.
+    at DOMMatrixReadOnly.toString (w_ins_lab.js:527:35)
+    at Object.render (w_ins_lab.js:319:18)
+    at draw (w_ins_lab.js:256:19)
+7. w_ins_lab.js:319 Uncaught InvalidStateError: Failed to execute 'toString' on 'DOMMatrixReadOnly': DOMMatrix cannot be serialized with NaN or Infinity values.
+    at Object.render (w_ins_lab.js:319:18)
+    at draw (w_ins_lab.js:256:19)
+
+    --------- GPT 修完后 ，还有的报错：
+
+    Uncaught InvalidStateError: Failed to execute 'toString' on 'DOMMatrixReadOnly': DOMMatrix cannot be serialized with NaN or Infinity values.
+    at Object.render (w_ins_lab.js:328:36)
+    at draw (w_ins_lab.js:256:19)
+w_ins_lab.js:328 Uncaught InvalidStateError: Failed to execute 'toString' on 'DOMMatrixReadOnly': DOMMatrix cannot be serialized with NaN or Infinity values.
+    at Object.render (w_ins_lab.js:328:36)
+    at draw (w_ins_lab.js:256:19)
+
+将本文里面的网站，通过你的知识库或互联网，告诉我它是什么网站，干什么的。不知道就写【do not know】,不确定，就在最后面标注【？】。。。如果有品牌，或者说有具体的网站主名，就写出来。。。每个网站的介绍不超过20字。介绍均追加到网站后面！
+
+
+## hugo
+
+hugo -d /Applications/EasySrv/www/localhost/github_pages/20-8-28/openworld-js/doc 导出
+hugo server -b http://localhost:1313 --disableFastRender      tiaosh
