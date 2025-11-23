@@ -1224,146 +1224,215 @@ function createLevel1() {
 }
 
 function createLevel2() {
-    console.log('Creating Level 2 - Minecraft Open World 3D');
+    console.log('Creating Level 2 - Minecraft Overworld 3D');
     
     // Clear all 2D elements for pure 3D Minecraft experience
     obstacles = [];
     platforms = [];
     
-    // MINECRAFT-STYLE OPEN WORLD TERRAIN
+    // MINECRAFT OVERWORLD - BIOME VARIETY
     
-    // Large ground platform (grass block)
+    // Large grassy plains
     objects3D.push({
         type: 'platform',
         x: 400,
         y: 350,
         z: 0,
-        width: 1200,
+        width: 1600,
         height: 20,
-        depth: 400,
+        depth: 600,
         color: '#7CFC00',  // Grass green
         rotation: 0
     });
     
-    // Mountain terrain
-    objects3D.push({
-        type: 'platform',
-        x: 200,
-        y: 250,
-        z: -100,
-        width: 150,
-        height: 100,
-        depth: 100,
-        color: '#8B7355',  // Mountain brown
-        rotation: 0
-    });
-    
-    objects3D.push({
-        type: 'platform',
-        x: 600,
-        y: 280,
-        z: -150,
-        width: 120,
-        height: 70,
-        depth: 80,
-        color: '#8B7355',
-        rotation: 0
-    });
-    
-    // Floating islands (Minecraft style)
-    objects3D.push({
-        type: 'platform',
-        x: 300,
-        y: 200,
-        z: -200,
-        width: 100,
-        height: 15,
-        depth: 100,
-        color: '#7CFC00',
-        rotation: 0
-    });
-    
-    objects3D.push({
-        type: 'platform',
-        x: 500,
-        y: 180,
-        z: -250,
-        width: 80,
-        height: 15,
-        depth: 80,
-        color: '#7CFC00',
-        rotation: 0
-    });
-    
-    // Tree structures
-    for (let i = 0; i < 4; i++) {
-        // Tree trunk
+    // Forest area with oak trees
+    for (let i = 0; i < 8; i++) {
+        const treeX = 200 + i * 140;
+        const treeZ = -80 - i * 35;
+        
+        // Oak tree trunk
         objects3D.push({
             type: 'platform',
-            x: 150 + i * 180,
+            x: treeX,
             y: 320,
-            z: -50 - i * 30,
-            width: 20,
+            z: treeZ,
+            width: 25,
             height: 30,
-            depth: 20,
+            depth: 25,
             color: '#8B4513',  // Brown trunk
             rotation: 0
         });
         
-        // Tree leaves
+        // Oak tree leaves (spherical)
         objects3D.push({
             type: 'platform',
-            x: 150 + i * 180,
-            y: 290,
-            z: -50 - i * 30,
-            width: 60,
-            height: 30,
-            depth: 60,
+            x: treeX,
+            y: 280,
+            z: treeZ,
+            width: 80,
+            height: 40,
+            depth: 80,
             color: '#228B22',  // Green leaves
             rotation: 0
         });
     }
     
-    // Minecraft-style enemies (Creepers/Zombies)
+    // Mountain biome
+    objects3D.push({
+        type: 'platform',
+        x: 300,
+        y: 200,
+        z: -200,
+        width: 200,
+        height: 150,
+        depth: 150,
+        color: '#8B7355',  // Mountain stone
+        rotation: 0
+    });
+    
+    // Snow-capped mountain peak
+    objects3D.push({
+        type: 'platform',
+        x: 300,
+        y: 180,
+        z: -200,
+        width: 120,
+        height: 20,
+        depth: 120,
+        color: '#FFFAFA',  // Snow white
+        rotation: 0
+    });
+    
+    // Desert biome with cacti
+    objects3D.push({
+        type: 'platform',
+        x: 700,
+        y: 340,
+        z: -250,
+        width: 300,
+        height: 30,
+        depth: 200,
+        color: '#EDC9AF',  // Sand color
+        rotation: 0
+    });
+    
+    // Cacti in desert
     for (let i = 0; i < 4; i++) {
         objects3D.push({
-            type: 'enemy',
-            x: 250 + i * 140,  // Spread far from spawn
-            y: 300,
-            z: -80 - i * 40,
-            width: 35,
-            height: 45,
-            depth: 35,
-            color: i % 2 === 0 ? '#00FF00' : '#4B0082',  // Green creepers, purple zombies
-            speed: 0.8 + i * 0.3,
-            direction: i % 2 === 0 ? 1 : -1,
-            rotation: 0,
-            rotationSpeed: 0.01
+            type: 'platform',
+            x: 650 + i * 60,
+            y: 310,
+            z: -240 - i * 20,
+            width: 15,
+            height: 30,
+            depth: 15,
+            color: '#2F4F2F',  // Green cactus
+            rotation: 0
         });
     }
     
-    // Diamond collectibles (Minecraft style)
+    // River with water
+    objects3D.push({
+        type: 'platform',
+        x: 500,
+        y: 345,
+        z: -100,
+        width: 600,
+        height: 5,
+        depth: 80,
+        color: '#4682B4',  // Water blue
+        rotation: 0
+    });
+    
+    // Wooden bridge over river
+    for (let i = 0; i < 3; i++) {
+        objects3D.push({
+            type: 'platform',
+            x: 350 + i * 100,
+            y: 330,
+            z: -100,
+            width: 80,
+            height: 15,
+            depth: 60,
+            color: '#8B4513',  // Wood brown
+            rotation: 0
+        });
+    }
+    
+    // Minecraft mobs (Cows, Pigs, Chickens)
     for (let i = 0; i < 6; i++) {
+        const mobColors = ['#8B4513', '#FFB6C1', '#FFFFFF']; // Cow, Pig, Chicken
+        objects3D.push({
+            type: 'enemy',
+            x: 250 + i * 120,  // Spread far from spawn
+            y: 320,
+            z: -90 - i * 35,
+            width: 35,
+            height: 40,
+            depth: 35,
+            color: mobColors[i % 3],
+            speed: 0.5 + Math.random() * 0.5,
+            direction: i % 2 === 0 ? 1 : -1,
+            rotation: 0,
+            rotationSpeed: 0.005
+        });
+    }
+    
+    // Mining resources (Coal, Iron, Gold, Diamond)
+    const resourceColors = ['#2F4F4F', '#B87333', '#FFD700', '#00CED1']; // Coal, Iron, Gold, Diamond
+    for (let i = 0; i < 8; i++) {
         objects3D.push({
             type: 'collectible',
-            x: 180 + i * 100,
-            y: 150 + Math.sin(i * 1.5) * 80,
-            z: -120 - i * 25,
-            width: 25,
-            height: 25,
-            depth: 25,
-            color: '#00CED1',  // Diamond cyan
+            x: 180 + i * 110,
+            y: 140 + Math.sin(i * 1.8) * 90,
+            z: -140 - i * 28,
+            width: 28,
+            height: 28,
+            depth: 28,
+            color: resourceColors[i % 4],
             collected: false,
             rotation: 0,
             floatOffset: Math.random() * Math.PI * 2
         });
     }
     
-    // Portal door (Nether portal style)
+    // Village with houses
+    for (let i = 0; i < 3; i++) {
+        const houseX = 800 + i * 150;
+        const houseZ = -200 - i * 50;
+        
+        // House foundation
+        objects3D.push({
+            type: 'platform',
+            x: houseX,
+            y: 310,
+            z: houseZ,
+            width: 60,
+            height: 40,
+            depth: 60,
+            color: '#D2691E',  // Wood house
+            rotation: 0
+        });
+        
+        // Roof
+        objects3D.push({
+            type: 'platform',
+            x: houseX,
+            y: 290,
+            z: houseZ,
+            width: 70,
+            height: 20,
+            depth: 70,
+            color: '#8B0000',  // Red roof
+            rotation: 0
+        });
+    }
+    
+    // Nether portal door
     doors.push({
-        x: 750,
+        x: 850,
         y: 250,
-        width: 50,
+        width: 60,
         height: 80,
         locked: true,
         riddleId: 4,
@@ -1772,18 +1841,28 @@ function update() {
     update3DCamera();
     update3DObjects();
     
-    // Handle input
-    if (keys['ArrowRight']) {
+    // Handle input - WASD + Space + X controls
+    if (keys['ArrowRight'] || keys['d'] || keys['D']) {
         serena.velocityX = serena.speed;
-    } else if (keys['ArrowLeft']) {
+    } else if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
         serena.velocityX = -serena.speed;
     } else {
         serena.velocityX *= 0.8; // Friction
     }
     
-    if ((keys['ArrowUp'] || keys[' ']) && !serena.isJumping) {
+    if ((keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' ']) && !serena.isJumping) {
         serena.velocityY = serena.jumpPower;
         serena.isJumping = true;
+    }
+    
+    // 3D movement for levels 2+
+    if (is3DLevel) {
+        if (keys['s'] || keys['S']) {
+            serena.z += 4; // Move backward in 3D space
+        }
+        if (keys['w'] || keys['W']) {
+            serena.z -= 4; // Move forward in 3D space
+        }
     }
     
     // Handle shooting
@@ -1926,14 +2005,16 @@ function update() {
             }
             serena.velocityX = 0;
             
-            // Check if it's a puzzle or riddle door
-            currentDoor = door;
-            if (door.puzzleType === 'puzzle') {
-                console.log('Opening puzzle modal');
-                choosePuzzle();
-            } else {
-                console.log('Opening riddle modal');
-                openRiddleModal(door);
+            // Only open riddle/puzzle if player presses E key
+            if (keys['e'] || keys['E']) {
+                currentDoor = door;
+                if (door.puzzleType === 'puzzle') {
+                    console.log('Opening puzzle modal');
+                    choosePuzzle();
+                } else {
+                    console.log('Opening riddle modal');
+                    openRiddleModal(door);
+                }
             }
         }
     }
