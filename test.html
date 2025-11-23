@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Serena Game</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial; }
+        canvas { border: 2px solid black; }
+        button { margin: 10px; padding: 10px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h1>Test Serena Game</h1>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <br>
+    <button id="startBtn">Inizia Gioco</button>
+    <button id="testBtn">Test Canvas</button>
+    
+    <script>
+        console.log('Script loaded!');
+        
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameRunning = false;
+        
+        console.log('Canvas:', canvas);
+        console.log('Context:', ctx);
+        
+        // Test drawing
+        function testDraw() {
+            console.log('Test drawing...');
+            ctx.fillStyle = 'red';
+            ctx.fillRect(50, 50, 100, 100);
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(200, 200, 50, 50);
+            console.log('Test drawing completed');
+        }
+        
+        // Simple game
+        function startGame() {
+            console.log('Start game clicked!');
+            gameRunning = true;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw Serena (simple rectangle)
+            ctx.fillStyle = '#FF69B4';
+            ctx.fillRect(50, 300, 30, 40);
+            
+            // Draw text
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText('Serena è qui!', 50, 250);
+            
+            console.log('Game started and drawn!');
+        }
+        
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('testBtn').addEventListener('click', testDraw);
+        
+        console.log('Event listeners added!');
+        
+        // Initial test
+        testDraw();
+    </script>
+</body>
+</html>

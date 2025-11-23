@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Serena Escape: Da Bologna a Benevento</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="score">Punteggio: <span id="score">0</span></div>
+            <div class="lives">Vite: <span id="lives">3</span></div>
+            <div class="level">Livello: <span id="level">1</span></div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="gameCanvas" width="800" height="400"></canvas>
+        </div>
+        
+        <!-- Touch controls for mobile -->
+        <div class="mobile-controls">
+            <div class="touch-buttons">
+                <button class="touch-btn" id="leftBtn">←</button>
+                <button class="touch-btn" id="jumpBtn">↑</button>
+                <button class="touch-btn" id="rightBtn">→</button>
+            </div>
+        </div>
+        
+        <div class="game-controls">
+            <div class="instructions">
+                <p class="desktop-instructions">Usa FRECCIA DESTRA per muoverti, FRECCIA SU per saltare</p>
+                <p class="mobile-instructions">Usa i pulsanti touch per muoverti e saltare</p>
+                <p>Evita gli ostacoli e raggiungi il principe Stefano a Benevento!</p>
+            </div>
+            <div class="controls">
+                <button id="startBtn">Inizia Gioco</button>
+                <button id="pauseBtn">Pausa</button>
+                <button id="restartBtn">Riavvia</button>
+            </div>
+        </div>
+        
+        <div id="gameOver" class="modal hidden">
+            <div class="modal-content">
+                <h2>Game Over!</h2>
+                <p>Serena non è riuscita a raggiungere Benevento...</p>
+                <button onclick="restartGame()">Riprova</button>
+            </div>
+        </div>
+        
+        <div id="victory" class="modal hidden">
+            <div class="modal-content">
+                <h2>Vittoria!</h2>
+                <p>Serena ha raggiunto il principe Stefano a Benevento! ❤️</p>
+                <p>Punteggio finale: <span id="finalScore">0</span></p>
+                <button onclick="restartGame()">Gioca Ancora</button>
+            </div>
+        </div>
+        
+        <div id="riddleModal" class="modal hidden">
+            <div class="modal-content riddle-content">
+                <h2>🚪 Porta Bloccata!</h2>
+                <p>Risolvi l'indovinello per aprire la porta:</p>
+                
+                <div class="riddle-content">
+                    <div class="riddle-text" id="riddleText"></div>
+                    <div class="riddle-image" id="riddleEmoji"></div>
+                </div>
+                
+                <div class="riddle-answer-section hidden" id="answerSection">
+                    <input type="text" id="riddleAnswer" placeholder="La tua risposta..." maxlength="20">
+                    <div class="riddle-buttons">
+                        <button id="submitAnswer">Invia Risposta</button>
+                        <button id="skipRiddle">Salta (-1 vita)</button>
+                    </div>
+                    <div class="riddle-feedback" id="riddleFeedback"></div>
+                </div>
+                
+                <div class="puzzle-section hidden" id="puzzleSection">
+                    <h3>🧩 Puzzle della Città</h3>
+                    <div class="puzzle-container" id="puzzleContainer"></div>
+                    <div class="puzzle-buttons">
+                        <button id="checkPuzzle">Verifica Puzzle</button>
+                        <button id="skipPuzzle">Salta (-1 vita)</button>
+                    </div>
+                    <div class="puzzle-feedback" id="puzzleFeedback"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
