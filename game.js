@@ -1207,7 +1207,22 @@ function createLevel1() {
 }
 
 function createLevel2() {
-    console.log('Creating Level 2 - 3D World');
+    // Clear all 2D elements for pure 3D experience
+    obstacles = [];
+    platforms = [];
+    
+    // 3D ground platform
+    objects3D.push({
+        type: 'platform',
+        x: 400,
+        y: 350,
+        z: 0,
+        width: 800,
+        height: 20,
+        depth: 200,
+        color: '#8B4513',
+        rotation: 0
+    });
     
     // 3D floating platforms at different depths
     objects3D.push({
@@ -1281,22 +1296,6 @@ function createLevel2() {
         });
     }
     
-    // Traditional 2D obstacles for compatibility
-    for (let i = 0; i < 2; i++) {
-        obstacles.push({
-            x: 250 + i * 300,
-            y: 310,
-            width: 35,
-            height: 40,
-            type: 'socialWorker',
-            color: '#4169E1',
-            speed: 1.5,
-            direction: i % 2 === 0 ? 1 : -1,
-            minX: 230 + i * 300,
-            maxX: 270 + i * 300
-        });
-    }
-    
     // Door with advanced puzzle
     doors.push({
         x: 700,
@@ -1307,20 +1306,6 @@ function createLevel2() {
         riddleId: 4,
         color: '#8B4513',
         puzzleType: 'puzzle'
-    });
-    
-    // Moving platforms in 3D space
-    platforms.push({
-        x: 300,
-        y: 320,
-        width: 60,
-        height: 10,
-        color: '#9B59B6',
-        z: -50,
-        moving: true,
-        moveSpeed: 1,
-        moveRange: 100,
-        originalX: 300
     });
 }
 
