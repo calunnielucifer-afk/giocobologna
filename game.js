@@ -16,6 +16,18 @@ let projectiles = [];
 let canShoot = true;
 let shootCooldown = 500; // milliseconds between shots
 
+// 3D System
+let camera3D = {
+    x: 0,
+    y: 0,
+    z: 500,
+    rotation: 0
+};
+
+let is3DLevel = false;
+let perspective3D = 800;
+let objects3D = [];
+
 // Game objects
 let serena = {
     x: 50,
@@ -28,7 +40,9 @@ let serena = {
     jumpPower: -15,
     isJumping: false,
     color: '#FF69B4',
-    hairColor: '#000000'
+    hairColor: '#000000',
+    z: 0, // 3D depth
+    velocityZ: 0
 };
 
 let obstacles = [];
@@ -893,6 +907,32 @@ function victory() {
     updateUI();
     
     if (level < 4) {
+        level++;
+        
+        // Show level transition message
+        if (level === 2) {
+            alert('🎉 Livello 2 - Benvenuto nel mondo 3D! 🌟\nUsa W/S per muoverti in profondità!');
+        }
+        
+        // Restart with next level
+        setTimeout(() => {
+            init();
+            gameRunning = true;
+            gameLoop();
+        }, 2000);
+    } else {
+        // Game completed
+        const victoryModal = document.getElementById('victory');
+        if (victoryModal) {
+            victoryModal.classList.remove('hidden');
+            
+            const finalScoreElement = document.getElementById('finalScore');
+            if (finalScoreElement) {
+                finalScoreElement.textContent = score;
+            }
+        }
+    }
+}
         // Next level
         level++;
         document.getElementById('victory').innerHTML = `
@@ -992,11 +1032,22 @@ function init() {
     lives = 3;
     level = 1;
     advanced3D = false;
+    is3DLevel = false;
     serena.x = 50;
     serena.y = 300;
+    serena.z = 0;
     serena.velocityX = 0;
     serena.velocityY = 0;
+    serena.velocityZ = 0;
     serena.isJumping = false;
+    
+    // Reset 3D camera
+    camera3D = {
+        x: 0,
+        y: 0,
+        z: 500,
+        rotation: 0
+    };
     
     createLevel(level);
     updateUI();
@@ -1008,8 +1059,10 @@ function createLevel(levelNum) {
     platforms = [];
     particles = [];
     doors = [];
+    objects3D = [];
     
-    // Activate advanced 3D from level 2
+    // Activate 3D from level 2
+    is3DLevel = levelNum >= 2;
     advanced3D = levelNum >= 2;
     
     // Ground platform
@@ -1018,7 +1071,8 @@ function createLevel(levelNum) {
         y: 350,
         width: 800,
         height: 50,
-        color: '#8B4513'
+        color: '#8B4513',
+        z: 0
     });
     
     // Level-specific obstacles
@@ -1178,50 +1232,282 @@ function createLevel1() {
 }
 
 function createLevel2() {
-    // Advanced 3D level with more obstacles
-    for (let i = 0; i < 4; i++) {
+    console.log('Creating Level 2 - 3D World');
+    
+    // 3D floating platforms at different depths
+    objects3D.push({
+        type: 'platform',
+        x: 200,
+        y: 280,
+        z: -100,
+        width: 80,
+        height: 15,
+        depth: 60,
+        color: '#FF6B6B',
+        rotation: 0
+    });
+    
+    objects3D.push({
+        type: 'platform',
+        x: 400,
+        y: 250,
+        z: -200,
+        width: 100,
+        height: 15,
+        depth: 80,
+        color: '#4ECDC4',
+        rotation: 0
+    });
+    
+    objects3D.push({
+        type: 'platform',
+        x: 600,
+        y: 300,
+        z: -150,
+        width: 90,
+        height: 15,
+        depth: 70,
+        color: '#95E77E',
+        rotation: 0
+    });
+    
+    // 3D moving obstacles
+    for (let i = 0; i < 3; i++) {
+        objects3D.push({
+            type: 'enemy',
+            x: 200 + i * 200,
+            y: 200,
+            z: -50 - i * 50,
+            width: 30,
+            height: 40,
+            depth: 30,
+            color: '#FF4444',
+            speed: 1 + i * 0.5,
+            direction: i % 2 === 0 ? 1 : -1,
+            rotation: 0,
+            rotationSpeed: 0.02
+        });
+    }
+    
+    // 3D collectible items
+    for (let i = 0; i < 5; i++) {
+        objects3D.push({
+            type: 'collectible',
+            x: 150 + i * 120,
+            y: 150 + Math.sin(i) * 50,
+            z: -100 - i * 30,
+            width: 20,
+            height: 20,
+            depth: 20,
+            color: '#FFD700',
+            collected: false,
+            rotation: 0,
+            floatOffset: Math.random() * Math.PI * 2
+        });
+    }
+    
+    // Traditional 2D obstacles for compatibility
+    for (let i = 0; i < 2; i++) {
         obstacles.push({
-            x: 150 + i * 150,
+            x: 250 + i * 300,
             y: 310,
             width: 35,
             height: 40,
             type: 'socialWorker',
             color: '#4169E1',
-            speed: 1 + i * 0.3,
+            speed: 1.5,
             direction: i % 2 === 0 ? 1 : -1,
-            minX: 130 + i * 150,
-            maxX: 170 + i * 150
+            minX: 230 + i * 300,
+            maxX: 270 + i * 300
         });
     }
     
-    // More snow obstacles
-    for (let i = 0; i < 3; i++) {
-        obstacles.push({
-            x: 200 + i * 180,
-            y: 310,
-            width: 45,
-            height: 45,
-            type: 'snow',
-            color: '#FFFFFF',
-            speed: 0
-        });
+    // Door with advanced puzzle
+    doors.push({
+        x: 700,
+        y: 280,
+        width: 40,
+        height: 70,
+        locked: true,
+        riddleId: 4,
+        color: '#8B4513',
+        puzzleType: 'puzzle'
+    });
+    
+    // Moving platforms in 3D space
+    platforms.push({
+        x: 300,
+        y: 320,
+        width: 60,
+        height: 10,
+        color: '#9B59B6',
+        z: -50,
+        moving: true,
+        moveSpeed: 1,
+        moveRange: 100,
+        originalX: 300
+    });
+}
+
+// 3D Functions
+function project3D(x, y, z) {
+    const scale = perspective3D / (perspective3D + z - camera3D.z);
+    return {
+        x: (x - camera3D.x) * scale + canvas.width / 2,
+        y: (y - camera3D.y) * scale + canvas.height / 2,
+        scale: scale
+    };
+}
+
+function draw3DObject(obj) {
+    const projected = project3D(obj.x, obj.y, obj.z);
+    
+    ctx.save();
+    ctx.globalAlpha = Math.max(0.3, Math.min(1, projected.scale));
+    
+    if (obj.type === 'platform') {
+        // Draw 3D platform with perspective
+        const corners = [
+            project3D(obj.x - obj.width/2, obj.y - obj.height/2, obj.z - obj.depth/2),
+            project3D(obj.x + obj.width/2, obj.y - obj.height/2, obj.z - obj.depth/2),
+            project3D(obj.x + obj.width/2, obj.y - obj.height/2, obj.z + obj.depth/2),
+            project3D(obj.x - obj.width/2, obj.y - obj.height/2, obj.z + obj.depth/2)
+        ];
+        
+        // Top face
+        ctx.fillStyle = obj.color;
+        ctx.beginPath();
+        ctx.moveTo(corners[0].x, corners[0].y);
+        corners.forEach(corner => ctx.lineTo(corner.x, corner.y));
+        ctx.closePath();
+        ctx.fill();
+        
+        // Add 3D effect with darker sides
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath();
+        ctx.moveTo(corners[1].x, corners[1].y);
+        ctx.lineTo(corners[2].x, corners[2].y);
+        ctx.lineTo(projected.x + obj.width/2 * projected.scale, projected.y + obj.height * projected.scale);
+        ctx.lineTo(projected.x - obj.width/2 * projected.scale, projected.y + obj.height * projected.scale);
+        ctx.closePath();
+        ctx.fill();
+    }
+    else if (obj.type === 'enemy') {
+        // Draw 3D enemy with rotation
+        ctx.translate(projected.x, projected.y);
+        ctx.rotate(obj.rotation);
+        ctx.scale(projected.scale, projected.scale);
+        
+        // Enemy body
+        ctx.fillStyle = obj.color;
+        ctx.fillRect(-obj.width/2, -obj.height/2, obj.width, obj.height);
+        
+        // Enemy face
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(-obj.width/4, -obj.height/4, obj.width/4, obj.height/4);
+        ctx.fillRect(0, -obj.height/4, obj.width/4, obj.height/4);
+    }
+    else if (obj.type === 'collectible') {
+        // Draw 3D collectible with floating animation
+        const floatY = Math.sin(Date.now() * 0.002 + obj.floatOffset) * 10;
+        ctx.translate(projected.x, projected.y + floatY);
+        ctx.rotate(obj.rotation);
+        ctx.scale(projected.scale, projected.scale);
+        
+        // Star shape
+        ctx.fillStyle = obj.color;
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+            const angle = (i * 72 - 90) * Math.PI / 180;
+            const x = Math.cos(angle) * obj.width/2;
+            const y = Math.sin(angle) * obj.height/2;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+            
+            const innerAngle = ((i * 72 + 36) - 90) * Math.PI / 180;
+            const innerX = Math.cos(innerAngle) * obj.width/4;
+            const innerY = Math.sin(innerAngle) * obj.height/4;
+            ctx.lineTo(innerX, innerY);
+        }
+        ctx.closePath();
+        ctx.fill();
     }
     
-    // Multiple doors with puzzles
-    for (let i = 0; i < 3; i++) {
-        doors.push({
-            x: 250 + i * 200,
-            y: 280,
-            width: 40,
-            height: 70,
-            locked: true,
-            riddleId: i * 2,
-            color: '#8B4513',
-            puzzleType: i % 2 === 0 ? 'riddle' : 'puzzle'
-        });
+    ctx.restore();
+}
+
+function update3DObjects() {
+    objects3D.forEach(obj => {
+        // Rotate enemies
+        if (obj.type === 'enemy') {
+            obj.rotation += obj.rotationSpeed;
+            obj.x += obj.speed * obj.direction;
+            
+            // Bounce off boundaries
+            if (obj.x > 700 || obj.x < 100) {
+                obj.direction *= -1;
+            }
+        }
+        
+        // Rotate collectibles
+        if (obj.type === 'collectible') {
+            obj.rotation += 0.05;
+        }
+        
+        // Check collision with Serena in 3D space
+        if (obj.type === 'collectible' && !obj.collected) {
+            const dist = Math.sqrt(
+                Math.pow(serena.x - obj.x, 2) + 
+                Math.pow(serena.y - obj.y, 2) + 
+                Math.pow(serena.z - obj.z, 2)
+            );
+            
+            if (dist < 50) {
+                obj.collected = true;
+                score += 10;
+                updateUI();
+                
+                // Create collection particles
+                for (let i = 0; i < 10; i++) {
+                    particles.push({
+                        x: obj.x,
+                        y: obj.y,
+                        z: obj.z,
+                        velocityX: (Math.random() - 0.5) * 5,
+                        velocityY: (Math.random() - 0.5) * 5,
+                        velocityZ: (Math.random() - 0.5) * 5,
+                        life: 30,
+                        color: obj.color
+                    });
+                }
+            }
+        }
+        
+        // Check collision with enemies
+        if (obj.type === 'enemy') {
+            const dist = Math.sqrt(
+                Math.pow(serena.x - obj.x, 2) + 
+                Math.pow(serena.y - obj.y, 2) + 
+                Math.pow(serena.z - obj.z, 2)
+            );
+            
+            if (dist < 40) {
+                loseLife();
+            }
+        }
+    });
+}
+
+function update3DCamera() {
+    if (is3DLevel) {
+        // Smooth camera follow
+        camera3D.x += (serena.x - 400 - camera3D.x) * 0.1;
+        camera3D.y += (serena.y - 200 - camera3D.y) * 0.1;
+        camera3D.z = 500 + Math.sin(Date.now() * 0.001) * 20; // Subtle breathing effect
     }
-    
-    // Complex platforms
+}
+
+// Complex platforms
     platforms.push({
         x: 100,
         y: 250,
@@ -1439,6 +1725,10 @@ function createFinalLevel() {
 function update() {
     if (!gameRunning || gamePaused) return;
     
+    // Update 3D camera and objects
+    update3DCamera();
+    update3DObjects();
+    
     // Handle input
     if (keys['ArrowRight']) {
         serena.velocityX = serena.speed;
@@ -1465,6 +1755,12 @@ function update() {
     // Update position
     serena.x += serena.velocityX;
     serena.y += serena.velocityY;
+    
+    // 3D movement (depth)
+    if (is3DLevel) {
+        if (keys['w']) serena.z -= 5; // Move forward
+        if (keys['s']) serena.z += 5; // Move backward
+    }
     
     // Gravity
     serena.velocityY += 0.8;
@@ -2206,6 +2502,12 @@ function draw() {
     
     // Draw clouds with 3D effect
     drawClouds();
+    
+    // Draw 3D objects (behind 2D elements)
+    if (is3DLevel) {
+        console.log('Drawing 3D objects...');
+        objects3D.forEach(obj => draw3DObject(obj));
+    }
     
     // Draw platforms with enhanced 3D effect
     console.log('Drawing platforms...');
