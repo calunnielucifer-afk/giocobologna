@@ -48,6 +48,10 @@ let serena = {
 let obstacles = [];
 let platforms = [];
 let particles = [];
+
+// Level 2 collectible tracking (open world style)
+let level2TotalCollectibles = 0;
+let level2Collected = 0;
 let goal = { x: 750, y: 320, width: 40, height: 60 };
 let doors = [];
 let gamePausedForRiddle = false;
@@ -1325,6 +1329,10 @@ function createLevel2() {
     platforms = [];
     objects3D = [];
     
+    // Reset level 2 collectible tracking
+    level2TotalCollectibles = 0;
+    level2Collected = 0;
+    
     console.log('Cleared arrays, creating open world village...');
     
     // REALISTIC OPEN WORLD VILLAGE - Inspired by openworld-js
@@ -1567,11 +1575,12 @@ function createLevel2() {
             texture: item.texture,
             physics: { mass: 0.1, friction: 0.5 }
         });
+        level2TotalCollectibles++;
     }
     
     console.log('Added collectibles, objects3D length:', objects3D.length);
     
-    // Village exit gate
+    // Village exit gate (unlocked after collecting all items)
     doors.push({
         x: 750,
         y: 280,
@@ -1580,7 +1589,7 @@ function createLevel2() {
         locked: true,
         riddleId: 4,
         color: '#8B4513',
-        puzzleType: 'memory'
+        puzzleType: 'level2_exit'
     });
     
     console.log('Level 2 creation complete! Total 3D objects:', objects3D.length);
@@ -1869,6 +1878,20 @@ function update3DObjects() {
                 obj.collected = true;
                 score += 10;
                 updateUI();
+
+                // Level 2: count collected items to unlock exit door
+                if (level === 2) {
+                    level2Collected++;
+                    if (level2Collected >= level2TotalCollectibles && level2TotalCollectibles > 0) {
+                        // Unlock level 2 exit door
+                        doors.forEach(door => {
+                            if (door.puzzleType === 'level2_exit') {
+                                door.locked = false;
+                                door.color = '#32CD32'; // Green when unlocked
+                            }
+                        });
+                    }
+                }
                 
                 // Check if this is the key for level 4
                 if (obj.isKey && level === 4) {
@@ -2757,7 +2780,7 @@ function update() {
         }
     }
     
-    // Goal collision
+    // Goal collision (still used in level 1)
     if (serena.x < goal.x + goal.width &&
         serena.x + serena.width > goal.x &&
         serena.y < goal.y + goal.height &&
@@ -2765,36 +2788,39 @@ function update() {
         victory();
     }
     
-    // Door collisions (for riddles and puzzles)
+    // Door collisions
     nearDoorMessage = ""; // Reset message
     for (let door of doors) {
-        if (door.locked && 
-            serena.x < door.x + door.width &&
+        if (serena.x < door.x + door.width &&
             serena.x + serena.width > door.x &&
             serena.y < door.y + door.height &&
             serena.y + serena.height > door.y) {
-            
-            console.log('Door collision detected:', door);
-            console.log('Door locked:', door.locked);
-            console.log('Door type:', door.puzzleType ? 'puzzle' : 'riddle', 'Riddle ID:', door.riddleId);
-            console.log('Door index:', doors.indexOf(door));
-            
-            // Stop Serena from moving through locked door
-            if (serena.velocityX > 0) {
-                serena.x = door.x - serena.width;
-            } else if (serena.velocityX < 0) {
-                serena.x = door.x + door.width;
+
+            // Stop Serena from moving through locked doors
+            if (door.locked) {
+                if (serena.velocityX > 0) {
+                    serena.x = door.x - serena.width;
+                } else if (serena.velocityX < 0) {
+                    serena.x = door.x + door.width;
+                }
+                serena.velocityX = 0;
             }
-            serena.velocityX = 0;
-            
-            // Auto-open riddle/puzzle on collision
-            currentDoor = door;
-            if (door.puzzleType === 'puzzle') {
-                console.log('Opening puzzle modal');
-                choosePuzzle();
-            } else {
-                console.log('Opening riddle modal');
-                openRiddleModal(door);
+
+            // Level 1: use riddles/puzzles as before
+            if (level === 1 && door.locked) {
+                currentDoor = door;
+                if (door.puzzleType === 'puzzle') {
+                    choosePuzzle();
+                } else {
+                    openRiddleModal(door);
+                }
+            }
+
+            // Levels 2+: door is just progression gate, no riddles
+            if (level >= 2 && !door.locked) {
+                // Reaching an unlocked door in higher levels advances the game
+                victory();
+                return;
             }
         }
     }
