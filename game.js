@@ -53,6 +53,7 @@ let doors = [];
 let gamePausedForRiddle = false;
 let advanced3D = false;
 let puzzleSolved = false;
+let nearDoorMessage = ""; // Message to show when near door
 
 // Input handling
 const keys = {};
@@ -1994,6 +1995,7 @@ function update() {
     }
     
     // Door collisions (for riddles and puzzles)
+    nearDoorMessage = ""; // Reset message
     for (let door of doors) {
         if (door.locked && 
             serena.x < door.x + door.width &&
@@ -2013,6 +2015,9 @@ function update() {
                 serena.x = door.x + door.width;
             }
             serena.velocityX = 0;
+            
+            // Show interaction message
+            nearDoorMessage = "Premi E per " + (door.puzzleType === 'puzzle' ? 'risolvere il puzzle' : 'ascoltare l\'indovinello');
             
             // Only open riddle/puzzle if player presses E key
             if (keys['e'] || keys['E']) {
@@ -3039,7 +3044,14 @@ function draw() {
     ctx.font = 'bold 16px Arial';
     ctx.fillText(`Bologna → Benevento`, 10, 30);
     
-    // Draw door hint
+    // Draw door interaction hint
+    if (nearDoorMessage) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(serena.x - 50, serena.y - 40, 200, 30);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '14px Arial';
+        ctx.fillText(nearDoorMessage, serena.x - 45, serena.y - 20);
+    }
 
 // Draw Serena character with enhanced 3D details
 function drawSerena() {
