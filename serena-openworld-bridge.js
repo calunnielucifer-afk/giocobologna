@@ -16,49 +16,44 @@
       return;
     }
 
-    // Usa la scena del motore openworld invece di crearne una nuova
-    if (typeof k !== 'undefined' && k.W && k.W.scene) {
-      console.log('Integrazione con motore openworld...');
-      
-      // Carica il modello FBX di Serena
-      const fbxLoader = new THREE.FBXLoader();
-      fbxLoader.load(
-        'openworld/modelpg/Lady in red dress/Lady in red dress.fbx',
-        function(object) {
-          serenaModel = object;
-          object.scale.set(0.01, 0.01, 0.01); // Scala il modello
-          
-          // Posiziona Serena dove si trova il giocatore nel motore openworld
-          if (k.mainVPlayer !== undefined) {
+    // Attendi che il motore openworld sia pronto
+    function waitForOpenworld() {
+      if (typeof k !== 'undefined' && k.W && k.W.scene && k.mainVPlayer !== undefined) {
+        console.log('Integrazione con motore openworld...');
+        
+        // Carica il modello FBX di Serena
+        const fbxLoader = new THREE.FBXLoader();
+        fbxLoader.load(
+          'openworld/modelpg/Lady in red dress/Lady in red dress.fbx',
+          function(object) {
+            serenaModel = object;
+            object.scale.set(0.01, 0.01, 0.01); // Scala il modello
+            
+            // Posiziona Serena dove si trova il giocatore nel motore openworld
             const playerPos = k.addPhy.getPos(k.mainVPlayer);
             object.position.set(playerPos.x, playerPos.y, playerPos.z);
-          } else {
-            object.position.set(0, 1, 0);
-          }
-          
-          // Aggiungi alla scena del motore openworld
-          k.W.scene.add(object);
+            
+            // Aggiungi alla scena del motore openworld
+            k.W.scene.add(object);
 
-          // Log dei nomi dei mesh per debug
-          console.log('Mesh names in Serena model:');
-          object.traverse(function(child) {
-            if (child.isMesh) {
-              console.log('Mesh:', child.name);
+            // Log dei nomi dei mesh per debug
+            console.log('Mesh names in Serena model:');
+            object.traverse(function(child) {
+              if (child.isMesh) {
+                console.log('Mesh:', child.name);
+              }
+            });
+
+            // Applica le texture (se disponibili)
+            applyTexturesToModel(object);
+
+            // Animazioni (se presenti)
+            mixer = new THREE.AnimationMixer(object);
+            if (object.animations.length > 0) {
+              const action = mixer.clipAction(object.animations[0]);
+              action.play();
             }
-          });
 
-          // Applica le texture (se disponibili)
-          applyTexturesToModel(object);
-
-          // Animazioni (se presenti)
-          mixer = new THREE.AnimationMixer(object);
-          if (object.animations.length > 0) {
-            const action = mixer.clipAction(object.animations[0]);
-            action.play();
-          }
-
-          // Sostituisci il vecchio player cubo con Serena
-          if (k.mainVPlayer !== undefined) {
             // Nascondi il vecchio cubo del giocatore
             const oldPlayer = k.W.getObj(k.mainVPlayer);
             if (oldPlayer) {
@@ -73,21 +68,23 @@
                 serenaModel.rotation.y = k.keys.turnRight || 0;
               }
             });
-          }
 
-          console.log('Modello FBX di Serena integrato nel motore openworld.');
-        },
-        function(xhr) {
-          console.log((xhr.loaded / xhr.total * 100) + '% caricato');
-        },
-        function(error) {
-          console.error('Errore caricamento FBX:', error);
-        }
-      );
-    } else {
-      console.warn('Motore openworld non trovato, fallback a scena three.js separata...');
-      // Fallback alla vecchia implementazione se necessario
+            console.log('Modello FBX di Serena integrato nel motore openworld.');
+          },
+          function(xhr) {
+            console.log((xhr.loaded / xhr.total * 100) + '% caricato');
+          },
+          function(error) {
+            console.error('Errore caricamento FBX:', error);
+          }
+        );
+      } else {
+        console.log('In attesa del motore openworld...');
+        setTimeout(waitForOpenworld, 500); // Riprova tra 500ms
+      }
     }
+    
+    waitForOpenworld();
   }
 
   // Funzione per applicare le texture al modello
