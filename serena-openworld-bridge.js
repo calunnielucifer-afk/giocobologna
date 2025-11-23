@@ -121,7 +121,19 @@
       function(object) {
         serenaModel = object;
         object.scale.set(0.01, 0.01, 0.01);
+        
+        // Correggi posizione per metterla in piedi
         object.position.set(0, 0.5, 0);
+        object.rotation.y = Math.PI; // Girata verso la camera
+        
+        // Assicurati che sia in piedi (rotazione corretta)
+        object.traverse(function(child) {
+          if (child.isMesh) {
+            child.rotation.x = 0; // Nessuna rotazione forward/backward
+            child.rotation.z = 0; // Nessuna rotazione laterale
+          }
+        });
+        
         scene.add(object);
 
         // Log dei mesh
@@ -217,11 +229,11 @@
           break;
         case 'ArrowLeft':
         case 'KeyA':
-          moveLeft = true;
+          moveLeft = true;  // Corretto: A = sinistra
           break;
         case 'ArrowRight':
         case 'KeyD':
-          moveRight = true;
+          moveRight = true;  // Corretto: D = destra
           break;
       }
     });
@@ -245,6 +257,66 @@
           moveRight = false;
           break;
       }
+    });
+
+    // Mouse look per guardarsi intorno
+    let mouseX = 0, mouseY = 0;
+    let isMouseDown = false;
+
+    document.addEventListener('mousedown', function() {
+      isMouseDown = true;
+    });
+
+    document.addEventListener('mouseup', function() {
+      isMouseDown = false;
+    });
+
+    document.addEventListener('mousemove', function(event) {
+      if (isMouseDown) {
+        mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+        mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        
+        // Aggiorna camera per guardarsi intorno
+        if (serenaModel) {
+          const offsetX = mouseX * 10;
+          const offsetZ = mouseY * 10;
+          camera.position.x = serenaModel.position.x + offsetX;
+          camera.position.z = serenaModel.position.z + 5 + offsetZ;
+          camera.lookAt(serenaModel.position);
+        }
+      }
+    });
+
+    // Touch look per mobile
+    let touchStartX = 0, touchStartY = 0;
+    let isTouching = false;
+
+    document.addEventListener('touchstart', function(event) {
+      if (event.touches.length === 1 && !joystickActive) {
+        isTouching = true;
+        touchStartX = event.touches[0].clientX;
+        touchStartY = event.touches[0].clientY;
+      }
+    });
+
+    document.addEventListener('touchmove', function(event) {
+      if (isTouching && event.touches.length === 1 && !joystickActive) {
+        event.preventDefault();
+        const deltaX = event.touches[0].clientX - touchStartX;
+        const deltaY = event.touches[0].clientY - touchStartY;
+        
+        if (serenaModel) {
+          const offsetX = deltaX * 0.1;
+          const offsetZ = deltaY * 0.1;
+          camera.position.x = serenaModel.position.x + offsetX;
+          camera.position.z = serenaModel.position.z + 5 + offsetZ;
+          camera.lookAt(serenaModel.position);
+        }
+      }
+    });
+
+    document.addEventListener('touchend', function() {
+      isTouching = false;
     });
 
     // Window resize
