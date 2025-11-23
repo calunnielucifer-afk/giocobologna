@@ -1012,17 +1012,26 @@ function init() {
     advanced3D = level >= 2;
     is3DLevel = level >= 2;
     
-    // Set spawn position based on level
-    if (level >= 2) {
-        serena.x = 100;  // Safe spawn position for 3D levels
+    // Set safe spawn position based on level
+    if (level === 1) {
+        serena.x = 50;   // Safe spawn for level 1
+        serena.y = 300;
+        serena.z = 0;
+    } else if (level === 2) {
+        serena.x = 150;  // Safe spawn for level 2 (grass area)
+        serena.y = 250;
+        serena.z = 0;
+    } else if (level === 3) {
+        serena.x = 200;  // Safe spawn for level 3 (safe lava area)
         serena.y = 250;
         serena.z = 0;
     } else {
-        serena.x = 50;   // Normal spawn for level 1
-        serena.y = 300;
+        serena.x = 100;  // Default safe spawn
+        serena.y = 250;
         serena.z = 0;
     }
     
+    // Reset all velocities to prevent auto-movement
     serena.velocityX = 0;
     serena.velocityY = 0;
     serena.velocityZ = 0;
@@ -2061,9 +2070,9 @@ function checkCollision(rect1, rect2) {
 // Handle obstacle collisions
 function handleObstacleCollision(obstacle) {
     if (obstacle.type === 'snow') {
-        // Slow down in snow
+        // Slow down in snow temporarily
         serena.speed = 2;
-        setTimeout(() => { serena.speed = 5; }, 1000);
+        setTimeout(() => { serena.speed = 5; }, 500);
     } else if (obstacle.type === 'brokenRoad') {
         // Stumble on broken road
         serena.velocityX *= -0.5;
