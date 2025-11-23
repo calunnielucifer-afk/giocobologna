@@ -21,7 +21,7 @@
 
     // Camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 5, 10);
+    camera.position.set(0, 3, 5); // Più vicina a Serena
 
     // Renderer
     renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('openworldCanv'), antialias: true });
@@ -261,13 +261,20 @@
       
       // Camera segue Serena
       camera.position.x = serenaModel.position.x;
-      camera.position.z = serenaModel.position.z + 10;
-      camera.position.y = serenaModel.position.y + 5;
+      camera.position.z = serenaModel.position.z + 5; // Più vicina
+      camera.position.y = serenaModel.position.y + 3; // Altezza migliore
       camera.lookAt(serenaModel.position);
     }
 
     // Animazioni
-    if (mixer) mixer.update(clock.getDelta());
+    if (mixer) {
+      // Aggiungi animazione di camminata base se Serena si muove
+      if (moveForward || moveBackward || moveLeft || moveRight) {
+        // Oscillazione leggera per simulare camminata
+        serenaModel.rotation.y += Math.sin(Date.now() * 0.005) * 0.02;
+      }
+      mixer.update(clock.getDelta());
+    }
 
     renderer.render(scene, camera);
     prevTime = time;
