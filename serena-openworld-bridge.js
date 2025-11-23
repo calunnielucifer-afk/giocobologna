@@ -134,6 +134,10 @@
           }
         });
         
+        // Correggi l'intero modello per stare in piedi
+        object.rotation.x = -Math.PI / 2; // Ruota 90° per stare in piedi
+        object.rotation.z = 0;
+        
         scene.add(object);
 
         // Log dei mesh
@@ -397,25 +401,35 @@
     let mouseX = 0, mouseY = 0;
     let isMouseDown = false;
 
-    document.addEventListener('mousedown', function() {
-      isMouseDown = true;
+    document.addEventListener('mousedown', function(event) {
+      if (event.button === 0) { // Solo click sinistro
+        isMouseDown = true;
+        document.body.style.cursor = 'grabbing';
+      }
     });
 
     document.addEventListener('mouseup', function() {
       isMouseDown = false;
+      document.body.style.cursor = 'default';
     });
 
     document.addEventListener('mousemove', function(event) {
       if (isMouseDown) {
-        mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-        mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        const deltaX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+        const deltaY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
         
-        // Aggiorna camera per guardarsi intorno
         if (serenaModel) {
-          const offsetX = mouseX * 10;
-          const offsetZ = mouseY * 10;
-          camera.position.x = serenaModel.position.x + offsetX;
-          camera.position.z = serenaModel.position.z + 5 + offsetZ;
+          // Ruota Serena con il mouse
+          serenaModel.rotation.y -= deltaX * 0.005;
+          
+          // Aggiorna camera per guardarsi intorno
+          const cameraAngle = serenaModel.rotation.y;
+          const cameraDistance = 5;
+          const cameraHeight = 3;
+          
+          camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance;
+          camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance;
+          camera.position.y = serenaModel.position.y + cameraHeight;
           camera.lookAt(serenaModel.position);
         }
       }
@@ -608,7 +622,7 @@
     velocity.z -= velocity.z * 10.0 * delta;
 
     direction.z = Number(moveForward) - Number(moveBackward);
-    direction.x = Number(moveRight) - Number(moveLeft);
+    direction.x = Number(moveLeft) - Number(moveRight); // Corretto: sinistra = positivo, destra = negativo
     direction.normalize();
 
     if (moveForward || moveBackward) velocity.z -= direction.z * 40.0 * delta;
@@ -618,10 +632,14 @@
       serenaModel.position.x += velocity.x * delta;
       serenaModel.position.z += velocity.z * delta;
       
-      // Camera segue Serena
-      camera.position.x = serenaModel.position.x;
-      camera.position.z = serenaModel.position.z + 5; // Più vicina
-      camera.position.y = serenaModel.position.y + 3; // Altezza migliore
+      // Camera segue Serena con rotazione dinamica
+      const cameraAngle = serenaModel.rotation.y;
+      const cameraDistance = 5;
+      const cameraHeight = 3;
+      
+      camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance;
+      camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance;
+      camera.position.y = serenaModel.position.y + cameraHeight;
       camera.lookAt(serenaModel.position);
     }
 
