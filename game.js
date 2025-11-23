@@ -908,18 +908,17 @@ function victory() {
     
     if (level < 4) {
         level++;
+        console.log('Advancing to level:', level);
         
         // Show level transition message
         if (level === 2) {
             alert('🎉 Livello 2 - Benvenuto nel mondo 3D! 🌟\nUsa W/S per muoverti in profondità!');
         }
         
-        // Restart with next level
-        setTimeout(() => {
-            init();
-            gameRunning = true;
-            gameLoop();
-        }, 2000);
+        // Restart with next level immediately
+        init();
+        gameRunning = true;
+        gameLoop();
     } else {
         // Game completed
         const victoryModal = document.getElementById('victory');
@@ -1030,6 +1029,7 @@ function init() {
 
 // Create level obstacles and platforms
 function createLevel(levelNum) {
+    console.log('Creating level:', levelNum);
     obstacles = [];
     platforms = [];
     particles = [];
@@ -1040,15 +1040,19 @@ function createLevel(levelNum) {
     is3DLevel = levelNum >= 2;
     advanced3D = levelNum >= 2;
     
-    // Ground platform
-    platforms.push({
-        x: 0,
-        y: 350,
-        width: 800,
-        height: 50,
-        color: '#8B4513',
-        z: 0
-    });
+    console.log('is3DLevel:', is3DLevel, 'advanced3D:', advanced3D);
+    
+    // Ground platform only for 2D levels
+    if (levelNum === 1) {
+        platforms.push({
+            x: 0,
+            y: 350,
+            width: 800,
+            height: 50,
+            color: '#8B4513',
+            z: 0
+        });
+    }
     
     // Level-specific obstacles
     if (levelNum === 1) {
