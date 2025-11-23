@@ -510,6 +510,12 @@ function chooseRiddle() {
 function choosePuzzle() {
     console.log('choosePuzzle called');
     
+    // Check if this is level 2 memory game
+    if (currentDoor && currentDoor.puzzleType === 'memory') {
+        startMemoryGame();
+        return;
+    }
+    
     // Hide ALL riddle-related content
     const riddleOptions = document.querySelector('.riddle-options');
     if (riddleOptions) {
@@ -1312,220 +1318,198 @@ function createLevel1() {
 }
 
 function createLevel2() {
-    console.log('Creating Level 2 - Minecraft Overworld 3D');
+    console.log('Creating Level 2 - Memory Card Game');
     
-    // Clear all 2D elements for pure 3D Minecraft experience
+    // Clear all elements for card game
     obstacles = [];
     platforms = [];
+    objects3D = [];
     
-    // MINECRAFT OVERWORLD - BIOME VARIETY
-    
-    // Large grassy plains
-    objects3D.push({
-        type: 'platform',
-        x: 400,
+    // Simple ground for card game area
+    platforms.push({
+        x: 0,
         y: 350,
-        z: 0,
-        width: 1600,
-        height: 20,
-        depth: 600,
-        color: '#7CFC00',  // Grass green
-        rotation: 0
+        width: 800,
+        height: 50,
+        color: '#8B4513',
+        z: 0
     });
     
-    // Forest area with oak trees
-    for (let i = 0; i < 8; i++) {
-        const treeX = 200 + i * 140;
-        const treeZ = -80 - i * 35;
-        
-        // Oak tree trunk
-        objects3D.push({
-            type: 'platform',
-            x: treeX,
-            y: 320,
-            z: treeZ,
-            width: 25,
-            height: 30,
-            depth: 25,
-            color: '#8B4513',  // Brown trunk
-            rotation: 0
-        });
-        
-        // Oak tree leaves (spherical)
-        objects3D.push({
-            type: 'platform',
-            x: treeX,
-            y: 280,
-            z: treeZ,
-            width: 80,
-            height: 40,
-            depth: 80,
-            color: '#228B22',  // Green leaves
-            rotation: 0
-        });
-    }
-    
-    // Mountain biome
-    objects3D.push({
-        type: 'platform',
-        x: 300,
-        y: 200,
-        z: -200,
-        width: 200,
-        height: 150,
-        depth: 150,
-        color: '#8B7355',  // Mountain stone
-        rotation: 0
-    });
-    
-    // Snow-capped mountain peak
-    objects3D.push({
-        type: 'platform',
-        x: 300,
-        y: 180,
-        z: -200,
-        width: 120,
-        height: 20,
-        depth: 120,
-        color: '#FFFAFA',  // Snow white
-        rotation: 0
-    });
-    
-    // Desert biome with cacti
-    objects3D.push({
-        type: 'platform',
-        x: 700,
-        y: 340,
-        z: -250,
-        width: 300,
-        height: 30,
-        depth: 200,
-        color: '#EDC9AF',  // Sand color
-        rotation: 0
-    });
-    
-    // Cacti in desert
-    for (let i = 0; i < 4; i++) {
-        objects3D.push({
-            type: 'platform',
-            x: 650 + i * 60,
-            y: 310,
-            z: -240 - i * 20,
-            width: 15,
-            height: 30,
-            depth: 15,
-            color: '#2F4F2F',  // Green cactus
-            rotation: 0
-        });
-    }
-    
-    // River with water
-    objects3D.push({
-        type: 'platform',
-        x: 500,
-        y: 345,
-        z: -100,
-        width: 600,
-        height: 5,
-        depth: 80,
-        color: '#4682B4',  // Water blue
-        rotation: 0
-    });
-    
-    // Wooden bridge over river
-    for (let i = 0; i < 3; i++) {
-        objects3D.push({
-            type: 'platform',
-            x: 350 + i * 100,
-            y: 330,
-            z: -100,
-            width: 80,
-            height: 15,
-            depth: 60,
-            color: '#8B4513',  // Wood brown
-            rotation: 0
-        });
-    }
-    
-    // Minecraft mobs (Cows, Pigs, Chickens)
-    for (let i = 0; i < 6; i++) {
-        const mobColors = ['#8B4513', '#FFB6C1', '#FFFFFF']; // Cow, Pig, Chicken
-        objects3D.push({
-            type: 'enemy',
-            x: 250 + i * 120,  // Spread far from spawn
-            y: 320,
-            z: -90 - i * 35,
-            width: 35,
-            height: 40,
-            depth: 35,
-            color: mobColors[i % 3],
-            speed: 0.5 + Math.random() * 0.5,
-            direction: i % 2 === 0 ? 1 : -1,
-            rotation: 0,
-            rotationSpeed: 0.005
-        });
-    }
-    
-    // Mining resources (Coal, Iron, Gold, Diamond)
-    const resourceColors = ['#2F4F4F', '#B87333', '#FFD700', '#00CED1']; // Coal, Iron, Gold, Diamond
-    for (let i = 0; i < 8; i++) {
-        objects3D.push({
-            type: 'collectible',
-            x: 180 + i * 110,
-            y: 140 + Math.sin(i * 1.8) * 90,
-            z: -140 - i * 28,
-            width: 28,
-            height: 28,
-            depth: 28,
-            color: resourceColors[i % 4],
-            collected: false,
-            rotation: 0,
-            floatOffset: Math.random() * Math.PI * 2
-        });
-    }
-    
-    // Village with houses
-    for (let i = 0; i < 3; i++) {
-        const houseX = 800 + i * 150;
-        const houseZ = -200 - i * 50;
-        
-        // House foundation
-        objects3D.push({
-            type: 'platform',
-            x: houseX,
-            y: 310,
-            z: houseZ,
-            width: 60,
-            height: 40,
-            depth: 60,
-            color: '#D2691E',  // Wood house
-            rotation: 0
-        });
-        
-        // Roof
-        objects3D.push({
-            type: 'platform',
-            x: houseX,
-            y: 290,
-            z: houseZ,
-            width: 70,
-            height: 20,
-            depth: 70,
-            color: '#8B0000',  // Red roof
-            rotation: 0
-        });
-    }
-    
-    // Nether portal door
+    // Memory game door
     doors.push({
-        x: 850,
-        y: 250,
-        width: 60,
-        height: 80,
+        x: 700,
+        y: 280,
+        width: 40,
+        height: 70,
         locked: true,
         riddleId: 4,
-        color: '#8B008B',  // Purple portal
-        puzzleType: 'puzzle'
+        color: '#8B4513',
+        puzzleType: 'memory'
+    });
+}
+
+// Memory card game for level 2
+function startMemoryGame() {
+    gameRunning = false;
+    
+    // Create memory game modal
+    const memoryOverlay = document.createElement('div');
+    memoryOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    `;
+    
+    const memoryGame = document.createElement('div');
+    memoryGame.style.cssText = `
+        background: linear-gradient(135deg, #2C1810, #4A2C1A);
+        border: 3px solid #FFD700;
+        border-radius: 15px;
+        padding: 20px;
+        max-width: 900px;
+        text-align: center;
+        color: #FFFFFF;
+        font-family: 'Georgia', serif;
+    `;
+    
+    // Create 20 cards (10 pairs)
+    const cardPairs = ['🌟', '🎯', '🎨', '🎭', '🎪', '🎸', '🎺', '🎻', '🎹', '🎮'];
+    const cards = [...cardPairs, ...cardPairs].sort(() => Math.random() - 0.5);
+    
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let canFlip = true;
+    
+    let cardsHTML = '<h2 style="color: #FFD700; margin-bottom: 20px;">🎮 Memory Game - Trova le Coppie! 🎮</h2>';
+    cardsHTML += '<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 20px auto; max-width: 600px;">';
+    
+    cards.forEach((symbol, index) => {
+        cardsHTML += `
+            <div class="memory-card" data-index="${index}" data-symbol="${symbol}" style="
+                width: 80px;
+                height: 100px;
+                background: linear-gradient(135deg, #4169E1, #1E90FF);
+                border: 2px solid #FFD700;
+                border-radius: 10px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 30px;
+                cursor: pointer;
+                transition: transform 0.3s;
+                position: relative;
+            ">
+                <div class="card-front" style="
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(135deg, #4169E1, #1E90FF);
+                    border-radius: 8px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-size: 40px;
+                    color: #FFD700;
+                ">?</div>
+                <div class="card-back" style="
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(135deg, #FFD700, #FFA500);
+                    border-radius: 8px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-size: 40px;
+                    opacity: 0;
+                    transform: rotateY(180deg);
+                ">${symbol}</div>
+            </div>
+        `;
+    });
+    
+    cardsHTML += '</div>';
+    cardsHTML += '<div id="gameStatus" style="font-size: 18px; margin: 20px 0;">Coppie trovate: 0/10</div>';
+    cardsHTML += '<button id="closeMemoryBtn" style="display: none; background: linear-gradient(135deg, #FFD700, #FFA500); border: none; border-radius: 25px; padding: 12px 30px; font-size: 18px; font-weight: bold; color: #2C1810; cursor: pointer;">Continua al Livello 3</button>';
+    
+    memoryGame.innerHTML = cardsHTML;
+    memoryOverlay.appendChild(memoryGame);
+    document.body.appendChild(memoryOverlay);
+    
+    // Add card flip logic
+    const cardElements = memoryGame.querySelectorAll('.memory-card');
+    
+    cardElements.forEach(card => {
+        card.addEventListener('click', function() {
+            if (!canFlip || this.classList.contains('flipped') || this.classList.contains('matched')) return;
+            
+            canFlip = false;
+            this.classList.add('flipped');
+            
+            const front = this.querySelector('.card-front');
+            const back = this.querySelector('.card-back');
+            
+            front.style.opacity = '0';
+            back.style.opacity = '1';
+            back.style.transform = 'rotateY(0deg)';
+            
+            flippedCards.push(this);
+            
+            if (flippedCards.length === 2) {
+                setTimeout(() => {
+                    if (flippedCards[0].dataset.symbol === flippedCards[1].dataset.symbol) {
+                        // Match found!
+                        flippedCards[0].classList.add('matched');
+                        flippedCards[1].classList.add('matched');
+                        flippedCards[0].style.background = 'linear-gradient(135deg, #32CD32, #00FF00)';
+                        flippedCards[1].style.background = 'linear-gradient(135deg, #32CD32, #00FF00)';
+                        matchedPairs++;
+                        
+                        document.getElementById('gameStatus').textContent = `Coppie trovate: ${matchedPairs}/10`;
+                        
+                        if (matchedPairs === 10) {
+                            // Game completed!
+                            setTimeout(() => {
+                                document.getElementById('closeMemoryBtn').style.display = 'block';
+                                document.getElementById('gameStatus').innerHTML = '<div style="color: #32CD32; font-size: 24px; font-weight: bold;">🎉 Completato! Hai trovato tutte le coppie! 🎉</div>';
+                            }, 500);
+                        }
+                    } else {
+                        // No match - flip back
+                        flippedCards[0].querySelector('.card-front').style.opacity = '1';
+                        flippedCards[0].querySelector('.card-back').style.opacity = '0';
+                        flippedCards[0].querySelector('.card-back').style.transform = 'rotateY(180deg)';
+                        
+                        flippedCards[1].querySelector('.card-front').style.opacity = '1';
+                        flippedCards[1].querySelector('.card-back').style.opacity = '0';
+                        flippedCards[1].querySelector('.card-back').style.transform = 'rotateY(180deg)';
+                    }
+                    
+                    flippedCards = [];
+                    canFlip = true;
+                }, 1000);
+            } else {
+                canFlip = true;
+            }
+        });
+    });
+    
+    // Handle continue button
+    document.getElementById('closeMemoryBtn').addEventListener('click', () => {
+        document.body.removeChild(memoryOverlay);
+        // Unlock the door
+        if (currentDoor) {
+            currentDoor.locked = false;
+        }
+        gameRunning = true;
+        gameLoop();
     });
 }
 
@@ -1647,6 +1631,20 @@ function update3DObjects() {
                 score += 10;
                 updateUI();
                 
+                // Check if this is the key for level 4
+                if (obj.isKey && level === 4) {
+                    // Unlock the exit door
+                    doors.forEach(door => {
+                        if (door.puzzleType === 'hideandseek') {
+                            door.locked = false;
+                            door.color = '#32CD32'; // Green when unlocked
+                        }
+                    });
+                    
+                    // Show key found message
+                    showKeyFoundMessage();
+                }
+                
                 // Create collection particles
                 for (let i = 0; i < 10; i++) {
                     particles.push({
@@ -1688,312 +1686,427 @@ function update3DCamera() {
 }
 
         function createLevel3() {
-    console.log('Creating Level 3 - Minecraft Nether World 3D');
+    console.log('Creating Level 3 - 4D Advanced Vanilla Open World');
     
-    // Clear all 2D elements for pure 3D Nether experience
+    // Clear all 2D elements for pure 4D experience
     obstacles = [];
     platforms = [];
     
-    // NETHER WORLD - LAVA AND FIRE
+    // 4D ADVANCED VANILLA WORLD
     
-    // Large lava ground (Nether)
+    // Massive vanilla ground with 4D properties
     objects3D.push({
         type: 'platform',
         x: 400,
         y: 350,
         z: 0,
-        width: 1400,
-        height: 20,
-        depth: 500,
-        color: '#FF4500',  // Lava red-orange
+        width: 2400,
+        height: 25,
+        depth: 1200,
+        color: '#8FBC8F',  // Sage green - vanilla grass
         rotation: 0
     });
     
-    // Nether fortress structures
-    objects3D.push({
-        type: 'platform',
-        x: 200,
-        y: 280,
-        z: -150,
-        width: 200,
-        height: 70,
-        depth: 100,
-        color: '#4B0082',  // Dark fortress purple
-        rotation: 0
-    });
-    
-    objects3D.push({
-        type: 'platform',
-        x: 600,
-        y: 260,
-        z: -200,
-        width: 180,
-        height: 90,
-        depth: 120,
-        color: '#4B0082',
-        rotation: 0
-    });
-    
-    // Floating lava platforms
-    objects3D.push({
-        type: 'platform',
-        x: 350,
-        y: 220,
-        z: -300,
-        width: 120,
-        height: 15,
-        depth: 120,
-        color: '#FF6347',  // Tomato red lava
-        rotation: 0
-    });
-    
-    objects3D.push({
-        type: 'platform',
-        x: 550,
-        y: 190,
-        z: -350,
-        width: 100,
-        height: 15,
-        depth: 100,
-        color: '#FF6347',
-        rotation: 0
-    });
-    
-    // Nether trees (dead trees)
-    for (let i = 0; i < 5; i++) {
-        // Dead tree trunk
+    // 4D mountains with time-based shifting
+    for (let i = 0; i < 6; i++) {
         objects3D.push({
             type: 'platform',
-            x: 180 + i * 160,
-            y: 310,
-            z: -100 - i * 40,
-            width: 25,
-            height: 40,
-            depth: 25,
-            color: '#2F4F2F',  // Dark green-gray
-            rotation: 0
+            x: 200 + i * 250,
+            y: 220 - Math.sin(i) * 30,
+            z: -300 - i * 80,
+            width: 180,
+            height: 130 + Math.cos(i) * 20,
+            depth: 150,
+            color: '#696969',  // Gray stone
+            rotation: i * 30 * Math.PI / 180,
+            timeShift: i * 0.001  // 4D time property
+        });
+    }
+    
+    // Vanilla forest with 4D trees
+    for (let i = 0; i < 12; i++) {
+        const treeX = 150 + i * 120;
+        const treeZ = -100 - i * 40;
+        
+        // Tree trunk with 4D rotation
+        objects3D.push({
+            type: 'platform',
+            x: treeX,
+            y: 315,
+            z: treeZ,
+            width: 30,
+            height: 35,
+            depth: 30,
+            color: '#8B4513',  // Brown trunk
+            rotation: Date.now() * 0.0001 * (i % 2 === 0 ? 1 : -1),  // 4D rotation
+            timeShift: i * 0.0005
         });
         
-        // Dead branches
+        // Tree leaves with 4D pulsing
         objects3D.push({
             type: 'platform',
-            x: 180 + i * 160,
-            y: 270,
-            z: -100 - i * 40,
-            width: 80,
+            x: treeX,
+            y: 275,
+            z: treeZ,
+            width: 90,
             height: 40,
-            depth: 80,
-            color: '#2F4F2F',
-            rotation: 0
-        });
-    }
-    
-    // Nether mobs (Ghasts and Pigmen)
-    for (let i = 0; i < 5; i++) {
-        objects3D.push({
-            type: 'enemy',
-            x: 300 + i * 130,  // Far from spawn
-            y: 250,
-            z: -120 - i * 45,
-            width: 40,
-            height: 50,
-            depth: 40,
-            color: i % 2 === 0 ? '#FFFFFF' : '#FFB6C1',  // White ghasts, pink pigmen
-            speed: 1.2 + i * 0.4,
-            direction: i % 2 === 0 ? 1 : -1,
+            depth: 90,
+            color: '#228B22',  // Green leaves
             rotation: 0,
-            rotationSpeed: 0.015
+            timeShift: i * 0.0008,
+            pulse: true  // 4D pulsing effect
         });
     }
     
-    // Nether quartz collectibles
+    // 4D river that flows through time
     for (let i = 0; i < 8; i++) {
         objects3D.push({
+            type: 'platform',
+            x: 300 + i * 100,
+            y: 345 + Math.sin(Date.now() * 0.001 + i) * 3,  // 4D wave effect
+            z: -200 - i * 60,
+            width: 80,
+            height: 8,
+            depth: 100,
+            color: '#4682B4',  // Water blue
+            rotation: 0,
+            timeShift: i * 0.002,
+            flow: true  // 4D flow effect
+        });
+    }
+    
+    // Vanilla village with 4D houses
+    for (let i = 0; i < 5; i++) {
+        const houseX = 500 + i * 180;
+        const houseZ = -400 - i * 70;
+        
+        // House foundation
+        objects3D.push({
+            type: 'platform',
+            x: houseX,
+            y: 305,
+            z: houseZ,
+            width: 80,
+            height: 45,
+            depth: 80,
+            color: '#D2691E',  // Vanilla wood
+            rotation: 0,
+            timeShift: i * 0.0003
+        });
+        
+        // Roof with 4D breathing
+        objects3D.push({
+            type: 'platform',
+            x: houseX,
+            y: 280,
+            z: houseZ,
+            width: 90,
+            height: 25,
+            depth: 90,
+            color: '#8B4513',  // Brown roof
+            rotation: 0,
+            timeShift: i * 0.0006,
+            breathe: true  // 4D breathing effect
+        });
+        
+        // Windows with 4D glow
+        objects3D.push({
             type: 'collectible',
-            x: 200 + i * 90,
-            y: 120 + Math.sin(i * 2) * 100,
-            z: -150 - i * 30,
+            x: houseX,
+            y: 295,
+            z: houseZ,
+            width: 15,
+            height: 20,
+            depth: 15,
+            color: '#FFD700',  // Golden windows
+            collected: false,
+            rotation: 0,
+            timeShift: i * 0.001,
+            glow: true  // 4D glow effect
+        });
+    }
+    
+    // 4D vanilla animals
+    for (let i = 0; i < 8; i++) {
+        objects3D.push({
+            type: 'enemy',
+            x: 200 + i * 140,
+            y: 315,
+            z: -150 - i * 50,
+            width: 40,
+            height: 45,
+            depth: 40,
+            color: i % 3 === 0 ? '#8B4513' : (i % 3 === 1 ? '#FFB6C1' : '#F0E68C'), // Vanilla animals
+            speed: 0.8 + Math.random() * 0.4,
+            direction: i % 2 === 0 ? 1 : -1,
+            rotation: 0,
+            rotationSpeed: 0.008,
+            timeShift: i * 0.0007,
+            phaseShift: true  // 4D phase shifting
+        });
+    }
+    
+    // 4D floating islands with time rotation
+    for (let i = 0; i < 4; i++) {
+        objects3D.push({
+            type: 'platform',
+            x: 350 + i * 160,
+            y: 180 + Math.sin(i * 1.5) * 40,
+            z: -500 - i * 80,
+            width: 100,
+            height: 20,
+            depth: 100,
+            color: '#90EE90',  // Light green
+            rotation: Date.now() * 0.0002 * (i % 2 === 0 ? 1 : -1),
+            timeShift: i * 0.0012,
+            levitate: true  // 4D levitation
+        });
+    }
+    
+    // 4D collectible resources
+    const resourceColors = ['#2F4F4F', '#B87333', '#FFD700', '#00CED1', '#FF69B4']; // Extended resources
+    for (let i = 0; i < 12; i++) {
+        objects3D.push({
+            type: 'collectible',
+            x: 180 + i * 90,
+            y: 160 + Math.sin(i * 2.1) * 70,
+            z: -180 - i * 32,
             width: 30,
             height: 30,
             depth: 30,
-            color: '#F0E68C',  // Khaki quartz
+            color: resourceColors[i % 5],
             collected: false,
             rotation: 0,
-            floatOffset: Math.random() * Math.PI * 2
+            floatOffset: Math.random() * Math.PI * 2,
+            timeShift: i * 0.0009,
+            quantum: true  // 4D quantum state
         });
     }
     
-    // End portal door (End dimension style)
+    // 4D portal door
     doors.push({
-        x: 800,
-        y: 220,
-        width: 60,
-        height: 90,
+        x: 950,
+        y: 250,
+        width: 70,
+        height: 100,
         locked: true,
         riddleId: 5,
-        color: '#191970',  // Midnight blue end portal
+        color: '#4B0082',  // Indigo 4D portal
         puzzleType: 'puzzle'
     });
 }
 
 function createFinalLevel() {
-    console.log('Creating Level 4 - Minecraft End City - Final Battle for Benevento');
+    console.log('Creating Level 4 - Hide and Seek with Guards');
     
-    // Clear all 2D elements for pure 3D realistic experience
+    // Clear all elements for stealth game
     obstacles = [];
     platforms = [];
+    objects3D = [];
     
-    // MINECRAFT END CITY - REALISTIC FINAL BATTLE
-    
-    // End stone ground (realistic texture)
-    objects3D.push({
-        type: 'platform',
-        x: 400,
+    // Garden ground for hide and seek
+    platforms.push({
+        x: 0,
         y: 350,
-        z: 0,
-        width: 2000,
-        height: 30,
-        depth: 800,
-        color: '#D2B48C',  // End stone tan
-        rotation: 0
+        width: 800,
+        height: 50,
+        color: '#228B22',  // Garden green
+        z: 0
     });
     
-    // End City towers and structures
-    for (let i = 0; i < 4; i++) {
-        const towerX = 300 + i * 200;
-        const towerZ = -150 - i * 60;
-        
-        // Tower base
+    // Garden plants and bushes for hiding
+    for (let i = 0; i < 15; i++) {
         objects3D.push({
             type: 'platform',
-            x: towerX,
-            y: 250,
-            z: towerZ,
-            width: 120,
-            height: 100,
-            depth: 120,
-            color: '#D2B48C',  // End stone
-            rotation: 0
-        });
-        
-        // Tower top (decorative)
-        objects3D.push({
-            type: 'platform',
-            x: towerX,
-            y: 230,
-            z: towerZ,
-            width: 100,
-            height: 20,
-            depth: 100,
-            color: '#8B7355',  // Darker end stone
-            rotation: 0
-        });
-        
-        // Tower spire
-        objects3D.push({
-            type: 'platform',
-            x: towerX,
-            y: 200,
-            z: towerZ,
+            x: 100 + (i % 5) * 140,
+            y: 320,
+            z: -50 - Math.floor(i / 5) * 80,
             width: 60,
             height: 30,
             depth: 60,
-            color: '#654321',  // Dark brown
+            color: '#2F4F2F',  // Dark green bushes
             rotation: 0
         });
     }
     
-    // Floating end stone platforms
-    for (let i = 0; i < 6; i++) {
-        objects3D.push({
-            type: 'platform',
-            x: 200 + i * 140,
-            y: 180 + Math.sin(i * 0.8) * 40,
-            z: -200 - i * 40,
-            width: 80,
-            height: 15,
-            depth: 80,
-            color: '#D2B48C',
-            rotation: i * 15 * Math.PI / 180
-        });
-    }
-    
-    // End crystals (collectibles - realistic)
-    for (let i = 0; i < 10; i++) {
-        objects3D.push({
-            type: 'collectible',
-            x: 180 + i * 100,
-            y: 120 + Math.sin(i * 1.2) * 60,
-            z: -180 - i * 35,
-            width: 35,
-            height: 35,
-            depth: 35,
-            color: i % 3 === 0 ? '#FF1493' : (i % 3 === 1 ? '#00CED1' : '#FFD700'), // Pink, cyan, gold crystals
-            collected: false,
-            rotation: 0,
-            floatOffset: Math.random() * Math.PI * 2
-        });
-    }
-    
-    // Realistic enemies - Endermen and Shulkers
+    // Trees for additional hiding spots
     for (let i = 0; i < 8; i++) {
         objects3D.push({
-            type: 'enemy',
-            x: 250 + i * 110,  // Spread far from safe spawn
-            y: 280,
-            z: -100 - i * 45,
+            type: 'platform',
+            x: 150 + i * 80,
+            y: 310,
+            z: -30 - i * 40,
             width: 40,
-            height: 60,
+            height: 40,
             depth: 40,
-            color: i % 2 === 0 ? '#2F1B1B' : '#9370DB',  // Black endermen, purple shulkers
-            speed: 1.5 + i * 0.2,
-            direction: i % 2 === 0 ? 1 : -1,
-            rotation: 0,
-            rotationSpeed: 0.02
+            color: '#8B4513',  // Tree trunks
+            rotation: 0
+        });
+        
+        // Tree leaves
+        objects3D.push({
+            type: 'platform',
+            x: 150 + i * 80,
+            y: 280,
+            z: -30 - i * 40,
+            width: 80,
+            height: 30,
+            depth: 80,
+            color: '#228B22',  // Green leaves
+            rotation: 0
         });
     }
     
-    // Social workers (realistic - final bosses)
-    for (let i = 0; i < 4; i++) {
+    // Guards (enemies) with patrol patterns
+    for (let i = 0; i < 6; i++) {
         objects3D.push({
             type: 'enemy',
-            x: 400 + i * 150,  // Far from spawn area
-            y: 300,
-            z: -300 - i * 50,
-            width: 45,
-            height: 55,
-            depth: 45,
-            color: '#4169E1',  // Royal blue - boss color
-            speed: 2.0 + i * 0.3,
+            x: 200 + i * 100,
+            y: 320,
+            z: -80 - i * 30,
+            width: 35,
+            height: 50,
+            depth: 35,
+            color: '#4169E1',  // Blue guards
+            speed: 1.2 + Math.random() * 0.5,
             direction: i % 2 === 0 ? 1 : -1,
             rotation: 0,
-            rotationSpeed: 0.025
+            rotationSpeed: 0.01,
+            patrolStart: 150 + i * 80,
+            patrolEnd: 250 + i * 80
         });
     }
     
-    // End gateway portal (final door)
-    doors.push({
-        x: 950,  // Far at the end
-        y: 200,
-        width: 80,
-        height: 120,
-        locked: true,
-        riddleId: 6,
-        color: '#9400D3',  // Violet end portal
-        puzzleType: 'puzzle'
+    // Hidden key (collectible) - well hidden among plants
+    objects3D.push({
+        type: 'collectible',
+        x: 650,  // Hidden far right
+        y: 300,
+        z: -200,  // Behind bushes
+        width: 20,
+        height: 25,
+        depth: 20,
+        color: '#FFD700',  // Golden key
+        collected: false,
+        rotation: 0,
+        floatOffset: 0,
+        isKey: true  // Mark as special key item
     });
     
-    // Prince Stefano waiting area (visible but unreachable)
-    objects3D.push({
-        type: 'platform',
-        x: 1050,
-        y: 250,
-        z: -400,
-        width: 100,
-        height: 100,
-        depth: 100,
-        color: '#FFD700',  // Golden platform
-        rotation: 0
+    // Exit door (unlocked when key is found)
+    doors.push({
+        x: 720,
+        y: 280,
+        width: 50,
+        height: 80,
+        locked: true,
+        riddleId: 6,
+        color: '#8B4513',
+        puzzleType: 'hideandseek'
+    });
+    
+    // Add hiding spots indicator
+    gameRunning = false;
+    setTimeout(() => {
+        showHideAndSeekInstructions();
+    }, 500);
+}
+
+// Show key found message
+function showKeyFoundMessage() {
+    const keyMessage = document.createElement('div');
+    keyMessage.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        border: 3px solid #FFD700;
+        border-radius: 15px;
+        padding: 20px 40px;
+        text-align: center;
+        color: #2C1810;
+        font-family: 'Georgia', serif;
+        font-weight: bold;
+        font-size: 20px;
+        z-index: 1000;
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        animation: keyGlow 2s ease-in-out infinite;
+    `;
+    
+    keyMessage.innerHTML = '🗝️ CHIAVE TROVATA! 🗝️<br>La porta è sbloccata! Corri al finale!';
+    
+    document.body.appendChild(keyMessage);
+    
+    // Remove message after 3 seconds
+    setTimeout(() => {
+        document.body.removeChild(keyMessage);
+    }, 3000);
+}
+
+// Hide and seek game instructions
+function showHideAndSeekInstructions() {
+    const instructionOverlay = document.createElement('div');
+    instructionOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    `;
+    
+    const instructionBox = document.createElement('div');
+    instructionBox.style.cssText = `
+        background: linear-gradient(135deg, #1E3A1E, #2F4F2F);
+        border: 3px solid #FFD700;
+        border-radius: 15px;
+        padding: 30px;
+        max-width: 600px;
+        text-align: center;
+        color: #FFFFFF;
+        font-family: 'Georgia', serif;
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    `;
+    
+    instructionBox.innerHTML = `
+        <h2 style="color: #FFD700; margin-bottom: 20px; font-size: 24px;">🌿 Nascondino nel Giardino 🌿</h2>
+        <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+            <strong>Missione:</strong> Trova la chiave d'oro nascosta nel giardino!<br><br>
+            <strong>Attenzione:</strong> Le guardie pattugliano l'area. Se ti vedono, perderai una vita!<br><br>
+            <strong>Consiglio:</strong> Nasconditi tra i cespugli e gli alberi per evitare le guardie.<br><br>
+            <strong>Obiettivo:</strong> Trova la chiave d'oro e raggiunge la porta per il finale!
+        </p>
+        <div style="background: rgba(255, 215, 0, 0.2); padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <p style="color: #FFD700; font-weight: bold; margin: 0;">
+                💡 La chiave è nascosta tra le piante... cerca bene! 💡
+            </p>
+        </div>
+        <button id="startGameBtn" style="
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1E3A1E;
+            cursor: pointer;
+            margin-top: 10px;
+        ">Inizia la Missione</button>
+    `;
+    
+    instructionOverlay.appendChild(instructionBox);
+    document.body.appendChild(instructionOverlay);
+    
+    // Handle start button
+    document.getElementById('startGameBtn').addEventListener('click', () => {
+        document.body.removeChild(instructionOverlay);
+        gameRunning = true;
+        gameLoop();
     });
 }
 
@@ -2170,19 +2283,14 @@ function update() {
             }
             serena.velocityX = 0;
             
-            // Show interaction message
-            nearDoorMessage = "Premi E per " + (door.puzzleType === 'puzzle' ? 'risolvere il puzzle' : 'ascoltare l\'indovinello');
-            
-            // Only open riddle/puzzle if player presses E key
-            if (keys['e'] || keys['E']) {
-                currentDoor = door;
-                if (door.puzzleType === 'puzzle') {
-                    console.log('Opening puzzle modal');
-                    choosePuzzle();
-                } else {
-                    console.log('Opening riddle modal');
-                    openRiddleModal(door);
-                }
+            // Auto-open riddle/puzzle on collision
+            currentDoor = door;
+            if (door.puzzleType === 'puzzle') {
+                console.log('Opening puzzle modal');
+                choosePuzzle();
+            } else {
+                console.log('Opening riddle modal');
+                openRiddleModal(door);
             }
         }
     }
