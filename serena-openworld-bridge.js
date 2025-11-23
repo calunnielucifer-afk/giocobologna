@@ -9,6 +9,12 @@
   let prevTime = performance.now();
   let velocity = new THREE.Vector3();
   let direction = new THREE.Vector3();
+  
+  // Touch controls per mobile
+  let joystickActive = false;
+  let joystickVector = { x: 0, y: 0 };
+  let touchStartPos = { x: 0, y: 0 };
+  let joystickHandle = null;
 
   // Inizializza la scena three.js
   function initScene() {
@@ -24,10 +30,18 @@
     camera.position.set(0, 3, 5); // Più vicina a Serena
 
     // Renderer
-    renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('openworldCanv'), antialias: true });
+    renderer = new THREE.WebGLRenderer({ 
+      canvas: document.getElementById('openworldCanv'), 
+      antialias: true,
+      alpha: false 
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1;
 
     // Luci
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -61,8 +75,11 @@
       scene.add(tree);
     }
 
-    // Controlli tastiera
+    // Controlli tastiera e touch
     setupControls();
+
+    // Setup touch joystick per mobile
+    setupTouchJoystick();
 
     // Carica Serena
     loadSerena();
@@ -238,6 +255,142 @@
     });
   }
 
+  function setupTouchJoystick() {
+    const joystickContainer = document.querySelector('.joystick-container');
+    const joystickBase = document.querySelector('.joystick-base');
+    joystickHandle = document.querySelector('.joystick-handle');
+    
+    if (!joystickContainer || !joystickHandle) return;
+    
+    // Touch events
+    joystickBase.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd, { passive: false });
+    
+    // Mouse events per testing su desktop
+    joystickBase.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }
+  
+  function handleTouchStart(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = e.target.getBoundingClientRect();
+    touchStartPos.x = touch.clientX - rect.left - rect.width / 2;
+    touchStartPos.y = touch.clientY - rect.top - rect.height / 2;
+    joystickActive = true;
+  }
+  
+  function handleTouchMove(e) {
+    if (!joystickActive) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const joystickBase = document.querySelector('.joystick-base');
+    const rect = joystickBase.getBoundingClientRect();
+    
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    let deltaX = touch.clientX - centerX;
+    let deltaY = touch.clientY - centerY;
+    
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const maxDistance = rect.width / 2 - 30;
+    
+    if (distance > maxDistance) {
+      deltaX = (deltaX / distance) * maxDistance;
+      deltaY = (deltaY / distance) * maxDistance;
+    }
+    
+    joystickHandle.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+    
+    joystickVector.x = deltaX / maxDistance;
+    joystickVector.y = -deltaY / maxDistance; // Invert Y per coordinate 3D
+    
+    // Aggiorna controlli movimento
+    moveForward = joystickVector.y > 0.3;
+    moveBackward = joystickVector.y < -0.3;
+    moveRight = joystickVector.x > 0.3;
+    moveLeft = joystickVector.x < -0.3;
+  }
+  
+  function handleTouchEnd(e) {
+    if (!joystickActive) return;
+    e.preventDefault();
+    
+    joystickActive = false;
+    joystickVector.x = 0;
+    joystickVector.y = 0;
+    
+    if (joystickHandle) {
+      joystickHandle.style.transform = 'translate(0, 0)';
+    }
+    
+    // Resetta controlli movimento
+    moveForward = false;
+    moveBackward = false;
+    moveLeft = false;
+    moveRight = false;
+  }
+  
+  // Mouse events per testing
+  function handleMouseDown(e) {
+    const rect = e.target.getBoundingClientRect();
+    touchStartPos.x = e.clientX - rect.left - rect.width / 2;
+    touchStartPos.y = e.clientY - rect.top - rect.height / 2;
+    joystickActive = true;
+  }
+  
+  function handleMouseMove(e) {
+    if (!joystickActive) return;
+    
+    const joystickBase = document.querySelector('.joystick-base');
+    const rect = joystickBase.getBoundingClientRect();
+    
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    let deltaX = e.clientX - centerX;
+    let deltaY = e.clientY - centerY;
+    
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const maxDistance = rect.width / 2 - 30;
+    
+    if (distance > maxDistance) {
+      deltaX = (deltaX / distance) * maxDistance;
+      deltaY = (deltaY / distance) * maxDistance;
+    }
+    
+    joystickHandle.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+    
+    joystickVector.x = deltaX / maxDistance;
+    joystickVector.y = -deltaY / maxDistance;
+    
+    moveForward = joystickVector.y > 0.3;
+    moveBackward = joystickVector.y < -0.3;
+    moveRight = joystickVector.x > 0.3;
+    moveLeft = joystickVector.x < -0.3;
+  }
+  
+  function handleMouseUp(e) {
+    if (!joystickActive) return;
+    
+    joystickActive = false;
+    joystickVector.x = 0;
+    joystickVector.y = 0;
+    
+    if (joystickHandle) {
+      joystickHandle.style.transform = 'translate(0, 0)';
+    }
+    
+    moveForward = false;
+    moveBackward = false;
+    moveLeft = false;
+    moveRight = false;
+  }
+
   function animate() {
     requestAnimationFrame(animate);
 
@@ -276,6 +429,7 @@
       mixer.update(clock.getDelta());
     }
 
+    // Renderizza sempre la scena
     renderer.render(scene, camera);
     prevTime = time;
   }
