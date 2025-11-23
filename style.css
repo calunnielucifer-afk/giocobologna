@@ -1,3 +1,121 @@
+/* Intro Dialog Styles */
+.intro-dialog-content {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 30px;
+    background: linear-gradient(135deg, rgba(255, 182, 193, 0.9), rgba(255, 218, 185, 0.9));
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.intro-character {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.prince-face {
+    font-size: 80px;
+    animation: bounce 2s infinite;
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+}
+
+.intro-speech {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.speech-bubble {
+    background: white;
+    color: #333;
+    padding: 20px;
+    border-radius: 15px;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.speech-bubble::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 20px solid transparent;
+    border-right-color: white;
+}
+
+.speech-bubble p {
+    margin: 8px 0;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.intro-actions {
+    text-align: center;
+}
+
+#startAdventureBtn {
+    background: linear-gradient(45deg, #ff6b6b, #ff8787);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+    font-weight: bold;
+}
+
+#startAdventureBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+    background: linear-gradient(45deg, #ff5252, #ff6b6b);
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Mobile responsive for intro dialog */
+@media (max-width: 768px) {
+    .intro-dialog-content {
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .prince-face {
+        font-size: 60px;
+    }
+    
+    .speech-bubble::before {
+        left: 50%;
+        top: -20px;
+        transform: translateX(-50%);
+        border: 20px solid transparent;
+        border-bottom-color: white;
+    }
+    
+    .speech-bubble {
+        margin-top: 20px;
+    }
+}
+
 * {
     margin: 0;
     padding: 0;

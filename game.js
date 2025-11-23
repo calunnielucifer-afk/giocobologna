@@ -77,10 +77,22 @@ window.addEventListener('load', () => {
     // Event listeners
     const startBtn = document.getElementById('startBtn');
     if (startBtn) {
-        startBtn.addEventListener('click', startGame);
+        startBtn.addEventListener('click', () => {
+            // Show intro dialog instead of starting game directly
+            const introDialog = document.getElementById('introDialog');
+            if (introDialog) {
+                introDialog.classList.remove('hidden');
+            }
+        });
         console.log('Start button listener added');
     } else {
         console.error('Start button not found!');
+    }
+    
+    const startAdventureBtn = document.getElementById('startAdventureBtn');
+    if (startAdventureBtn) {
+        startAdventureBtn.addEventListener('click', startAdventure);
+        console.log('Start adventure button listener added');
     }
     
     const pauseBtn = document.getElementById('pauseBtn');
@@ -215,6 +227,13 @@ function startGame() {
     console.log('Start game called, gameRunning:', gameRunning);
     if (gameRunning) return;
     
+    // Show intro dialog first
+    const introDialog = document.getElementById('introDialog');
+    if (introDialog && !introDialog.classList.contains('hidden')) {
+        // If intro is visible, don't start the game yet
+        return;
+    }
+    
     console.log('Initializing game...');
     init();
     gameRunning = true;
@@ -230,6 +249,15 @@ function startGame() {
     gameLoop();
 }
 
+function startAdventure() {
+    // Hide intro dialog and start the game
+    const introDialog = document.getElementById('introDialog');
+    if (introDialog) {
+        introDialog.classList.add('hidden');
+    }
+    startGame();
+}
+
 function pauseGame() {
     gamePaused = !gamePaused;
     const pauseBtn = document.getElementById('pauseBtn');
@@ -239,8 +267,14 @@ function pauseGame() {
 function restartGame() {
     gameRunning = false;
     cancelAnimationFrame(animationId);
+    
+    // Hide all modals including intro dialog
     const gameOverModal = document.getElementById('gameOver');
+    const introDialog = document.getElementById('introDialog');
+    
     if (gameOverModal) gameOverModal.classList.add('hidden');
+    if (introDialog) introDialog.classList.add('hidden');
+    
     startGame();
 }
 
