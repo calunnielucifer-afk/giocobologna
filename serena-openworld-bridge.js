@@ -16,81 +16,78 @@
       return;
     }
 
-    // Inizializza scena three.js (condivisa con openworld se possibile)
-    threeScene = new THREE.Scene();
-    threeCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    threeCamera.position.set(0, 5, 10);
-
-    threeRenderer = new THREE.WebGLRenderer({ canvas: document.getElementById('webgl'), alpha: true, antialias: true });
-    threeRenderer.setSize(window.innerWidth, window.innerHeight);
-    threeRenderer.shadowMap.enabled = true;
-    threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    // Controlli Orbit (opzionali, per debug)
-    threeControls = new THREE.OrbitControls(threeCamera, threeRenderer.domElement);
-    threeControls.enableDamping = true;
-    threeControls.dampingFactor = 0.05;
-
-    // Configura le luci
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // Aumentata intensità
-    threeScene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0); // Aumentata intensità
-    directionalLight.position.set(5, 10, 5);
-    directionalLight.castShadow = true;
-    threeScene.add(directionalLight);
-
-    const pointLight = new THREE.PointLight(0xffffff, 1.0, 100);
-    pointLight.position.set(0, 5, 0);
-    threeScene.add(pointLight);
-
-    // Carica il modello FBX di Serena
-    const fbxLoader = new THREE.FBXLoader();
-    fbxLoader.load(
-      'openworld/modelpg/Lady in red dress/Lady in red dress.fbx',
-      function(object) {
-        serenaModel = object;
-        object.scale.set(0.01, 0.01, 0.01); // Scala il modello
-        object.position.set(0, 0, 0);
-        threeScene.add(object);
-
-        // Log dei nomi dei mesh per debug
-        console.log('Mesh names in Serena model:');
-        object.traverse(function(child) {
-          if (child.isMesh) {
-            console.log('Mesh:', child.name);
+    // Usa la scena del motore openworld invece di crearne una nuova
+    if (typeof k !== 'undefined' && k.W && k.W.scene) {
+      console.log('Integrazione con motore openworld...');
+      
+      // Carica il modello FBX di Serena
+      const fbxLoader = new THREE.FBXLoader();
+      fbxLoader.load(
+        'openworld/modelpg/Lady in red dress/Lady in red dress.fbx',
+        function(object) {
+          serenaModel = object;
+          object.scale.set(0.01, 0.01, 0.01); // Scala il modello
+          
+          // Posiziona Serena dove si trova il giocatore nel motore openworld
+          if (k.mainVPlayer !== undefined) {
+            const playerPos = k.addPhy.getPos(k.mainVPlayer);
+            object.position.set(playerPos.x, playerPos.y, playerPos.z);
+          } else {
+            object.position.set(0, 1, 0);
           }
-        });
+          
+          // Aggiungi alla scena del motore openworld
+          k.W.scene.add(object);
 
-        // Applica le texture (se disponibili)
-        applyTexturesToModel(object);
+          // Log dei nomi dei mesh per debug
+          console.log('Mesh names in Serena model:');
+          object.traverse(function(child) {
+            if (child.isMesh) {
+              console.log('Mesh:', child.name);
+            }
+          });
 
-        // Animazioni (se presenti)
-        mixer = new THREE.AnimationMixer(object);
-        if (object.animations.length > 0) {
-          const action = mixer.clipAction(object.animations[0]);
-          action.play();
+          // Applica le texture (se disponibili)
+          applyTexturesToModel(object);
+
+          // Animazioni (se presenti)
+          mixer = new THREE.AnimationMixer(object);
+          if (object.animations.length > 0) {
+            const action = mixer.clipAction(object.animations[0]);
+            action.play();
+          }
+
+          // Sostituisci il vecchio player cubo con Serena
+          if (k.mainVPlayer !== undefined) {
+            // Nascondi il vecchio cubo del giocatore
+            const oldPlayer = k.W.getObj(k.mainVPlayer);
+            if (oldPlayer) {
+              oldPlayer.visible = false;
+            }
+            
+            // Collega Serena al movimento del giocatore
+            k.W.setBeforeRender(function() {
+              if (serenaModel && k.mainVPlayer !== undefined) {
+                const playerPos = k.addPhy.getPos(k.mainVPlayer);
+                serenaModel.position.set(playerPos.x, playerPos.y - 0.5, playerPos.z);
+                serenaModel.rotation.y = k.keys.turnRight || 0;
+              }
+            });
+          }
+
+          console.log('Modello FBX di Serena integrato nel motore openworld.');
+        },
+        function(xhr) {
+          console.log((xhr.loaded / xhr.total * 100) + '% caricato');
+        },
+        function(error) {
+          console.error('Errore caricamento FBX:', error);
         }
-
-        console.log('Modello FBX di Serena caricato con successo.');
-      },
-      function(xhr) {
-        console.log((xhr.loaded / xhr.total * 100) + '% caricato');
-      },
-      function(error) {
-        console.error('Errore caricamento FBX:', error);
-      }
-    );
-
-    // Loop di rendering three.js
-    function animate() {
-      requestAnimationFrame(animate);
-      const delta = clock.getDelta();
-      if (mixer) mixer.update(delta);
-      if (threeControls) threeControls.update();
-      threeRenderer.render(threeScene, threeCamera);
+      );
+    } else {
+      console.warn('Motore openworld non trovato, fallback a scena three.js separata...');
+      // Fallback alla vecchia implementazione se necessario
     }
-    animate();
   }
 
   // Funzione per applicare le texture al modello
