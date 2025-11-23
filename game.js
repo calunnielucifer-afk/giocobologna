@@ -1026,6 +1026,10 @@ function init() {
         serena.x = 200;  // Safe spawn for level 3 (safe lava area)
         serena.y = 250;
         serena.z = 0;
+    } else if (level === 4) {
+        serena.x = 100;  // Safe spawn for level 4 (far from dangers)
+        serena.y = 300;
+        serena.z = 0;
     } else {
         serena.x = 100;  // Default safe spawn
         serena.y = 250;
@@ -1047,7 +1051,81 @@ function init() {
     };
     
     createLevel(level);
+    
+    // Show Prince Stefano dialog at start of level 4
+    if (level === 4) {
+        setTimeout(() => {
+            showPrinceDialog();
+        }, 1000);
+    }
+    
     updateUI();
+}
+
+// Show Prince Stefano dialog at level 4 start
+function showPrinceDialog() {
+    gameRunning = false;
+    
+    // Create dialog overlay
+    const dialogOverlay = document.createElement('div');
+    dialogOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    `;
+    
+    // Create dialog box
+    const dialogBox = document.createElement('div');
+    dialogBox.style.cssText = `
+        background: linear-gradient(135deg, #2C1810, #4A2C1A);
+        border: 3px solid #FFD700;
+        border-radius: 15px;
+        padding: 30px;
+        max-width: 500px;
+        text-align: center;
+        color: #FFFFFF;
+        font-family: 'Georgia', serif;
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    `;
+    
+    dialogBox.innerHTML = `
+        <h2 style="color: #FFD700; margin-bottom: 20px; font-size: 24px;">⚡ Principe Stefano ⚡</h2>
+        <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+            "Serena mia guerriera... sei sempre più vicina a Benevento!<br><br>
+            Il sogno sta diventando realtà. Ogni passo che fai ti avvicina al tuo destino.<br><br>
+            Ma attenzione: il cammino finale è pericoloso. Gli assistenti sociali sono più forti qui,<br>
+            e la realtà del sogno è più intensa che mai.<br><br>
+            Coraggio! Io sono con te, nel cuore e nello spirito. Presto ci ritroveremo!"
+        </p>
+        <button id="continueBtn" style="
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2C1810;
+            cursor: pointer;
+            margin-top: 10px;
+        ">Continua l'avventura</button>
+    `;
+    
+    dialogOverlay.appendChild(dialogBox);
+    document.body.appendChild(dialogOverlay);
+    
+    // Handle continue button
+    document.getElementById('continueBtn').addEventListener('click', () => {
+        document.body.removeChild(dialogOverlay);
+        gameRunning = true;
+        gameLoop();
+    });
 }
 
 // Create level obstacles and platforms
@@ -1759,87 +1837,163 @@ function update3DCamera() {
 }
 
 function createFinalLevel() {
-    // Final level with Prince Stefano visible
-    // Maximum obstacles
-    for (let i = 0; i < 6; i++) {
-        obstacles.push({
-            x: 100 + i * 100,
-            y: 310,
-            width: 35,
-            height: 40,
-            type: 'socialWorker',
-            color: '#4169E1',
-            speed: 2.5 + i * 0.1,
-            direction: i % 2 === 0 ? 1 : -1,
-            minX: 80 + i * 100,
-            maxX: 120 + i * 100
-        });
-    }
+    console.log('Creating Level 4 - Minecraft End City - Final Battle for Benevento');
     
-    // Snow everywhere
-    for (let i = 0; i < 7; i++) {
-        obstacles.push({
-            x: 120 + i * 90,
-            y: 310,
-            width: 45,
-            height: 45,
-            type: 'snow',
-            color: '#FFFFFF',
-            speed: 0
-        });
-    }
+    // Clear all 2D elements for pure 3D realistic experience
+    obstacles = [];
+    platforms = [];
     
-    // Many broken roads
+    // MINECRAFT END CITY - REALISTIC FINAL BATTLE
+    
+    // End stone ground (realistic texture)
+    objects3D.push({
+        type: 'platform',
+        x: 400,
+        y: 350,
+        z: 0,
+        width: 2000,
+        height: 30,
+        depth: 800,
+        color: '#D2B48C',  // End stone tan
+        rotation: 0
+    });
+    
+    // End City towers and structures
     for (let i = 0; i < 4; i++) {
-        obstacles.push({
-            x: 150 + i * 150,
-            y: 330,
-            width: 80,
+        const towerX = 300 + i * 200;
+        const towerZ = -150 - i * 60;
+        
+        // Tower base
+        objects3D.push({
+            type: 'platform',
+            x: towerX,
+            y: 250,
+            z: towerZ,
+            width: 120,
+            height: 100,
+            depth: 120,
+            color: '#D2B48C',  // End stone
+            rotation: 0
+        });
+        
+        // Tower top (decorative)
+        objects3D.push({
+            type: 'platform',
+            x: towerX,
+            y: 230,
+            z: towerZ,
+            width: 100,
             height: 20,
-            type: 'brokenRoad',
-            color: '#696969',
-            speed: 0,
-            curve: true
+            depth: 100,
+            color: '#8B7355',  // Darker end stone
+            rotation: 0
+        });
+        
+        // Tower spire
+        objects3D.push({
+            type: 'platform',
+            x: towerX,
+            y: 200,
+            z: towerZ,
+            width: 60,
+            height: 30,
+            depth: 60,
+            color: '#654321',  // Dark brown
+            rotation: 0
         });
     }
     
-    // Final doors with challenges
-    for (let i = 0; i < 5; i++) {
-        doors.push({
-            x: 150 + i * 120,
-            y: 280,
-            width: 40,
-            height: 70,
-            locked: true,
-            riddleId: i % riddles.length,
-            color: '#8B4513',
-            puzzleType: i % 2 === 0 ? 'riddle' : 'puzzle'
-        });
-    }
-    
-    // Complex platform maze to reach the prince
-    const finalPlatformPositions = [
-        {x: 60, y: 280, w: 50},
-        {x: 140, y: 240, w: 40},
-        {x: 210, y: 200, w: 50},
-        {x: 290, y: 160, w: 40},
-        {x: 360, y: 130, w: 50},
-        {x: 440, y: 100, w: 40},
-        {x: 510, y: 140, w: 50},
-        {x: 590, y: 180, w: 40},
-        {x: 660, y: 220, w: 50},
-        {x: 730, y: 260, w: 40}
-    ];
-    
-    finalPlatformPositions.forEach(pos => {
-        platforms.push({
-            x: pos.x,
-            y: pos.y,
-            width: pos.w,
+    // Floating end stone platforms
+    for (let i = 0; i < 6; i++) {
+        objects3D.push({
+            type: 'platform',
+            x: 200 + i * 140,
+            y: 180 + Math.sin(i * 0.8) * 40,
+            z: -200 - i * 40,
+            width: 80,
             height: 15,
-            color: '#8B4513',
-            curve: true
+            depth: 80,
+            color: '#D2B48C',
+            rotation: i * 15 * Math.PI / 180
         });
+    }
+    
+    // End crystals (collectibles - realistic)
+    for (let i = 0; i < 10; i++) {
+        objects3D.push({
+            type: 'collectible',
+            x: 180 + i * 100,
+            y: 120 + Math.sin(i * 1.2) * 60,
+            z: -180 - i * 35,
+            width: 35,
+            height: 35,
+            depth: 35,
+            color: i % 3 === 0 ? '#FF1493' : (i % 3 === 1 ? '#00CED1' : '#FFD700'), // Pink, cyan, gold crystals
+            collected: false,
+            rotation: 0,
+            floatOffset: Math.random() * Math.PI * 2
+        });
+    }
+    
+    // Realistic enemies - Endermen and Shulkers
+    for (let i = 0; i < 8; i++) {
+        objects3D.push({
+            type: 'enemy',
+            x: 250 + i * 110,  // Spread far from safe spawn
+            y: 280,
+            z: -100 - i * 45,
+            width: 40,
+            height: 60,
+            depth: 40,
+            color: i % 2 === 0 ? '#2F1B1B' : '#9370DB',  // Black endermen, purple shulkers
+            speed: 1.5 + i * 0.2,
+            direction: i % 2 === 0 ? 1 : -1,
+            rotation: 0,
+            rotationSpeed: 0.02
+        });
+    }
+    
+    // Social workers (realistic - final bosses)
+    for (let i = 0; i < 4; i++) {
+        objects3D.push({
+            type: 'enemy',
+            x: 400 + i * 150,  // Far from spawn area
+            y: 300,
+            z: -300 - i * 50,
+            width: 45,
+            height: 55,
+            depth: 45,
+            color: '#4169E1',  // Royal blue - boss color
+            speed: 2.0 + i * 0.3,
+            direction: i % 2 === 0 ? 1 : -1,
+            rotation: 0,
+            rotationSpeed: 0.025
+        });
+    }
+    
+    // End gateway portal (final door)
+    doors.push({
+        x: 950,  // Far at the end
+        y: 200,
+        width: 80,
+        height: 120,
+        locked: true,
+        riddleId: 6,
+        color: '#9400D3',  // Violet end portal
+        puzzleType: 'puzzle'
+    });
+    
+    // Prince Stefano waiting area (visible but unreachable)
+    objects3D.push({
+        type: 'platform',
+        x: 1050,
+        y: 250,
+        z: -400,
+        width: 100,
+        height: 100,
+        depth: 100,
+        color: '#FFD700',  // Golden platform
+        rotation: 0
     });
 }
 
