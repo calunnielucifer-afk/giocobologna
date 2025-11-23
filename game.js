@@ -1002,11 +1002,15 @@ function handleDragEnd(e) {
 
 // Initialize game
 function init() {
-    score = 0;
-    lives = 3;
-    level = 1;
-    advanced3D = false;
-    is3DLevel = false;
+    // Don't reset score and lives when advancing levels
+    if (score === 0 && lives === 3) {
+        score = 0;
+        lives = 3;
+        level = 1;
+    }
+    
+    advanced3D = level >= 2;
+    is3DLevel = level >= 2;
     serena.x = 50;
     serena.y = 300;
     serena.z = 0;
