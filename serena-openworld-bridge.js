@@ -98,8 +98,11 @@
         const name = child.name.toLowerCase();
         let material = null;
 
+        console.log(`Applying texture to mesh: ${child.name}`);
+
         // Abito (Miao_new_suit) - usa QiPao
         if (name.includes('miao_new_suit') || name.includes('suit') || name.includes('dress')) {
+          console.log('Loading dress textures...');
           const diffuse = textureLoader.load(basePath + 'QiPao_MetallicAlpha.png');
           const roughness = textureLoader.load(basePath + 'QiPao_roughness.png');
           const metallic = textureLoader.load(basePath + 'QiPao_metallic.png');
@@ -109,9 +112,11 @@
             metalnessMap: metallic,
             skinning: true,
           });
+          console.log('Dress material created');
         }
         // Pelle (CC_Base_Body) - usa Std_Skin_Body
         else if (name.includes('cc_base_body')) {
+          console.log('Loading body skin textures...');
           const diffuse = textureLoader.load(basePath + 'Std_Skin_Body_MetallicAlpha.png');
           const roughness = textureLoader.load(basePath + 'Std_Skin_Body_roughness.png');
           material = new THREE.MeshStandardMaterial({
@@ -119,9 +124,11 @@
             roughnessMap: roughness,
             skinning: true,
           });
+          console.log('Body skin material created');
         }
         // Capelli (Long_bangs, Long_wavy_ponytail, Messy_high)
         else if (name.includes('long_bangs') || name.includes('long_wavy_ponytail') || name.includes('messy_high') || name.includes('hair')) {
+          console.log('Loading hair textures...');
           const diffuse = textureLoader.load(basePath + 'Hair_Transparency_MetallicAlpha.png');
           const ao = textureLoader.load(basePath + 'Hair_Transparency_ao.png');
           material = new THREE.MeshStandardMaterial({
@@ -131,17 +138,21 @@
             alphaTest: 0.5,
             skinning: true,
           });
+          console.log('Hair material created');
         }
         // Occhi (CC_Base_Eye, CC_Base_EyeOcclusion)
         else if (name.includes('cc_base_eye')) {
+          console.log('Loading eye textures...');
           const diffuse = textureLoader.load(basePath + 'Std_Cornea_L_Sclera.jpg');
           material = new THREE.MeshStandardMaterial({
             map: diffuse,
             skinning: true,
           });
+          console.log('Eye material created');
         }
         // Denti (CC_Base_Teeth) - usa Std_Upper_Teeth
         else if (name.includes('cc_base_teeth')) {
+          console.log('Loading teeth textures...');
           const diffuse = textureLoader.load(basePath + 'Std_Upper_Teeth_GradAO.jpg');
           const roughness = textureLoader.load(basePath + 'Std_Upper_Teeth_roughness.png');
           material = new THREE.MeshStandardMaterial({
@@ -149,9 +160,11 @@
             roughnessMap: roughness,
             skinning: true,
           });
+          console.log('Teeth material created');
         }
         // Lingua (CC_Base_Tongue)
         else if (name.includes('cc_base_tongue')) {
+          console.log('Loading tongue textures...');
           const diffuse = textureLoader.load(basePath + 'Std_Tongue_GradAO.jpg');
           const roughness = textureLoader.load(basePath + 'Std_Tongue_roughness.png');
           material = new THREE.MeshStandardMaterial({
@@ -159,9 +172,11 @@
             roughnessMap: roughness,
             skinning: true,
           });
+          console.log('Tongue material created');
         }
         // Scarpe (High_Heels)
         else if (name.includes('high_heels')) {
+          console.log('Loading shoe textures...');
           const metallic = textureLoader.load(basePath + 'High_Heels_metallic.png');
           const roughness = textureLoader.load(basePath + 'High_Heels_roughness.png');
           material = new THREE.MeshStandardMaterial({
@@ -169,6 +184,7 @@
             roughnessMap: roughness,
             skinning: true,
           });
+          console.log('Shoe material created');
         }
         // Altro (occlusione, tearline, ecc.)
         else if (name.includes('cc_base_eyeocclusion') || name.includes('cc_base_tearline') || name.includes('sphere')) {
@@ -180,6 +196,7 @@
         }
         // Default - colore rosa per abito
         else {
+          console.log(`Using default pink color for mesh: ${child.name}`);
           material = new THREE.MeshStandardMaterial({ 
             color: 0xFFB6C1, // rosa chiaro
             skinning: true,
@@ -189,8 +206,10 @@
         child.material = material;
         child.castShadow = true;
         child.receiveShadow = true;
+        console.log(`Material applied to ${child.name}`);
       }
     });
+    console.log('All materials applied to Serena model');
   }
 
   // Inizializza quando la pagina è pronta e il motore openworld è caricato
