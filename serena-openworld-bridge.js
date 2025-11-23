@@ -98,7 +98,7 @@
         const name = child.name.toLowerCase();
         let material = null;
 
-        // Abito (Miao_new_suit)
+        // Abito (Miao_new_suit) - usa QiPao
         if (name.includes('miao_new_suit') || name.includes('suit') || name.includes('dress')) {
           const diffuse = textureLoader.load(basePath + 'QiPao_MetallicAlpha.png');
           const roughness = textureLoader.load(basePath + 'QiPao_roughness.png');
@@ -110,7 +110,7 @@
             skinning: true,
           });
         }
-        // Pelle (CC_Base_Body)
+        // Pelle (CC_Base_Body) - usa Std_Skin_Body
         else if (name.includes('cc_base_body')) {
           const diffuse = textureLoader.load(basePath + 'Std_Skin_Body_MetallicAlpha.png');
           const roughness = textureLoader.load(basePath + 'Std_Skin_Body_roughness.png');
@@ -140,7 +140,7 @@
             skinning: true,
           });
         }
-        // Denti (CC_Base_Teeth)
+        // Denti (CC_Base_Teeth) - usa Std_Upper_Teeth
         else if (name.includes('cc_base_teeth')) {
           const diffuse = textureLoader.load(basePath + 'Std_Upper_Teeth_GradAO.jpg');
           const roughness = textureLoader.load(basePath + 'Std_Upper_Teeth_roughness.png');
@@ -178,10 +178,10 @@
             skinning: true,
           });
         }
-        // Default
+        // Default - colore rosa per abito
         else {
           material = new THREE.MeshStandardMaterial({ 
-            color: 0xcccccc,
+            color: 0xFFB6C1, // rosa chiaro
             skinning: true,
           });
         }
