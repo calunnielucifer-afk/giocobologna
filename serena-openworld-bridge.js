@@ -176,44 +176,178 @@
 
         console.log(`Applicando texture a: ${child.name}`);
 
-        // Abito
-        if (name.includes('miao_new_suit')) {
-          const diffuse = textureLoader.load(basePath + 'QiPao_MetallicAlpha.png');
-          material = new THREE.MeshStandardMaterial({ map: diffuse, skinning: true });
-        }
-        // Pelle
-        else if (name.includes('cc_base_body')) {
-          const diffuse = textureLoader.load(basePath + 'Std_Skin_Body_MetallicAlpha.png');
-          material = new THREE.MeshStandardMaterial({ map: diffuse, skinning: true });
-        }
-        // Capelli
-        else if (name.includes('long_bangs') || name.includes('messy_high')) {
-          const diffuse = textureLoader.load(basePath + 'Hair_Transparency_MetallicAlpha.png');
+        // Abito (QiPao)
+        if (name.includes('miao_new_suit') || name.includes('suit') || name.includes('dress')) {
+          console.log('Caricando texture abito...');
+          const diffuse = textureLoader.load(basePath + 'QiPao_Diffuse.png');
+          const metallic = textureLoader.load(basePath + 'QiPao_metallic.png');
+          const roughness = textureLoader.load(basePath + 'QiPao_roughness.png');
+          const normal = textureLoader.load(basePath + 'QiPao_Normal.png');
           material = new THREE.MeshStandardMaterial({ 
             map: diffuse, 
+            metalnessMap: metallic,
+            roughnessMap: roughness,
+            normalMap: normal,
+            skinning: true 
+          });
+          console.log('Texture abito applicate');
+        }
+        // Pelle corpo
+        else if (name.includes('cc_base_body')) {
+          console.log('Caricando texture pelle corpo...');
+          const metallicAlpha = textureLoader.load(basePath + 'Std_Skin_Body_MetallicAlpha.png');
+          const normal = textureLoader.load(basePath + 'Std_Skin_Body_Normal.png');
+          const ao = textureLoader.load(basePath + 'Std_Skin_Body_ao.png');
+          const roughness = textureLoader.load(basePath + 'Std_Skin_Body_roughness.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: metallicAlpha, 
+            normalMap: normal,
+            aoMap: ao,
+            roughnessMap: roughness,
+            skinning: true 
+          });
+          console.log('Texture pelle corpo applicate');
+        }
+        // Capelli
+        else if (name.includes('long_bangs') || name.includes('messy_high') || name.includes('hair')) {
+          console.log('Caricando texture capelli...');
+          const diffuse = textureLoader.load(basePath + 'Hair_Transparency_Diffuse.jpeg');
+          const ao = textureLoader.load(basePath + 'Hair_Transparency_ao.png');
+          const metallic = textureLoader.load(basePath + 'Hair_Transparency_metallic.png');
+          const roughness = textureLoader.load(basePath + 'Hair_Transparency_roughness.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: diffuse, 
+            aoMap: ao,
+            metalnessMap: metallic,
+            roughnessMap: roughness,
             transparent: true, 
             alphaTest: 0.5,
             skinning: true 
           });
+          console.log('Texture capelli applicate');
         }
         // Occhi
         else if (name.includes('cc_base_eye')) {
-          material = new THREE.MeshStandardMaterial({ color: 0xffffff, skinning: true });
+          console.log('Caricando texture occhi...');
+          const diffuse = textureLoader.load(basePath + 'Std_Eye_R_Diffuse.png');
+          const normal = textureLoader.load(basePath + 'Std_Eye_R_Normal.png');
+          const roughness = textureLoader.load(basePath + 'Std_Eye_R_roughness.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: diffuse,
+            normalMap: normal,
+            roughnessMap: roughness,
+            skinning: true 
+          });
+          console.log('Texture occhi applicate');
         }
         // Scarpe
         else if (name.includes('high_heels')) {
-          material = new THREE.MeshStandardMaterial({ color: 0x000000, skinning: true });
+          console.log('Caricando texture scarpe...');
+          const diffuse = textureLoader.load(basePath + 'High_Heels_Diffuse.jpeg');
+          const normal = textureLoader.load(basePath + 'High_Heels_Normal.png');
+          const metallic = textureLoader.load(basePath + 'High_Heels_metallic.png');
+          const roughness = textureLoader.load(basePath + 'High_Heels_roughness.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: diffuse,
+            normalMap: normal,
+            metalnessMap: metallic,
+            roughnessMap: roughness,
+            skinning: true 
+          });
+          console.log('Texture scarpe applicate');
         }
-        // Default rosa
+        // Denti superiori
+        else if (name.includes('upper_teeth')) {
+          console.log('Caricando texture denti superiori...');
+          const diffuse = textureLoader.load(basePath + 'Std_Upper_Teeth_Diffuse.png');
+          const normal = textureLoader.load(basePath + 'Std_Upper_Teeth_Normal.png');
+          const ao = textureLoader.load(basePath + 'Std_Upper_Teeth_GradAO.jpg');
+          const roughness = textureLoader.load(basePath + 'Std_Upper_Teeth_roughness.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: diffuse,
+            normalMap: normal,
+            aoMap: ao,
+            roughnessMap: roughness,
+            skinning: true 
+          });
+          console.log('Texture denti superiori applicate');
+        }
+        // Denti inferiori
+        else if (name.includes('lower_teeth')) {
+          console.log('Caricando texture denti inferiori...');
+          const diffuse = textureLoader.load(basePath + 'Std_Lower_Teeth_Diffuse.png');
+          const normal = textureLoader.load(basePath + 'Std_Lower_Teeth_Normal.png');
+          const ao = textureLoader.load(basePath + 'Std_Lower_Teeth_ao.png');
+          const roughness = textureLoader.load(basePath + 'Std_Lower_Teeth_roughness.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: diffuse,
+            normalMap: normal,
+            aoMap: ao,
+            roughnessMap: roughness,
+            skinning: true 
+          });
+          console.log('Texture denti inferiori applicate');
+        }
+        // Lingua
+        else if (name.includes('tongue')) {
+          console.log('Caricando texture lingua...');
+          const diffuse = textureLoader.load(basePath + 'Std_Tongue_Diffuse.png');
+          const normal = textureLoader.load(basePath + 'Std_Tongue_Normal.png');
+          const ao = textureLoader.load(basePath + 'Std_Tongue_ao.png');
+          const roughness = textureLoader.load(basePath + 'Std_Tongue_roughness.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: diffuse,
+            normalMap: normal,
+            aoMap: ao,
+            roughnessMap: roughness,
+            skinning: true 
+          });
+          console.log('Texture lingua applicate');
+        }
+        // Ciglia
+        else if (name.includes('eyelash')) {
+          console.log('Caricando texture ciglia...');
+          const diffuse = textureLoader.load(basePath + 'Std_Eyelash_Diffuse.jpeg');
+          const ao = textureLoader.load(basePath + 'Std_Eyelash_ao.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: diffuse,
+            aoMap: ao,
+            transparent: true,
+            alphaTest: 0.1,
+            skinning: true 
+          });
+          console.log('Texture ciglia applicate');
+        }
+        // Unghie
+        else if (name.includes('nails')) {
+          console.log('Caricando texture unghie...');
+          const diffuse = textureLoader.load(basePath + 'Std_Nails_Diffuse.jpeg');
+          const normal = textureLoader.load(basePath + 'Std_Nails_Normal.png');
+          const ao = textureLoader.load(basePath + 'Std_Nails_ao.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: diffuse,
+            normalMap: normal,
+            aoMap: ao,
+            skinning: true 
+          });
+          console.log('Texture unghie applicate');
+        }
+        // Default rosa per parti non riconosciute
         else {
-          material = new THREE.MeshStandardMaterial({ color: 0xFFB6C1, skinning: true });
+          console.log(`Usando colore rosa di default per: ${child.name}`);
+          material = new THREE.MeshStandardMaterial({ 
+            color: 0xFFB6C1, 
+            skinning: true 
+          });
         }
 
         child.material = material;
         child.castShadow = true;
         child.receiveShadow = true;
+        console.log(`Material applicato a ${child.name}`);
       }
     });
+    console.log('Tutte le texture applicate al modello Serena');
   }
 
   function setupControls() {
