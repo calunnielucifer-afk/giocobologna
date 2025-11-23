@@ -31,7 +31,7 @@
             
             // Posiziona Serena dove si trova il giocatore nel motore openworld
             const playerPos = k.addPhy.getPos(k.mainVPlayer);
-            object.position.set(playerPos.x, playerPos.y, playerPos.z);
+            object.position.set(playerPos.x, playerPos.y - 0.5, playerPos.z);
             
             // Aggiungi alla scena del motore openworld
             k.W.scene.add(object);
@@ -60,8 +60,8 @@
               oldPlayer.visible = false;
             }
             
-            // Collega Serena al movimento del giocatore
-            k.W.setBeforeRender(function() {
+            // Collega Serena al movimento del giocatore usando l'hook di rendering
+            k.hooks.on('beforeRender', function() {
               if (serenaModel && k.mainVPlayer !== undefined) {
                 const playerPos = k.addPhy.getPos(k.mainVPlayer);
                 serenaModel.position.set(playerPos.x, playerPos.y - 0.5, playerPos.z);
