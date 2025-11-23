@@ -80,6 +80,9 @@
       scene.add(tree);
     }
 
+    // Tavola da poker
+    createPokerTable();
+    
     // Controlli tastiera e touch
     setupControls();
 
@@ -93,6 +96,75 @@
     animate();
 
     console.log('Scena inizializzata con successo!');
+  }
+
+  function createPokerTable() {
+    // Crea un piano per la tavola da poker
+    const tableGeometry = new THREE.PlaneGeometry(8, 4);
+    const tableMaterial = new THREE.MeshLambertMaterial({ 
+      color: 0x0d5f0d, // Verde poker
+      side: THREE.DoubleSide
+    });
+    const pokerTable = new THREE.Mesh(tableGeometry, tableMaterial);
+    
+    // Posiziona la tavola più vicina all'area di spawn
+    pokerTable.rotation.x = -Math.PI / 2;
+    pokerTable.position.set(5, 0.01, 5); // più vicina e visibile
+    
+    // Aggiungi bordi in legno più alti per visibilità
+    const borderGeometry = new THREE.BoxGeometry(8.2, 0.3, 4.2);
+    const borderMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+    const border = new THREE.Mesh(borderGeometry, borderMaterial);
+    border.position.set(5, 0.15, 5);
+    
+    // Aggiungi un indicatore luminoso sopra la tavola
+    const indicatorGeometry = new THREE.BoxGeometry(1, 3, 1);
+    const indicatorMaterial = new THREE.MeshBasicMaterial({ 
+      color: 0xffd700,
+      emissive: 0xffd700,
+      emissiveIntensity: 0.5
+    });
+    const indicator = new THREE.Mesh(indicatorGeometry, indicatorMaterial);
+    indicator.position.set(5, 2, 5);
+    
+    // Aggiungi luce sopra la tavola per renderla più visibile
+    const tableLight = new THREE.PointLight(0xffd700, 1, 10);
+    tableLight.position.set(5, 3, 5);
+    scene.add(tableLight);
+    
+    // Rendi la tavola cliccabile
+    pokerTable.userData = { isPokerTable: true, clickable: true };
+    border.userData = { isPokerTable: true, clickable: true };
+    indicator.userData = { isPokerTable: true, clickable: true };
+    
+    scene.add(pokerTable);
+    scene.add(border);
+    scene.add(indicator);
+    
+    // Aggiungi un testo 3D sopra la tavola
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 128;
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#000000';
+    context.fillRect(0, 0, 512, 128);
+    context.fillStyle = '#ffffff';
+    context.font = 'bold 48px Arial';
+    context.textAlign = 'center';
+    context.fillText('🎰 POKER 🎰', 256, 75);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    const signGeometry = new THREE.PlaneGeometry(4, 1);
+    const signMaterial = new THREE.MeshBasicMaterial({ 
+      map: texture,
+      side: THREE.DoubleSide
+    });
+    const sign = new THREE.Mesh(signGeometry, signMaterial);
+    sign.position.set(5, 3.5, 5);
+    sign.rotation.y = Math.PI;
+    scene.add(sign);
+    
+    console.log('Tavola da poker creata a posizione (5, 0, 5)');
   }
 
   function createTree() {
@@ -125,42 +197,74 @@
       'openworld/modelpg/Lady_in_red_dress/Lady in red dress.fbx',
       function(object) {
         serenaModel = object;
+        
+        // Scala appropriata per il mondo
         object.scale.set(0.01, 0.01, 0.01);
         
-        // Correggi posizione per metterla in piedi
-        object.position.set(0, 0.5, 0);
-        object.rotation.y = Math.PI; // Girata verso la camera
+        // Posiziona Serena esattamente a terra (y = 0)
+        object.position.set(0, 0, 0);
         
-        // Assicurati che sia in piedi (rotazione corretta)
+        // Correggi l'orientamento del modello
+        object.rotation.x = 0; // Reset rotazione X
+        object.rotation.y = Math.PI; // Girata verso la camera
+        object.rotation.z = 0; // Reset rotazione Z
+        
+        // Assicurati che tutti i mesh siano orientati correttamente
         object.traverse(function(child) {
           if (child.isMesh) {
-            child.rotation.x = 0; // Nessuna rotazione forward/backward
-            child.rotation.z = 0; // Nessuna rotazione laterale
+            child.rotation.x = 0;
+            child.rotation.y = 0;
+            child.rotation.z = 0;
+            
+            // Abilita cast shadow e receive shadow
+            child.castShadow = true;
+            child.receiveShadow = true;
+            
+            // Log per debug
+            console.log('Mesh:', child.name, 'Position:', child.position);
           }
         });
         
-        // Correggi l'intero modello per stare in piedi
-        object.rotation.x = -Math.PI / 2; // Ruota 90° per stare in piedi
-        object.rotation.z = 0;
+        // Calcola il bounding box per centrare il modello a terra
+        const box = new THREE.Box3().setFromObject(object);
+        const height = box.max.y - box.min.y;
+        
+        // Posiziona il modello così che i piedi toccano terra
+        object.position.y = -box.min.y * object.scale.y;
+        
+        console.log('Altezza modello:', height, 'Posizione Y:', object.position.y);
         
         scene.add(object);
 
-        // Log dei mesh
+        // Log dei mesh e delle ossa
         console.log('Mesh nel modello Serena:');
         object.traverse(function(child) {
           if (child.isMesh) {
-            console.log('Mesh:', child.name);
+            console.log('Mesh:', child.name, 'Vertices:', child.geometry ? child.geometry.attributes.position.count : 'N/A');
+          }
+          if (child.isBone) {
+            console.log('Bone:', child.name, 'Position:', child.position);
           }
         });
 
         // Applica texture
         applyTexturesToModel(object);
 
-        // Animazioni
+        // Animazioni con setup corretto
         mixer = new THREE.AnimationMixer(object);
         if (object.animations.length > 0) {
+          console.log('Animazioni trovate:', object.animations.length);
+          object.animations.forEach((anim, index) => {
+            console.log('Animazione', index, ':', anim.name);
+          });
+          
           const action = mixer.clipAction(object.animations[0]);
+          action.setEffectiveWeight(1);
+          action.setEffectiveTimeScale(1);
+          action.fadeIn(0.5);
           action.play();
+        } else {
+          console.log('Nessuna animazione trovata nel modello');
         }
 
         console.log('Serena caricata con successo!');
@@ -512,11 +616,302 @@
       }
     });
 
+    // Click detection per tavola da poker (desktop)
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    
+    document.addEventListener('click', function(event) {
+      // Calcola le coordinate del mouse
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      
+      // Aggiorna il raycaster
+      raycaster.setFromCamera(mouse, camera);
+      
+      // Controlla intersezioni con tutti gli oggetti nella scena
+      const intersects = raycaster.intersectObjects(scene.children, true);
+      
+      console.log('Click detected, checking intersections...', intersects.length);
+      
+      for (let intersect of intersects) {
+        console.log('Intersected object:', intersect.object.name, intersect.object.userData);
+        
+        if (intersect.object.userData && intersect.object.userData.isPokerTable) {
+          console.log('Poker table clicked! Opening window...');
+          openPokerWindow();
+          break;
+        }
+      }
+    });
+    
+    // Aggiungi anche un test per verificare che la tavola sia stata creata
+    setTimeout(() => {
+      console.log('Verifica tavola da poker nella scena...');
+      let tableFound = false;
+      scene.traverse(function(child) {
+        if (child.userData && child.userData.isPokerTable) {
+          console.log('Tavola da poker trovata:', child.position);
+          tableFound = true;
+        }
+      });
+      if (!tableFound) {
+        console.log('ERRORE: Tavola da poker non trovata nella scena!');
+      }
+    }, 1000);
+
     // Window resize
     window.addEventListener('resize', function() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  }
+
+  function openPokerWindow() {
+    console.log('Apertura finestra poker...');
+    
+    // Crea la finestra modal per il poker
+    const pokerModal = document.createElement('div');
+    pokerModal.id = 'pokerModal';
+    pokerModal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    `;
+    
+    // Contenuto della finestra poker
+    const pokerContent = document.createElement('div');
+    pokerContent.style.cssText = `
+      background: #2d5f2d;
+      border: 4px solid #8B4513;
+      border-radius: 15px;
+      padding: 20px;
+      width: 90%;
+      max-width: 800px;
+      height: 90%;
+      max-height: 600px;
+      position: relative;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    `;
+    
+    pokerContent.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: white; margin: 0;">🎰 Poker Room 🎰</h2>
+        <button id="closePoker" style="
+          background: #ff4444;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 16px;
+        ">✖ Chiudi</button>
+      </div>
+      
+      <div style="background: #1a4d1a; border-radius: 10px; padding: 20px; height: calc(100% - 80px); overflow-y: auto;">
+        <div style="text-align: center; color: white;">
+          <h3>🃏 Texas Hold'em Poker 🃏</h3>
+          
+          <!-- Link d'invito -->
+          <div style="background: rgba(255,215,0,0.2); border: 2px solid #ffd700; border-radius: 10px; padding: 15px; margin: 15px 0;">
+            <div style="color: #ffd700; font-weight: bold; margin-bottom: 10px;">🔗 Invita un amico al tavolo:</div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input id="inviteLink" type="text" readonly value="https://serenapoker.com/table/ABC123" style="
+                flex: 1;
+                background: rgba(0,0,0,0.5);
+                color: white;
+                border: 1px solid #ffd700;
+                padding: 8px;
+                border-radius: 5px;
+                font-family: monospace;
+              ">
+              <button id="copyLink" style="
+                background: #ffd700;
+                color: black;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-weight: bold;
+              ">📋 Copia</button>
+            </div>
+            <div id="copySuccess" style="color: #4CAF50; margin-top: 5px; display: none;">✅ Link copiato negli appunti!</div>
+          </div>
+          
+          <!-- Dealer Bot -->
+          <div style="background: rgba(139,69,19,0.3); border: 2px solid #8B4513; border-radius: 10px; padding: 15px; margin: 15px 0;">
+            <div style="color: #ffd700; font-weight: bold; margin-bottom: 10px;">🤖 Dealer Bot Attivo</div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <div style="
+                width: 60px;
+                height: 60px;
+                background: linear-gradient(135deg, #8B4513, #D2691E);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 30px;
+                border: 3px solid #ffd700;
+              ">🎩</div>
+              <div style="text-align: left;">
+                <div style="color: white;">🎰 <strong>Max Dealer</strong></div>
+                <div style="color: #ccc; font-size: 14px;">Stato: Pronto a distribuire</div>
+                <div style="color: #4CAF50; font-size: 12px;">● Online</div>
+              </div>
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: center; gap: 20px; margin: 20px 0;">
+            <div style="background: white; color: black; padding: 10px; border-radius: 5px; font-size: 24px;">A♠</div>
+            <div style="background: white; color: black; padding: 10px; border-radius: 5px; font-size: 24px;">K♥</div>
+          </div>
+          <p style="font-size: 18px; margin: 20px 0;">Tavolo: $100/$200</p>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0;">
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+              <div style="color: #ffd700;">👤 Giocatore 1</div>
+              <div>Fiches: $5,000</div>
+              <div style="color: #4CAF50; font-size: 12px;">● In attesa</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; border: 2px solid #ffd700;">
+              <div style="color: #ffd700;">👤 Tu</div>
+              <div>Fiches: $2,500</div>
+              <div style="color: #ff9800; font-size: 12px;">● Tuo turno</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+              <div style="color: #ffd700;">🤖 Dealer Bot</div>
+              <div>Fiches: $10,000</div>
+              <div style="color: #f44336; font-size: 12px;">● Pensando...</div>
+            </div>
+          </div>
+          <div style="margin-top: 20px;">
+            <button style="
+              background: #4CAF50;
+              color: white;
+              border: none;
+              padding: 15px 30px;
+              margin: 5px;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 16px;
+            ">✋ Check</button>
+            <button style="
+              background: #ff9800;
+              color: white;
+              border: none;
+              padding: 15px 30px;
+              margin: 5px;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 16px;
+            ">📈 Raise $200</button>
+            <button style="
+              background: #f44336;
+              color: white;
+              border: none;
+              padding: 15px 30px;
+              margin: 5px;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 16px;
+            ">🛑 Fold</button>
+          </div>
+          <div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+            <strong>Pot:</strong> $1,200 | <strong>Turno:</strong> Il tuo turno | <strong>Round:</strong> Pre-Flop
+          </div>
+        </div>
+      </div>
+    `;
+    
+    pokerModal.appendChild(pokerContent);
+    document.body.appendChild(pokerModal);
+    
+    // Event listener per chiudere
+    document.getElementById('closePoker').addEventListener('click', function() {
+      document.body.removeChild(pokerModal);
+    });
+    
+    // Event listener per copiare link
+    document.getElementById('copyLink').addEventListener('click', function() {
+      const inviteLink = document.getElementById('inviteLink');
+      inviteLink.select();
+      document.execCommand('copy');
+      
+      // Mostra messaggio di successo
+      const successMsg = document.getElementById('copySuccess');
+      successMsg.style.display = 'block';
+      
+      // Nascondi dopo 3 secondi
+      setTimeout(() => {
+        successMsg.style.display = 'none';
+      }, 3000);
+    });
+    
+    // Simula comportamento del Dealer Bot
+    let dealerAction = null;
+    const dealerStates = ['Pensando...', 'Distribuisse carte...', 'Analizza...', 'Decide...'];
+    
+    function simulateDealerBot() {
+      // Trova lo stato del dealer bot nel DOM
+      const dealerElements = pokerModal.querySelectorAll('div');
+      let dealerStatus = null;
+      
+      for (let element of dealerElements) {
+        if (element.textContent.includes('Dealer Bot') && element.textContent.includes('●')) {
+          dealerStatus = element;
+          break;
+        }
+      }
+      
+      if (dealerStatus) {
+        // Cicla tra gli stati del dealer
+        let stateIndex = 0;
+        const dealerInterval = setInterval(() => {
+          if (!document.body.contains(pokerModal)) {
+            clearInterval(dealerInterval);
+            return;
+          }
+          
+          dealerStatus.innerHTML = `<div style="color: #ffd700;">🤖 Dealer Bot</div>
+            <div>Fiches: $10,000</div>
+            <div style="color: #f44336; font-size: 12px;">● ${dealerStates[stateIndex]}</div>`;
+          stateIndex = (stateIndex + 1) % dealerStates.length;
+          
+          // Dopo qualche ciclo, il dealer fa un'azione
+          if (Math.random() > 0.7 && stateIndex === 0) {
+            clearInterval(dealerInterval);
+            dealerStatus.innerHTML = `<div style="color: #ffd700;">🤖 Dealer Bot</div>
+              <div>Fiches: $10,000</div>
+              <div style="color: #f44336; font-size: 12px;">● Ha fatto Fold</div>`;
+            
+            // Resetta dopo un po'
+            setTimeout(() => {
+              if (document.body.contains(pokerModal)) {
+                dealerStatus.innerHTML = `<div style="color: #ffd700;">🤖 Dealer Bot</div>
+                  <div>Fiches: $10,000</div>
+                  <div style="color: #4CAF50; font-size: 12px;">● In attesa</div>`;
+                simulateDealerBot(); // Ricomincia il ciclo
+              }
+            }, 3000);
+          }
+        }, 1500);
+      }
+    }
+    
+    // Avvia il dealer bot
+    simulateDealerBot();
+    
+    // Chiudi anche cliccando fuori
+    pokerModal.addEventListener('click', function(e) {
+      if (e.target === pokerModal) {
+        document.body.removeChild(pokerModal);
+      }
     });
   }
 
@@ -705,6 +1100,14 @@
       serenaModel.position.x += velocity.x * delta;
       serenaModel.position.z += velocity.z * delta;
       
+      // Ground detection - mantieni Serena a terra
+      const groundLevel = 0;
+      if (serenaModel.position.y > groundLevel + 0.1) {
+        serenaModel.position.y -= 0.5; // Gravità leggera
+      } else if (serenaModel.position.y < groundLevel) {
+        serenaModel.position.y = groundLevel; // Non scendere sotto terra
+      }
+      
       // Camera segue Serena con rotazione dinamica
       const cameraAngle = serenaModel.rotation.y;
       const cameraDistance = 5;
@@ -716,13 +1119,45 @@
       camera.lookAt(serenaModel.position);
     }
 
-    // Animazioni
-    if (mixer) {
-      // Aggiungi animazione di camminata base se Serena si muove
-      if (moveForward || moveBackward || moveLeft || moveRight) {
-        // Oscillazione leggera per simulare camminata
-        serenaModel.rotation.y += Math.sin(Date.now() * 0.005) * 0.02;
+    // Animazioni migliorate
+    if (mixer && serenaModel) {
+      // Velocità di movimento per animazione
+      const moveSpeed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+      const isMoving = moveSpeed > 0.1;
+      
+      // Controlla le animazioni disponibili
+      if (serenaModel.animations.length > 0) {
+        const walkAction = mixer.clipAction(serenaModel.animations[0]);
+        const idleAction = mixer.clipAction(serenaModel.animations[1] || serenaModel.animations[0]);
+        
+        if (isMoving) {
+          // Attiva animazione di camminata
+          if (!walkAction.isRunning()) {
+            walkAction.reset().fadeIn(0.2).play();
+            idleAction.fadeOut(0.2);
+          }
+          // Adatta la velocità dell'animazione al movimento
+          walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
+        } else {
+          // Attiva animazione idle
+          if (!idleAction.isRunning()) {
+            idleAction.reset().fadeIn(0.2).play();
+            walkAction.fadeOut(0.2);
+          }
+        }
+      } else {
+        // Fallback: oscillazione semplice se non ci sono animazioni
+        if (isMoving) {
+          const time = Date.now() * 0.003;
+          serenaModel.position.y = Math.sin(time) * 0.05; // Legale oscillazione verticale
+          serenaModel.rotation.x = Math.sin(time * 2) * 0.02; // Legale inclinazione
+        } else {
+          // Resetta la posizione quando fermo
+          serenaModel.position.y = 0;
+          serenaModel.rotation.x = 0;
+        }
       }
+      
       mixer.update(clock.getDelta());
     }
 

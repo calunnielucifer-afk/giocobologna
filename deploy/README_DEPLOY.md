@@ -24,6 +24,10 @@
 - **Mobile**: Joystick virtuale + touch slide per visuale
 - **🎯 Mirino Centrale**: Croce rossa come punto di mira
 - **Movimento smart**: WASD segue esattamente la direzione del mirino
+- **🃏 Tavola da Poker**: Tavola interattiva a coordinate (5,5)
+- **🎰 Poker Room**: Finestra completa con Texas Hold'em
+- **🤖 Dealer Bot**: Bot automatico "Max Dealer"
+- **🔗 Link d'invito**: Condividi il tavolo con amici
 - **Modello 3D**: Serena con animazioni e texture complete
 - **Mondo open world**: Terreno, alberi, illuminazione dinamica
 
@@ -36,6 +40,8 @@ Il progetto è già configurato con:
 - Responsive design
 - Fullscreen support
 - Mirino visibile su desktop
+- Sistema di click raycasting
+- Modal windows per poker
 
 ### 📁 Struttura
 
@@ -53,7 +59,7 @@ deploy/
 ### 🌐 URL Preview
 
 Una volta deployato, il gioco sarà disponibile all'URL:
-`https://[tuo-sito].netlify.app/openworld.html`
+`https://[tuo-username].github.io/[repo-name]/openworld.html`
 
 ### 🎮 Controlli
 
@@ -63,6 +69,7 @@ Una volta deployato, il gioco sarà disponibile all'URL:
 - S = Indietro (via dal mirino)
 - D = Destra (rispetto al mirino)
 - Mouse drag = Guardarsi intorno
+- Click sulla tavola verde = Apri poker
 
 **Mobile:**
 - Joystick = Movimento
@@ -74,3 +81,15 @@ Una volta deployato, il gioco sarà disponibile all'URL:
 - **Punto di riferimento** per tutti i movimenti WASD
 - **Movimento preciso**: WASD segue esattamente la visuale del mirino
 - **Nascosto su mobile** dove non è necessario
+
+### 🎰 Tavola da Poker
+
+- **Posizione**: Coordinate (5,5) nel mondo
+- **Visibilità**: Indicatore dorato + luce gialla
+- **Interazione**: Click con mouse per aprire
+- **Contenuti**: 
+  - Texas Hold'em completo
+  - 3 giocatori (tu + bot)
+  - Link d'invito per amici
+  - Dealer Bot automatico
+  - Fiches e betting system
