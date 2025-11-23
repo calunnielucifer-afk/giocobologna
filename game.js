@@ -1011,9 +1011,18 @@ function init() {
     
     advanced3D = level >= 2;
     is3DLevel = level >= 2;
-    serena.x = 50;
-    serena.y = 300;
-    serena.z = 0;
+    
+    // Set spawn position based on level
+    if (level >= 2) {
+        serena.x = 100;  // Safe spawn position for 3D levels
+        serena.y = 250;
+        serena.z = 0;
+    } else {
+        serena.x = 50;   // Normal spawn for level 1
+        serena.y = 300;
+        serena.z = 0;
+    }
+    
     serena.velocityX = 0;
     serena.velocityY = 0;
     serena.velocityZ = 0;
@@ -1215,6 +1224,8 @@ function createLevel1() {
 }
 
 function createLevel2() {
+    console.log('Creating Level 2 - Pure 3D World');
+    
     // Clear all 2D elements for pure 3D experience
     obstacles = [];
     platforms = [];
@@ -1269,11 +1280,11 @@ function createLevel2() {
         rotation: 0
     });
     
-    // 3D moving obstacles
+    // 3D moving obstacles - positioned away from spawn
     for (let i = 0; i < 3; i++) {
         objects3D.push({
             type: 'enemy',
-            x: 200 + i * 200,
+            x: 300 + i * 150,  // Start further from spawn
             y: 200,
             z: -50 - i * 50,
             width: 30,
@@ -1304,7 +1315,7 @@ function createLevel2() {
         });
     }
     
-    // Door with advanced puzzle
+    // Door with advanced puzzle - positioned at the end
     doors.push({
         x: 700,
         y: 280,
