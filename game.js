@@ -1318,29 +1318,251 @@ function createLevel1() {
 }
 
 function createLevel2() {
-    console.log('Creating Level 2 - Memory Card Game');
+    console.log('Creating Level 2 - Realistic Open World Village');
     
-    // Clear all elements for card game
+    // Clear all elements for open world experience
     obstacles = [];
     platforms = [];
     objects3D = [];
     
-    // Simple ground for card game area
-    platforms.push({
-        x: 0,
+    // REALISTIC OPEN WORLD VILLAGE - Inspired by openworld-js
+    
+    // Large realistic terrain with texture variation
+    objects3D.push({
+        type: 'platform',
+        x: 400,
         y: 350,
-        width: 800,
-        height: 50,
-        color: '#8B4513',
-        z: 0
+        z: 0,
+        width: 1600,
+        height: 20,
+        depth: 1200,
+        color: '#8FBC8F',  // Sage green grass
+        rotation: 0,
+        texture: 'grass',
+        physics: { mass: 0, friction: 0.8 }
     });
     
-    // Memory game door
-    doors.push({
-        x: 700,
-        y: 280,
+    // Stone path through village
+    for (let i = 0; i < 8; i++) {
+        objects3D.push({
+            type: 'platform',
+            x: 200 + i * 80,
+            y: 348,
+            z: -100 + Math.sin(i * 0.5) * 30,
+            width: 60,
+            height: 22,
+            depth: 60,
+            color: '#A9A9A9',  // Gray stone
+            rotation: 0,
+            texture: 'stone',
+            physics: { mass: 0, friction: 0.9 }
+        });
+    }
+    
+    // Realistic houses with proper structure
+    for (let i = 0; i < 6; i++) {
+        const houseX = 250 + i * 140;
+        const houseZ = -200 - i * 60;
+        
+        // House foundation
+        objects3D.push({
+            type: 'platform',
+            x: houseX,
+            y: 320,
+            z: houseZ,
+            width: 80,
+            height: 30,
+            depth: 80,
+            color: '#CD853F',  // Peru wood
+            rotation: 0,
+            texture: 'wood',
+            physics: { mass: 0, friction: 0.7 }
+        });
+        
+        // House walls
+        objects3D.push({
+            type: 'platform',
+            x: houseX,
+            y: 290,
+            z: houseZ,
+            width: 70,
+            height: 30,
+            depth: 70,
+            color: '#DEB887',  // Burlywood
+            rotation: 0,
+            texture: 'plaster',
+            physics: { mass: 0, friction: 0.6 }
+        });
+        
+        // Roof
+        objects3D.push({
+            type: 'platform',
+            x: houseX,
+            y: 270,
+            z: houseZ,
+            width: 90,
+            height: 20,
+            depth: 90,
+            color: '#8B4513',  // Saddle brown roof
+            rotation: 0,
+            texture: 'roof',
+            physics: { mass: 0, friction: 0.8 }
+        });
+        
+        // Windows (glowing at night)
+        objects3D.push({
+            type: 'collectible',
+            x: houseX - 20,
+            y: 295,
+            z: houseZ,
+            width: 12,
+            height: 18,
+            depth: 8,
+            color: '#FFD700',  // Golden light
+            collected: false,
+            rotation: 0,
+            texture: 'glass',
+            glow: true
+        });
+        
+        objects3D.push({
+            type: 'collectible',
+            x: houseX + 20,
+            y: 295,
+            z: houseZ,
+            width: 12,
+            height: 18,
+            depth: 8,
+            color: '#FFD700',
+            collected: false,
+            rotation: 0,
+            texture: 'glass',
+            glow: true
+        });
+    }
+    
+    // Realistic forest with varied trees
+    for (let i = 0; i < 15; i++) {
+        const treeX = 150 + i * 85;
+        const treeZ = -50 - i * 35;
+        const treeSize = 0.8 + Math.random() * 0.4;
+        
+        // Tree trunk
+        objects3D.push({
+            type: 'platform',
+            x: treeX,
+            y: 320,
+            z: treeZ,
+            width: 25 * treeSize,
+            height: 30 * treeSize,
+            depth: 25 * treeSize,
+            color: '#654321',  // Dark brown
+            rotation: Math.random() * 0.2,
+            texture: 'bark',
+            physics: { mass: 0, friction: 0.9 }
+        });
+        
+        // Tree crown
+        objects3D.push({
+            type: 'platform',
+            x: treeX,
+            y: 280 - Math.random() * 10,
+            z: treeZ,
+            width: 70 * treeSize,
+            height: 40 * treeSize,
+            depth: 70 * treeSize,
+            color: '#228B22',  // Forest green
+            rotation: 0,
+            texture: 'leaves',
+            physics: { mass: 0, friction: 0.5 }
+        });
+    }
+    
+    // Village well (centerpiece)
+    objects3D.push({
+        type: 'platform',
+        x: 400,
+        y: 330,
+        z: -300,
         width: 40,
-        height: 70,
+        height: 20,
+        depth: 40,
+        color: '#696969',  // Gray stone
+        rotation: 0,
+        texture: 'stone',
+        physics: { mass: 0, friction: 0.9 }
+    });
+    
+    // Water in well
+    objects3D.push({
+        type: 'platform',
+        x: 400,
+        y: 340,
+        z: -300,
+        width: 30,
+        height: 10,
+        depth: 30,
+        color: '#4682B4',  // Steel blue water
+        rotation: 0,
+        texture: 'water',
+        physics: { mass: 0, friction: 0.1 }
+    });
+    
+    // Realistic villagers (NPCs)
+    for (let i = 0; i < 8; i++) {
+        objects3D.push({
+            type: 'enemy',
+            x: 200 + i * 120,
+            y: 325,
+            z: -150 - i * 40,
+            width: 25,
+            height: 40,
+            depth: 25,
+            color: i % 3 === 0 ? '#8B4513' : (i % 3 === 1 ? '#D2691E' : '#F4A460'), // Various skin tones
+            speed: 0.3 + Math.random() * 0.4,
+            direction: i % 2 === 0 ? 1 : -1,
+            rotation: 0,
+            rotationSpeed: 0.005,
+            texture: 'clothing',
+            physics: { mass: 50, friction: 0.7 },
+            behavior: 'villager',
+            patrolStart: 150 + i * 100,
+            patrolEnd: 250 + i * 100
+        });
+    }
+    
+    // Collectible items scattered around village
+    const collectibles = [
+        { color: '#FFD700', name: 'coin', texture: 'metal' },
+        { color: '#FF6347', name: 'apple', texture: 'food' },
+        { color: '#8B4513', name: 'bread', texture: 'food' },
+        { color: '#FF69B4', name: 'flower', texture: 'nature' }
+    ];
+    
+    for (let i = 0; i < 12; i++) {
+        const item = collectibles[i % collectibles.length];
+        objects3D.push({
+            type: 'collectible',
+            x: 180 + i * 95,
+            y: 330 + Math.random() * 20,
+            z: -120 - i * 35,
+            width: 15,
+            height: 15,
+            depth: 15,
+            color: item.color,
+            collected: false,
+            rotation: Math.random() * Math.PI * 2,
+            texture: item.texture,
+            physics: { mass: 0.1, friction: 0.5 }
+        });
+    }
+    
+    // Village exit gate
+    doors.push({
+        x: 750,
+        y: 280,
+        width: 60,
+        height: 80,
         locked: true,
         riddleId: 4,
         color: '#8B4513',
@@ -1686,330 +1908,585 @@ function update3DCamera() {
 }
 
         function createLevel3() {
-    console.log('Creating Level 3 - 4D Advanced Vanilla Open World');
+    console.log('Creating Level 3 - Realistic Forest Open World');
     
-    // Clear all 2D elements for pure 4D experience
+    // Clear all elements for open world experience
     obstacles = [];
     platforms = [];
+    objects3D = [];
     
-    // 4D ADVANCED VANILLA WORLD
+    // REALISTIC FOREST WORLD - Inspired by openworld-js terrain system
     
-    // Massive vanilla ground with 4D properties
+    // Large forest terrain with elevation
+    objects3D.push({
+        type: 'platform',
+        x: 400,
+        y: 350,
+        z: 0,
+        width: 2000,
+        height: 25,
+        depth: 1600,
+        color: '#3B5323',  // Dark forest green
+        rotation: 0,
+        texture: 'forest_floor',
+        physics: { mass: 0, friction: 0.8 }
+    });
+    
+    // Hills and terrain variation
+    for (let i = 0; i < 8; i++) {
+        objects3D.push({
+            type: 'platform',
+            x: 200 + i * 180,
+            y: 280 + Math.sin(i * 0.7) * 40,
+            z: -200 - i * 70,
+            width: 200,
+            height: 120 + Math.cos(i * 0.5) * 30,
+            depth: 180,
+            color: '#4A5D23',  // Forest hill green
+            rotation: i * 15 * Math.PI / 180,
+            texture: 'terrain',
+            physics: { mass: 0, friction: 0.9 }
+        });
+    }
+    
+    // Dense forest with varied tree types
+    for (let i = 0; i < 25; i++) {
+        const treeX = 150 + i * 65;
+        const treeZ = -80 - i * 30;
+        const treeType = i % 4; // Different tree types
+        const treeSize = 0.7 + Math.random() * 0.6;
+        
+        // Tree trunk
+        objects3D.push({
+            type: 'platform',
+            x: treeX,
+            y: 320,
+            z: treeZ,
+            width: (25 + treeType * 5) * treeSize,
+            height: (35 + treeType * 10) * treeSize,
+            depth: (25 + treeType * 5) * treeSize,
+            color: treeType === 0 ? '#654321' : (treeType === 1 ? '#8B4513' : '#704214'), // Various browns
+            rotation: Math.random() * 0.3,
+            texture: 'bark',
+            physics: { mass: 0, friction: 0.9 }
+        });
+        
+        // Tree crown
+        const crownColors = ['#228B22', '#2E7D32', '#1B5E20', '#388E3C']; // Various greens
+        objects3D.push({
+            type: 'platform',
+            x: treeX,
+            y: 275 - Math.random() * 15,
+            z: treeZ,
+            width: (60 + treeType * 15) * treeSize,
+            height: (45 + treeType * 15) * treeSize,
+            depth: (60 + treeType * 15) * treeSize,
+            color: crownColors[treeType],
+            rotation: 0,
+            texture: 'foliage',
+            physics: { mass: 0, friction: 0.4 }
+        });
+    }
+    
+    // River flowing through forest
+    for (let i = 0; i < 12; i++) {
+        objects3D.push({
+            type: 'platform',
+            x: 300 + i * 70,
+            y: 342 + Math.sin(i * 0.4) * 8,
+            z: -150 - i * 45,
+            width: 50,
+            height: 8,
+            depth: 80,
+            color: '#1E90FF',  // Dodger blue water
+            rotation: 0,
+            texture: 'water',
+            physics: { mass: 0, friction: 0.1 },
+            flow: true
+        });
+    }
+    
+    // River stones
+    for (let i = 0; i < 8; i++) {
+        objects3D.push({
+            type: 'platform',
+            x: 280 + i * 90,
+            y: 345,
+            z: -140 - i * 40,
+            width: 20 + Math.random() * 15,
+            height: 10 + Math.random() * 8,
+            depth: 20 + Math.random() * 15,
+            color: '#696969',  // Gray stones
+            rotation: Math.random() * Math.PI,
+            texture: 'rock',
+            physics: { mass: 0, friction: 0.8 }
+        });
+    }
+    
+    // Forest cabin (player shelter)
+    const cabinX = 600;
+    const cabinZ = -400;
+    
+    // Cabin foundation
+    objects3D.push({
+        type: 'platform',
+        x: cabinX,
+        y: 320,
+        z: cabinZ,
+        width: 100,
+        height: 30,
+        depth: 80,
+        color: '#8B4513',  // Saddle brown
+        rotation: 0,
+        texture: 'wood',
+        physics: { mass: 0, friction: 0.7 }
+    });
+    
+    // Cabin walls
+    objects3D.push({
+        type: 'platform',
+        x: cabinX,
+        y: 290,
+        z: cabinZ,
+        width: 90,
+        height: 30,
+        depth: 70,
+        color: '#A0522D',  // Sienna
+        rotation: 0,
+        texture: 'logs',
+        physics: { mass: 0, friction: 0.8 }
+    });
+    
+    // Cabin roof
+    objects3D.push({
+        type: 'platform',
+        x: cabinX,
+        y: 265,
+        z: cabinZ,
+        width: 110,
+        height: 25,
+        depth: 90,
+        color: '#654321',  // Dark brown
+        rotation: 0,
+        texture: 'roof_wood',
+        physics: { mass: 0, friction: 0.7 }
+    });
+    
+    // Cabin chimney
+    objects3D.push({
+        type: 'platform',
+        x: cabinX + 30,
+        y: 250,
+        z: cabinZ,
+        width: 20,
+        height: 40,
+        depth: 20,
+        color: '#696969',  // Gray stone
+        rotation: 0,
+        texture: 'brick',
+        physics: { mass: 0, friction: 0.9 }
+    });
+    
+    // Forest wildlife (animals)
+    const animals = [
+        { color: '#8B4513', name: 'deer', speed: 1.2 },
+        { color: '#696969', name: 'wolf', speed: 1.8 },
+        { color: '#FF8C00', name: 'fox', speed: 1.5 },
+        { color: '#D2691E', name: 'bear', speed: 0.8 }
+    ];
+    
+    for (let i = 0; i < 10; i++) {
+        const animal = animals[i % animals.length];
+        objects3D.push({
+            type: 'enemy',
+            x: 200 + i * 110,
+            y: 325,
+            z: -120 - i * 50,
+            width: 30 + Math.random() * 20,
+            height: 25 + Math.random() * 15,
+            depth: 40 + Math.random() * 20,
+            color: animal.color,
+            speed: animal.speed * (0.8 + Math.random() * 0.4),
+            direction: i % 2 === 0 ? 1 : -1,
+            rotation: 0,
+            rotationSpeed: 0.01,
+            texture: 'fur',
+            physics: { mass: 30 + Math.random() * 50, friction: 0.6 },
+            behavior: 'wildlife',
+            patrolStart: 150 + i * 90,
+            patrolEnd: 250 + i * 90
+        });
+    }
+    
+    // Forest collectibles (berries, mushrooms, herbs)
+    const forestItems = [
+        { color: '#FF0000', name: 'berry', texture: 'food' },
+        { color: '#8B4513', name: 'mushroom', texture: 'nature' },
+        { color: '#90EE90', name: 'herb', texture: 'plant' },
+        { color: '#FFD700', name: 'crystal', texture: 'magic' }
+    ];
+    
+    for (let i = 0; i < 16; i++) {
+        const item = forestItems[i % forestItems.length];
+        objects3D.push({
+            type: 'collectible',
+            x: 180 + i * 85,
+            y: 335 + Math.random() * 25,
+            z: -100 - i * 40,
+            width: 12,
+            height: 12,
+            depth: 12,
+            color: item.color,
+            collected: false,
+            rotation: Math.random() * Math.PI * 2,
+            texture: item.texture,
+            physics: { mass: 0.05, friction: 0.3 },
+            glow: item.name === 'crystal'
+        });
+    }
+    
+    // Forest exit (stone archway)
+    doors.push({
+        x: 850,
+        y: 270,
+        width: 80,
+        height: 100,
+        locked: true,
+        riddleId: 5,
+        color: '#696969',
+        puzzleType: 'puzzle'
+    });
+    
+    // Stone archway structure
+    objects3D.push({
+        type: 'platform',
+        x: 850,
+        y: 250,
+        z: -600,
+        width: 100,
+        height: 120,
+        depth: 30,
+        color: '#696969',  // Gray stone
+        rotation: 0,
+        texture: 'stone',
+        physics: { mass: 0, friction: 0.9 }
+    });
+}
+
+function createFinalLevel() {
+    console.log('Creating Level 4 - Realistic Mountain Open World');
+    
+    // Clear all elements for open world experience
+    obstacles = [];
+    platforms = [];
+    objects3D = [];
+    
+    // REALISTIC MOUNTAIN WORLD - Inspired by openworld-js terrain generation
+    
+    // Massive mountain terrain
     objects3D.push({
         type: 'platform',
         x: 400,
         y: 350,
         z: 0,
         width: 2400,
-        height: 25,
-        depth: 1200,
-        color: '#8FBC8F',  // Sage green - vanilla grass
-        rotation: 0
+        height: 30,
+        depth: 1800,
+        color: '#8B7355',  // Rocky mountain brown
+        rotation: 0,
+        texture: 'mountain_rock',
+        physics: { mass: 0, friction: 0.9 }
     });
     
-    // 4D mountains with time-based shifting
+    // Mountain peaks with realistic elevation
     for (let i = 0; i < 6; i++) {
+        const peakX = 300 + i * 200;
+        const peakZ = -200 - i * 80;
+        const peakHeight = 150 + Math.sin(i * 0.8) * 80;
+        
+        // Mountain peak
         objects3D.push({
             type: 'platform',
-            x: 200 + i * 250,
-            y: 220 - Math.sin(i) * 30,
-            z: -300 - i * 80,
+            x: peakX,
+            y: 200 - peakHeight/2,
+            z: peakZ,
+            width: 250,
+            height: peakHeight,
+            depth: 200,
+            color: '#696969',  // Gray mountain rock
+            rotation: i * 20 * Math.PI / 180,
+            texture: 'rock_face',
+            physics: { mass: 0, friction: 0.95 }
+        });
+        
+        // Snow cap on peak
+        objects3D.push({
+            type: 'platform',
+            x: peakX,
+            y: 140 - peakHeight/2,
+            z: peakZ,
             width: 180,
-            height: 130 + Math.cos(i) * 20,
+            height: 60,
             depth: 150,
-            color: '#696969',  // Gray stone
-            rotation: i * 30 * Math.PI / 180,
-            timeShift: i * 0.001  // 4D time property
+            color: '#FFFAFA',  // Snow white
+            rotation: 0,
+            texture: 'snow',
+            physics: { mass: 0, friction: 0.3 }
         });
     }
     
-    // Vanilla forest with 4D trees
+    // Mountain paths and trails
+    for (let i = 0; i < 10; i++) {
+        objects3D.push({
+            type: 'platform',
+            x: 200 + i * 90,
+            y: 335 + Math.sin(i * 0.6) * 20,
+            z: -100 - i * 55,
+            width: 40,
+            height: 15,
+            depth: 60,
+            color: '#A0522D',  // Sienna path
+            rotation: 0,
+            texture: 'trail',
+            physics: { mass: 0, friction: 0.8 }
+        });
+    }
+    
+    // Mountain forest (pine trees)
+    for (let i = 0; i < 20; i++) {
+        const treeX = 180 + i * 75;
+        const treeZ = -80 - i * 35;
+        const treeSize = 0.6 + Math.random() * 0.5;
+        
+        // Pine trunk (tall and thin)
+        objects3D.push({
+            type: 'platform',
+            x: treeX,
+            y: 320,
+            z: treeZ,
+            width: 15 * treeSize,
+            height: 45 * treeSize,
+            depth: 15 * treeSize,
+            color: '#4A3C28',  // Dark brown pine
+            rotation: Math.random() * 0.1,
+            texture: 'pine_bark',
+            physics: { mass: 0, friction: 0.9 }
+        });
+        
+        // Pine crown (triangular)
+        objects3D.push({
+            type: 'platform',
+            x: treeX,
+            y: 270 - Math.random() * 20,
+            z: treeZ,
+            width: 40 * treeSize,
+            height: 50 * treeSize,
+            depth: 40 * treeSize,
+            color: '#0F5132',  // Dark pine green
+            rotation: 0,
+            texture: 'pine_needles',
+            physics: { mass: 0, friction: 0.3 }
+        });
+    }
+    
+    // Mountain lake
+    objects3D.push({
+        type: 'platform',
+        x: 600,
+        y: 340,
+        z: -500,
+        width: 200,
+        height: 10,
+        depth: 150,
+        color: '#4682B4',  // Steel blue water
+        rotation: 0,
+        texture: 'water',
+        physics: { mass: 0, friction: 0.1 }
+    });
+    
+    // Rocky outcrops and boulders
     for (let i = 0; i < 12; i++) {
-        const treeX = 150 + i * 120;
-        const treeZ = -100 - i * 40;
-        
-        // Tree trunk with 4D rotation
         objects3D.push({
             type: 'platform',
-            x: treeX,
-            y: 315,
-            z: treeZ,
-            width: 30,
-            height: 35,
-            depth: 30,
-            color: '#8B4513',  // Brown trunk
-            rotation: Date.now() * 0.0001 * (i % 2 === 0 ? 1 : -1),  // 4D rotation
-            timeShift: i * 0.0005
-        });
-        
-        // Tree leaves with 4D pulsing
-        objects3D.push({
-            type: 'platform',
-            x: treeX,
-            y: 275,
-            z: treeZ,
-            width: 90,
-            height: 40,
-            depth: 90,
-            color: '#228B22',  // Green leaves
-            rotation: 0,
-            timeShift: i * 0.0008,
-            pulse: true  // 4D pulsing effect
+            x: 250 + i * 85,
+            y: 325 + Math.random() * 15,
+            z: -150 - i * 45,
+            width: 30 + Math.random() * 25,
+            height: 20 + Math.random() * 20,
+            depth: 30 + Math.random() * 25,
+            color: '#708090',  // Slate gray
+            rotation: Math.random() * Math.PI,
+            texture: 'boulder',
+            physics: { mass: 0, friction: 0.85 }
         });
     }
     
-    // 4D river that flows through time
+    // Mountain monastery (final destination)
+    const monasteryX = 900;
+    const monasteryZ = -700;
+    
+    // Monastery foundation
+    objects3D.push({
+        type: 'platform',
+        x: monasteryX,
+        y: 280,
+        z: monasteryZ,
+        width: 120,
+        height: 70,
+        depth: 100,
+        color: '#8B7D6B',  // Burlywood stone
+        rotation: 0,
+        texture: 'stone_wall',
+        physics: { mass: 0, friction: 0.9 }
+    });
+    
+    // Monastery main building
+    objects3D.push({
+        type: 'platform',
+        x: monasteryX,
+        y: 240,
+        z: monasteryZ,
+        width: 100,
+        height: 40,
+        depth: 80,
+        color: '#D2B48C',  // Tan monastery
+        rotation: 0,
+        texture: 'plaster',
+        physics: { mass: 0, friction: 0.7 }
+    });
+    
+    // Monastery roof
+    objects3D.push({
+        type: 'platform',
+        x: monasteryX,
+        y: 220,
+        z: monasteryZ,
+        width: 110,
+        height: 20,
+        depth: 90,
+        color: '#8B4513',  // Brown roof tiles
+        rotation: 0,
+        texture: 'roof_tiles',
+        physics: { mass: 0, friction: 0.8 }
+    });
+    
+    // Monastery tower
+    objects3D.push({
+        type: 'platform',
+        x: monasteryX + 40,
+        y: 180,
+        z: monasteryZ,
+        width: 30,
+        height: 60,
+        depth: 30,
+        color: '#696969',  // Gray tower
+        rotation: 0,
+        texture: 'stone_tower',
+        physics: { mass: 0, friction: 0.9 }
+    });
+    
+    // Tower roof
+    objects3D.push({
+        type: 'platform',
+        x: monasteryX + 40,
+        y: 170,
+        z: monasteryZ,
+        width: 40,
+        height: 10,
+        depth: 40,
+        color: '#8B0000',  // Dark red tower roof
+        rotation: 0,
+        texture: 'cone_roof',
+        physics: { mass: 0, friction: 0.8 }
+    });
+    
+    // Mountain wildlife (eagles, mountain goats)
+    const mountainAnimals = [
+        { color: '#8B4513', name: 'goat', speed: 1.0 },
+        { color: '#696969', name: 'eagle', speed: 2.5 },
+        { color: '#D2691E', name: 'marmot', speed: 0.8 },
+        { color: '#F5DEB3', name: 'mountain_lion', speed: 1.8 }
+    ];
+    
     for (let i = 0; i < 8; i++) {
-        objects3D.push({
-            type: 'platform',
-            x: 300 + i * 100,
-            y: 345 + Math.sin(Date.now() * 0.001 + i) * 3,  // 4D wave effect
-            z: -200 - i * 60,
-            width: 80,
-            height: 8,
-            depth: 100,
-            color: '#4682B4',  // Water blue
-            rotation: 0,
-            timeShift: i * 0.002,
-            flow: true  // 4D flow effect
-        });
-    }
-    
-    // Vanilla village with 4D houses
-    for (let i = 0; i < 5; i++) {
-        const houseX = 500 + i * 180;
-        const houseZ = -400 - i * 70;
-        
-        // House foundation
-        objects3D.push({
-            type: 'platform',
-            x: houseX,
-            y: 305,
-            z: houseZ,
-            width: 80,
-            height: 45,
-            depth: 80,
-            color: '#D2691E',  // Vanilla wood
-            rotation: 0,
-            timeShift: i * 0.0003
-        });
-        
-        // Roof with 4D breathing
-        objects3D.push({
-            type: 'platform',
-            x: houseX,
-            y: 280,
-            z: houseZ,
-            width: 90,
-            height: 25,
-            depth: 90,
-            color: '#8B4513',  // Brown roof
-            rotation: 0,
-            timeShift: i * 0.0006,
-            breathe: true  // 4D breathing effect
-        });
-        
-        // Windows with 4D glow
-        objects3D.push({
-            type: 'collectible',
-            x: houseX,
-            y: 295,
-            z: houseZ,
-            width: 15,
-            height: 20,
-            depth: 15,
-            color: '#FFD700',  // Golden windows
-            collected: false,
-            rotation: 0,
-            timeShift: i * 0.001,
-            glow: true  // 4D glow effect
-        });
-    }
-    
-    // 4D vanilla animals
-    for (let i = 0; i < 8; i++) {
+        const animal = mountainAnimals[i % mountainAnimals.length];
         objects3D.push({
             type: 'enemy',
-            x: 200 + i * 140,
-            y: 315,
-            z: -150 - i * 50,
-            width: 40,
-            height: 45,
-            depth: 40,
-            color: i % 3 === 0 ? '#8B4513' : (i % 3 === 1 ? '#FFB6C1' : '#F0E68C'), // Vanilla animals
-            speed: 0.8 + Math.random() * 0.4,
+            x: 200 + i * 130,
+            y: 310 + Math.random() * 40,
+            z: -120 - i * 55,
+            width: 25 + Math.random() * 15,
+            height: 20 + Math.random() * 20,
+            depth: 35 + Math.random() * 20,
+            color: animal.color,
+            speed: animal.speed * (0.7 + Math.random() * 0.6),
             direction: i % 2 === 0 ? 1 : -1,
             rotation: 0,
-            rotationSpeed: 0.008,
-            timeShift: i * 0.0007,
-            phaseShift: true  // 4D phase shifting
+            rotationSpeed: 0.012,
+            texture: 'fur',
+            physics: { mass: 20 + Math.random() * 40, friction: 0.7 },
+            behavior: 'mountain_wildlife',
+            patrolStart: 150 + i * 110,
+            patrolEnd: 250 + i * 110
         });
     }
     
-    // 4D floating islands with time rotation
-    for (let i = 0; i < 4; i++) {
-        objects3D.push({
-            type: 'platform',
-            x: 350 + i * 160,
-            y: 180 + Math.sin(i * 1.5) * 40,
-            z: -500 - i * 80,
-            width: 100,
-            height: 20,
-            depth: 100,
-            color: '#90EE90',  // Light green
-            rotation: Date.now() * 0.0002 * (i % 2 === 0 ? 1 : -1),
-            timeShift: i * 0.0012,
-            levitate: true  // 4D levitation
-        });
-    }
+    // Mountain collectibles (crystals, rare minerals, herbs)
+    const mountainItems = [
+        { color: '#B0E0E6', name: 'crystal', texture: 'gem' },
+        { color: '#C0C0C0', name: 'silver_ore', texture: 'metal' },
+        { color: '#FFD700', name: 'gold_nugget', texture: 'metal' },
+        { color: '#9370DB', name: 'magic_herb', texture: 'plant' },
+        { color: '#FF6347', name: 'rare_flower', texture: 'nature' }
+    ];
     
-    // 4D collectible resources
-    const resourceColors = ['#2F4F4F', '#B87333', '#FFD700', '#00CED1', '#FF69B4']; // Extended resources
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 15; i++) {
+        const item = mountainItems[i % mountainItems.length];
         objects3D.push({
             type: 'collectible',
             x: 180 + i * 90,
-            y: 160 + Math.sin(i * 2.1) * 70,
-            z: -180 - i * 32,
-            width: 30,
-            height: 30,
-            depth: 30,
-            color: resourceColors[i % 5],
+            y: 330 + Math.random() * 30,
+            z: -100 - i * 45,
+            width: 10,
+            height: 10,
+            depth: 10,
+            color: item.color,
             collected: false,
-            rotation: 0,
-            floatOffset: Math.random() * Math.PI * 2,
-            timeShift: i * 0.0009,
-            quantum: true  // 4D quantum state
+            rotation: Math.random() * Math.PI * 2,
+            texture: item.texture,
+            physics: { mass: 0.08, friction: 0.4 },
+            glow: item.name === 'crystal' || item.name === 'magic_herb'
         });
     }
     
-    // 4D portal door
+    // Mountain monastery door (final door)
     doors.push({
-        x: 950,
+        x: 920,
         y: 250,
-        width: 70,
-        height: 100,
-        locked: true,
-        riddleId: 5,
-        color: '#4B0082',  // Indigo 4D portal
-        puzzleType: 'puzzle'
-    });
-}
-
-function createFinalLevel() {
-    console.log('Creating Level 4 - Hide and Seek with Guards');
-    
-    // Clear all elements for stealth game
-    obstacles = [];
-    platforms = [];
-    objects3D = [];
-    
-    // Garden ground for hide and seek
-    platforms.push({
-        x: 0,
-        y: 350,
-        width: 800,
-        height: 50,
-        color: '#228B22',  // Garden green
-        z: 0
-    });
-    
-    // Garden plants and bushes for hiding
-    for (let i = 0; i < 15; i++) {
-        objects3D.push({
-            type: 'platform',
-            x: 100 + (i % 5) * 140,
-            y: 320,
-            z: -50 - Math.floor(i / 5) * 80,
-            width: 60,
-            height: 30,
-            depth: 60,
-            color: '#2F4F2F',  // Dark green bushes
-            rotation: 0
-        });
-    }
-    
-    // Trees for additional hiding spots
-    for (let i = 0; i < 8; i++) {
-        objects3D.push({
-            type: 'platform',
-            x: 150 + i * 80,
-            y: 310,
-            z: -30 - i * 40,
-            width: 40,
-            height: 40,
-            depth: 40,
-            color: '#8B4513',  // Tree trunks
-            rotation: 0
-        });
-        
-        // Tree leaves
-        objects3D.push({
-            type: 'platform',
-            x: 150 + i * 80,
-            y: 280,
-            z: -30 - i * 40,
-            width: 80,
-            height: 30,
-            depth: 80,
-            color: '#228B22',  // Green leaves
-            rotation: 0
-        });
-    }
-    
-    // Guards (enemies) with patrol patterns
-    for (let i = 0; i < 6; i++) {
-        objects3D.push({
-            type: 'enemy',
-            x: 200 + i * 100,
-            y: 320,
-            z: -80 - i * 30,
-            width: 35,
-            height: 50,
-            depth: 35,
-            color: '#4169E1',  // Blue guards
-            speed: 1.2 + Math.random() * 0.5,
-            direction: i % 2 === 0 ? 1 : -1,
-            rotation: 0,
-            rotationSpeed: 0.01,
-            patrolStart: 150 + i * 80,
-            patrolEnd: 250 + i * 80
-        });
-    }
-    
-    // Hidden key (collectible) - well hidden among plants
-    objects3D.push({
-        type: 'collectible',
-        x: 650,  // Hidden far right
-        y: 300,
-        z: -200,  // Behind bushes
-        width: 20,
-        height: 25,
-        depth: 20,
-        color: '#FFD700',  // Golden key
-        collected: false,
-        rotation: 0,
-        floatOffset: 0,
-        isKey: true  // Mark as special key item
-    });
-    
-    // Exit door (unlocked when key is found)
-    doors.push({
-        x: 720,
-        y: 280,
-        width: 50,
-        height: 80,
+        width: 60,
+        height: 90,
         locked: true,
         riddleId: 6,
         color: '#8B4513',
         puzzleType: 'hideandseek'
     });
     
-    // Add hiding spots indicator
-    gameRunning = false;
-    setTimeout(() => {
-        showHideAndSeekInstructions();
-    }, 500);
+    // Stone path to monastery
+    for (let i = 0; i < 8; i++) {
+        objects3D.push({
+            type: 'platform',
+            x: 750 + i * 25,
+            y: 335,
+            z: -550 - i * 20,
+            width: 30,
+            height: 15,
+            depth: 40,
+            color: '#696969',  // Gray stone path
+            rotation: 0,
+            texture: 'cobblestone',
+            physics: { mass: 0, friction: 0.9 }
+        });
+    }
 }
 
 // Show key found message
