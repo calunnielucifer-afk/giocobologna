@@ -4350,7 +4350,7 @@ function victory() {
     gameRunning = false;
     score += 1000;
 
-    // Se hai completato il livello 1, dal livello 2 in poi si passa al mondo openworld
+    // Solo il livello 1 esiste in questo motore. Dopo il livello 1 si passa al mondo openworld.
     if (level === 1) {
         document.getElementById('victory').innerHTML = `
             <div class="modal-content">
@@ -4364,44 +4364,26 @@ function victory() {
         return;
     }
 
-    // Per sicurezza, vecchia logica per altri livelli gestiti da questo engine
-    if (level < 4) {
-        level++;
-        document.getElementById('victory').innerHTML = `
-            <div class="modal-content">
-                <h2>Livello ${level - 1} Completato!</h2>
-                <p>Serena sta viaggiando verso Benevento...</p>
-                <p>Punteggio: ${score}</p>
-                <button onclick="nextLevel()">Prossimo Livello</button>
-            </div>
-        `;
-    } else {
-        // Game completed - Prince Stefano found!
-        document.getElementById('victory').innerHTML = `
-            <div class="modal-content">
-                <h2>🎉 Vittoria Finale! 🎉</h2>
-                <p>Serena ha finalmente raggiunto il principe Stefano a Benevento! ❤️</p>
-                <p>Il principe l'aspettava con ansia...</p>
-                <p>Punteggio finale: ${score}</p>
-                <button onclick="restartGame()">Gioca Ancora</button>
-            </div>
-        `;
-    }
-
+    // Non dovremmo mai arrivare qui, ma per sicurezza gestiamo altri casi
+    document.getElementById('victory').innerHTML = `
+        <div class="modal-content">
+            <h2>🎉 Vittoria Finale! 🎉</h2>
+            <p>Serena ha finalmente raggiunto il principe Stefano a Benevento! ❤️</p>
+            <p>Punteggio finale: ${score}</p>
+            <button onclick="restartGame()">Gioca Ancora</button>
+        </div>
+    `;
     document.getElementById('victory').classList.remove('hidden');
 }
 
 function nextLevel() {
-    // Se hai finito il livello 1, vai alla pagina openworld
+    // Solo il livello 1 esiste in questo motore. Dopo il livello 1 si passa al mondo openworld.
     if (level === 1) {
         window.location.href = 'openworld.html?fromLevel=2';
         return;
     }
 
-    document.getElementById('victory').classList.add('hidden');
-    init();
-    gameRunning = true;
-    gamePaused = false;
-    gameLoop();
+    // Per qualsiasi altro caso, riavvia il gioco
+    restartGame();
 }
 }
