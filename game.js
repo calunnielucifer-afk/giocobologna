@@ -917,39 +917,41 @@ function victory() {
     score += 1000;
     updateUI();
     
-    if (level < 4) {
-        level++;
-        console.log('Advancing to level:', level);
+    // Solo il livello 1 esiste in questo motore. Dopo il livello 1 si passa al mondo openworld.
+    if (level === 1) {
+        document.getElementById('victory').innerHTML = `
+            <div class="modal-content">
+                <h2>Livello 1 Completato!</h2>
+                <p>Serena sta entrando in un nuovo mondo realistico verso Benevento...</p>
+                <p>Punteggio: ${score}</p>
+                <button onclick="nextLevel()">Entra nel nuovo mondo</button>
+            </div>
+        `;
+        document.getElementById('victory').classList.remove('hidden');
+        return;
+    }
+
+    // Per qualsiasi altro caso, mostra la vittoria finale
+    const victoryModal = document.getElementById('victory');
+    if (victoryModal) {
+        victoryModal.classList.remove('hidden');
         
-        // Show level transition message
-        if (level === 2) {
-            alert('🎉 Livello 2 - Benvenuto nel mondo 3D! 🌟\nUsa W/S per muoverti in profondità!');
-        }
-        
-        // Restart with next level immediately
-        init();
-        gameRunning = true;
-        gameLoop();
-    } else {
-        // Game completed
-        const victoryModal = document.getElementById('victory');
-        if (victoryModal) {
-            victoryModal.classList.remove('hidden');
-            
-            const finalScoreElement = document.getElementById('finalScore');
-            if (finalScoreElement) {
-                finalScoreElement.textContent = score;
-            }
+        const finalScoreElement = document.getElementById('finalScore');
+        if (finalScoreElement) {
+            finalScoreElement.textContent = score;
         }
     }
 }
 
 function nextLevel() {
-    document.getElementById('victory').classList.add('hidden');
-    init();
-    gameRunning = true;
-    gamePaused = false;
-    gameLoop();
+    // Solo il livello 1 esiste in questo motore. Dopo il livello 1 si passa al mondo openworld.
+    if (level === 1) {
+        window.location.href = 'openworld.html?fromLevel=2';
+        return;
+    }
+
+    // Per qualsiasi altro caso, riavvia il gioco
+    restartGame();
 }
 
 // Drag and drop handlers for puzzles
