@@ -719,11 +719,10 @@
         <div style="text-align: center; color: white;">
           <h3>🃏 Texas Hold'em Poker 🃏</h3>
           
-          <!-- Link d'invito -->
           <div style="background: rgba(255,215,0,0.2); border: 2px solid #ffd700; border-radius: 10px; padding: 15px; margin: 15px 0;">
             <div style="color: #ffd700; font-weight: bold; margin-bottom: 10px;">🔗 Invita un amico al tavolo:</div>
             <div style="display: flex; gap: 10px; align-items: center;">
-              <input id="inviteLink" type="text" readonly value="https://serenapoker.com/table/ABC123" style="
+              <input id="inviteLink" type="text" readonly value="${window.location.origin}${window.location.pathname}#poker-table-ABC123" style="
                 flex: 1;
                 background: rgba(0,0,0,0.5);
                 color: white;
@@ -743,6 +742,7 @@
               ">📋 Copia</button>
             </div>
             <div id="copySuccess" style="color: #4CAF50; margin-top: 5px; display: none;">✅ Link copiato negli appunti!</div>
+            <div style="color: #ccc; font-size: 12px; margin-top: 5px;">📱 Condividi questo link per invitare amici al tavolo</div>
           </div>
           
           <!-- Dealer Bot -->
@@ -1172,6 +1172,17 @@
   } else {
     initScene();
   }
+  
+  // Controlla se c'è un hash URL per il poker
+  window.addEventListener('load', function() {
+    if (window.location.hash === '#poker-table-ABC123') {
+      console.log('Link d\'invito poker rilevato! Apro la finestra poker...');
+      // Apri la finestra poker dopo un piccolo ritardo per assicurarsi che la scena sia pronta
+      setTimeout(() => {
+        openPokerWindow();
+      }, 2000);
+    }
+  });
 
   console.log('Bridge Serena Open World inizializzato.');
 })();
