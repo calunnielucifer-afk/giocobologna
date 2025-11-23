@@ -1,93 +1,141 @@
-// Bridge tra Giocobologna e il motore openworld-js
-// Carica il modello FBX di Serena con three.js e lo integra nel mondo openworld.
-
+// Bridge per Serena Open World - Scena three.js semplice con controlli WASD
 (function() {
   if (typeof window === 'undefined') return;
 
-  let threeScene, threeCamera, threeRenderer, threeControls;
-  let serenaModel = null;
+  let scene, camera, renderer, serenaModel = null;
   let mixer = null;
   let clock = new THREE.Clock();
+  let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+  let prevTime = performance.now();
+  let velocity = new THREE.Vector3();
+  let direction = new THREE.Vector3();
 
-  // Funzione per inizializzare three.js e caricare il modello FBX
-  function initThreeJSAndSerena() {
-    if (typeof THREE === 'undefined') {
-      console.warn('THREE.js non caricato.');
-      return;
+  // Inizializza la scena three.js
+  function initScene() {
+    console.log('Inizializzazione scena Serena Open World...');
+
+    // Scena
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87CEEB); // Cielo azzurro
+    scene.fog = new THREE.Fog(0x87CEEB, 10, 100);
+
+    // Camera
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 5, 10);
+
+    // Renderer
+    renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('openworldCanv'), antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // Luci
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(10, 20, 10);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.camera.left = -50;
+    directionalLight.shadow.camera.right = 50;
+    directionalLight.shadow.camera.top = 50;
+    directionalLight.shadow.camera.bottom = -50;
+    scene.add(directionalLight);
+
+    // Terreno
+    const groundGeometry = new THREE.PlaneGeometry(200, 200);
+    const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x3a5f3a });
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Alberi semplici
+    for (let i = 0; i < 20; i++) {
+      const tree = createTree();
+      tree.position.set(
+        (Math.random() - 0.5) * 100,
+        0,
+        (Math.random() - 0.5) * 100
+      );
+      scene.add(tree);
     }
 
-    // Attendi che il motore openworld sia pronto
-    function waitForOpenworld() {
-      if (typeof k !== 'undefined' && k.W && k.W.scene && k.mainVPlayer !== undefined) {
-        console.log('Integrazione con motore openworld...');
-        
-        // Carica il modello FBX di Serena
-        const fbxLoader = new THREE.FBXLoader();
-        fbxLoader.load(
-          'openworld/modelpg/Lady in red dress/Lady in red dress.fbx',
-          function(object) {
-            serenaModel = object;
-            object.scale.set(0.01, 0.01, 0.01); // Scala il modello
-            
-            // Posiziona Serena dove si trova il giocatore nel motore openworld
-            const playerPos = k.addPhy.getPos(k.mainVPlayer);
-            object.position.set(playerPos.x, playerPos.y - 0.5, playerPos.z);
-            
-            // Aggiungi alla scena del motore openworld
-            k.W.scene.add(object);
+    // Controlli tastiera
+    setupControls();
 
-            // Log dei nomi dei mesh per debug
-            console.log('Mesh names in Serena model:');
-            object.traverse(function(child) {
-              if (child.isMesh) {
-                console.log('Mesh:', child.name);
-              }
-            });
+    // Carica Serena
+    loadSerena();
 
-            // Applica le texture (se disponibili)
-            applyTexturesToModel(object);
+    // Loop di rendering
+    animate();
 
-            // Animazioni (se presenti)
-            mixer = new THREE.AnimationMixer(object);
-            if (object.animations.length > 0) {
-              const action = mixer.clipAction(object.animations[0]);
-              action.play();
-            }
-
-            // Nascondi il vecchio cubo del giocatore
-            const oldPlayer = k.W.getObj(k.mainVPlayer);
-            if (oldPlayer) {
-              oldPlayer.visible = false;
-            }
-            
-            // Collega Serena al movimento del giocatore usando l'hook di rendering
-            k.hooks.on('beforeRender', function() {
-              if (serenaModel && k.mainVPlayer !== undefined) {
-                const playerPos = k.addPhy.getPos(k.mainVPlayer);
-                serenaModel.position.set(playerPos.x, playerPos.y - 0.5, playerPos.z);
-                serenaModel.rotation.y = k.keys.turnRight || 0;
-              }
-            });
-
-            console.log('Modello FBX di Serena integrato nel motore openworld.');
-          },
-          function(xhr) {
-            console.log((xhr.loaded / xhr.total * 100) + '% caricato');
-          },
-          function(error) {
-            console.error('Errore caricamento FBX:', error);
-          }
-        );
-      } else {
-        console.log('In attesa del motore openworld...');
-        setTimeout(waitForOpenworld, 500); // Riprova tra 500ms
-      }
-    }
-    
-    waitForOpenworld();
+    console.log('Scena inizializzata con successo!');
   }
 
-  // Funzione per applicare le texture al modello
+  function createTree() {
+    const group = new THREE.Group();
+    
+    // Tronco
+    const trunkGeometry = new THREE.CylinderGeometry(0.5, 0.8, 8);
+    const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+    trunk.position.y = 4;
+    trunk.castShadow = true;
+    group.add(trunk);
+    
+    // Fogliame
+    const foliageGeometry = new THREE.SphereGeometry(4);
+    const foliageMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+    const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+    foliage.position.y = 8;
+    foliage.castShadow = true;
+    group.add(foliage);
+    
+    return group;
+  }
+
+  function loadSerena() {
+    console.log('Caricamento modello FBX di Serena...');
+    
+    const fbxLoader = new THREE.FBXLoader();
+    fbxLoader.load(
+      'openworld/modelpg/Lady in red dress/Lady in red dress.fbx',
+      function(object) {
+        serenaModel = object;
+        object.scale.set(0.01, 0.01, 0.01);
+        object.position.set(0, 0.5, 0);
+        scene.add(object);
+
+        // Log dei mesh
+        console.log('Mesh nel modello Serena:');
+        object.traverse(function(child) {
+          if (child.isMesh) {
+            console.log('Mesh:', child.name);
+          }
+        });
+
+        // Applica texture
+        applyTexturesToModel(object);
+
+        // Animazioni
+        mixer = new THREE.AnimationMixer(object);
+        if (object.animations.length > 0) {
+          const action = mixer.clipAction(object.animations[0]);
+          action.play();
+        }
+
+        console.log('Serena caricata con successo!');
+      },
+      function(xhr) {
+        console.log((xhr.loaded / xhr.total * 100) + '% caricato');
+      },
+      function(error) {
+        console.error('Errore caricamento FBX:', error);
+      }
+    );
+  }
+
   function applyTexturesToModel(model) {
     const textureLoader = new THREE.TextureLoader();
     const basePath = 'openworld/modelpg/Lady in red dress/textures/';
@@ -97,237 +145,140 @@
         const name = child.name.toLowerCase();
         let material = null;
 
-        console.log(`Applying texture to mesh: ${child.name}`);
+        console.log(`Applicando texture a: ${child.name}`);
 
-        // Abito (Miao_new_suit) - usa QiPao
-        if (name.includes('miao_new_suit') || name.includes('suit') || name.includes('dress')) {
-          console.log('Loading dress textures...');
-          const diffuse = textureLoader.load(
-            basePath + 'QiPao_MetallicAlpha.png',
-            (texture) => console.log('Dress diffuse loaded'),
-            undefined,
-            (error) => console.error('Error loading dress diffuse:', error)
-          );
-          const roughness = textureLoader.load(
-            basePath + 'QiPao_roughness.png',
-            (texture) => console.log('Dress roughness loaded'),
-            undefined,
-            (error) => console.error('Error loading dress roughness:', error)
-          );
-          const metallic = textureLoader.load(
-            basePath + 'QiPao_metallic.png',
-            (texture) => console.log('Dress metallic loaded'),
-            undefined,
-            (error) => console.error('Error loading dress metallic:', error)
-          );
-          material = new THREE.MeshStandardMaterial({
-            map: diffuse,
-            roughnessMap: roughness,
-            metalnessMap: metallic,
-            skinning: true,
-          });
-          console.log('Dress material created');
+        // Abito
+        if (name.includes('miao_new_suit')) {
+          const diffuse = textureLoader.load(basePath + 'QiPao_MetallicAlpha.png');
+          material = new THREE.MeshStandardMaterial({ map: diffuse, skinning: true });
         }
-        // Pelle (CC_Base_Body) - usa Std_Skin_Body
+        // Pelle
         else if (name.includes('cc_base_body')) {
-          console.log('Loading body skin textures...');
-          const diffuse = textureLoader.load(
-            basePath + 'Std_Skin_Body_MetallicAlpha.png',
-            (texture) => console.log('Body diffuse loaded'),
-            undefined,
-            (error) => console.error('Error loading body diffuse:', error)
-          );
-          const roughness = textureLoader.load(
-            basePath + 'Std_Skin_Body_roughness.png',
-            (texture) => console.log('Body roughness loaded'),
-            undefined,
-            (error) => console.error('Error loading body roughness:', error)
-          );
-          material = new THREE.MeshStandardMaterial({
-            map: diffuse,
-            roughnessMap: roughness,
-            skinning: true,
-          });
-          console.log('Body skin material created');
+          const diffuse = textureLoader.load(basePath + 'Std_Skin_Body_MetallicAlpha.png');
+          material = new THREE.MeshStandardMaterial({ map: diffuse, skinning: true });
         }
-        // Capelli (Long_bangs, Long_wavy_ponytail, Messy_high)
-        else if (name.includes('long_bangs') || name.includes('long_wavy_ponytail') || name.includes('messy_high') || name.includes('hair')) {
-          console.log('Loading hair textures...');
-          const diffuse = textureLoader.load(
-            basePath + 'Hair_Transparency_MetallicAlpha.png',
-            (texture) => console.log('Hair diffuse loaded'),
-            undefined,
-            (error) => console.error('Error loading hair diffuse:', error)
-          );
-          const ao = textureLoader.load(
-            basePath + 'Hair_Transparency_ao.png',
-            (texture) => console.log('Hair AO loaded'),
-            undefined,
-            (error) => console.error('Error loading hair AO:', error)
-          );
-          material = new THREE.MeshStandardMaterial({
-            map: diffuse,
-            aoMap: ao,
-            transparent: true,
-            alphaTest: 0.5,
-            skinning: true,
-          });
-          console.log('Hair material created');
-        }
-        // Occhi (CC_Base_Eye, CC_Base_EyeOcclusion)
-        else if (name.includes('cc_base_eye')) {
-          console.log('Loading eye textures...');
-          const diffuse = textureLoader.load(
-            basePath + 'Std_Cornea_L_Sclera.jpg',
-            (texture) => console.log('Eye diffuse loaded'),
-            undefined,
-            (error) => console.error('Error loading eye diffuse:', error)
-          );
-          material = new THREE.MeshStandardMaterial({
-            map: diffuse,
-            skinning: true,
-          });
-          console.log('Eye material created');
-        }
-        // Denti (CC_Base_Teeth) - usa Std_Upper_Teeth
-        else if (name.includes('cc_base_teeth')) {
-          console.log('Loading teeth textures...');
-          const diffuse = textureLoader.load(
-            basePath + 'Std_Upper_Teeth_GradAO.jpg',
-            (texture) => console.log('Teeth diffuse loaded'),
-            undefined,
-            (error) => console.error('Error loading teeth diffuse:', error)
-          );
-          const roughness = textureLoader.load(
-            basePath + 'Std_Upper_Teeth_roughness.png',
-            (texture) => console.log('Teeth roughness loaded'),
-            undefined,
-            (error) => console.error('Error loading teeth roughness:', error)
-          );
-          material = new THREE.MeshStandardMaterial({
-            map: diffuse,
-            roughnessMap: roughness,
-            skinning: true,
-          });
-          console.log('Teeth material created');
-        }
-        // Lingua (CC_Base_Tongue)
-        else if (name.includes('cc_base_tongue')) {
-          console.log('Loading tongue textures...');
-          const diffuse = textureLoader.load(
-            basePath + 'Std_Tongue_GradAO.jpg',
-            (texture) => console.log('Tongue diffuse loaded'),
-            undefined,
-            (error) => console.error('Error loading tongue diffuse:', error)
-          );
-          const roughness = textureLoader.load(
-            basePath + 'Std_Tongue_roughness.png',
-            (texture) => console.log('Tongue roughness loaded'),
-            undefined,
-            (error) => console.error('Error loading tongue roughness:', error)
-          );
-          material = new THREE.MeshStandardMaterial({
-            map: diffuse,
-            roughnessMap: roughness,
-            skinning: true,
-          });
-          console.log('Tongue material created');
-        }
-        // Scarpe (High_Heels)
-        else if (name.includes('high_heels')) {
-          console.log('Loading shoe textures...');
-          const metallic = textureLoader.load(
-            basePath + 'High_Heels_metallic.png',
-            (texture) => console.log('Shoe metallic loaded'),
-            undefined,
-            (error) => console.error('Error loading shoe metallic:', error)
-          );
-          const roughness = textureLoader.load(
-            basePath + 'High_Heels_roughness.png',
-            (texture) => console.log('Shoe roughness loaded'),
-            undefined,
-            (error) => console.error('Error loading shoe roughness:', error)
-          );
-          material = new THREE.MeshStandardMaterial({
-            metalnessMap: metallic,
-            roughnessMap: roughness,
-            skinning: true,
-          });
-          console.log('Shoe material created');
-        }
-        // Altro (occlusione, tearline, ecc.)
-        else if (name.includes('cc_base_eyeocclusion') || name.includes('cc_base_tearline') || name.includes('sphere')) {
-          material = new THREE.MeshStandardMaterial({
-            transparent: true,
-            opacity: 0.01,
-            skinning: true,
-          });
-        }
-        // Default - colore rosa per abito
-        else {
-          console.log(`Using default pink color for mesh: ${child.name}`);
+        // Capelli
+        else if (name.includes('long_bangs') || name.includes('messy_high')) {
+          const diffuse = textureLoader.load(basePath + 'Hair_Transparency_MetallicAlpha.png');
           material = new THREE.MeshStandardMaterial({ 
-            color: 0xFFB6C1, // rosa chiaro
-            skinning: true,
+            map: diffuse, 
+            transparent: true, 
+            alphaTest: 0.5,
+            skinning: true 
           });
+        }
+        // Occhi
+        else if (name.includes('cc_base_eye')) {
+          material = new THREE.MeshStandardMaterial({ color: 0xffffff, skinning: true });
+        }
+        // Scarpe
+        else if (name.includes('high_heels')) {
+          material = new THREE.MeshStandardMaterial({ color: 0x000000, skinning: true });
+        }
+        // Default rosa
+        else {
+          material = new THREE.MeshStandardMaterial({ color: 0xFFB6C1, skinning: true });
         }
 
         child.material = material;
         child.castShadow = true;
         child.receiveShadow = true;
-        console.log(`Material applied to ${child.name}`);
       }
     });
-    console.log('All materials applied to Serena model');
   }
 
-  // Inizializza quando la pagina è pronta e il motore openworld è caricato
-  function initSerenaOpenWorld() {
-    console.log('Serena Open World bridge inizializzato.');
+  function setupControls() {
+    document.addEventListener('keydown', function(event) {
+      switch (event.code) {
+        case 'ArrowUp':
+        case 'KeyW':
+          moveForward = true;
+          break;
+        case 'ArrowDown':
+        case 'KeyS':
+          moveBackward = true;
+          break;
+        case 'ArrowLeft':
+        case 'KeyA':
+          moveLeft = true;
+          break;
+        case 'ArrowRight':
+        case 'KeyD':
+          moveRight = true;
+          break;
+      }
+    });
 
-    // Overlay introduttivo
-    const intro = document.createElement('div');
-    intro.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      color: #fff;
-      font-family: system-ui, sans-serif;
-      text-align: center;
-      padding: 20px;
-      box-sizing: border-box;
-    `;
-    intro.innerHTML = `
-      <div style="max-width: 600px;">
-        <h2>Nuovo mondo verso Benevento</h2>
-        <p>Serena si risveglia in un mondo aperto, realistico, ispirato al tuo sogno.</p>
-        <p>Esplora, cammina, guarda attorno: il viaggio verso Benevento continua in 3D.</p>
-        <button id="serenaOpenWorldStart" style="margin-top:16px;padding:8px 16px;font-size:16px;cursor:pointer;">Inizia</button>
-      </div>
-    `;
-    document.body.appendChild(intro);
+    document.addEventListener('keyup', function(event) {
+      switch (event.code) {
+        case 'ArrowUp':
+        case 'KeyW':
+          moveForward = false;
+          break;
+        case 'ArrowDown':
+        case 'KeyS':
+          moveBackward = false;
+          break;
+        case 'ArrowLeft':
+        case 'KeyA':
+          moveLeft = false;
+          break;
+        case 'ArrowRight':
+        case 'KeyD':
+          moveRight = false;
+          break;
+      }
+    });
 
-    const btn = document.getElementById('serenaOpenWorldStart');
-    if (btn) {
-      btn.addEventListener('click', () => {
-        intro.remove();
-        // Inizializza three.js e carica il modello FBX
-        initThreeJSAndSerena();
-      });
+    // Window resize
+    window.addEventListener('resize', function() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const time = performance.now();
+    const delta = (time - prevTime) / 1000;
+
+    // Movimento WASD
+    velocity.x -= velocity.x * 10.0 * delta;
+    velocity.z -= velocity.z * 10.0 * delta;
+
+    direction.z = Number(moveForward) - Number(moveBackward);
+    direction.x = Number(moveRight) - Number(moveLeft);
+    direction.normalize();
+
+    if (moveForward || moveBackward) velocity.z -= direction.z * 40.0 * delta;
+    if (moveLeft || moveRight) velocity.x -= direction.x * 40.0 * delta;
+
+    if (serenaModel) {
+      serenaModel.position.x += velocity.x * delta;
+      serenaModel.position.z += velocity.z * delta;
+      
+      // Camera segue Serena
+      camera.position.x = serenaModel.position.x;
+      camera.position.z = serenaModel.position.z + 10;
+      camera.position.y = serenaModel.position.y + 5;
+      camera.lookAt(serenaModel.position);
     }
+
+    // Animazioni
+    if (mixer) mixer.update(clock.getDelta());
+
+    renderer.render(scene, camera);
+    prevTime = time;
   }
 
   // Inizializza quando la pagina è pronta
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSerenaOpenWorld);
+    document.addEventListener('DOMContentLoaded', initScene);
   } else {
-    initSerenaOpenWorld();
+    initScene();
   }
+
+  console.log('Bridge Serena Open World inizializzato.');
 })();

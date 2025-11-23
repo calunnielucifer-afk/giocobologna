@@ -4,29 +4,39 @@
   <meta charset="UTF-8">
   <title>Serena Open World</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <!-- CSS di openworld -->
-  <link rel="stylesheet" href="openworld/demo/house/css/style.css">
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+    }
+  </style>
 </head>
 <body>
-  <!-- Canvas WebGL usato dal motore openworld-js -->
+  <!-- Canvas WebGL per Serena -->
   <canvas id="openworldCanv"></canvas>
-
-  <!-- Libreria di fisica CANNON richiesta da openworld -->
-  <script src="openworld/src/cannon/cannon-x-dev.js"></script>
   
-  <!-- Motore openworld-js locale (copiato in openworld/src e openworld/demo/house/script) -->
-  <script src="openworld/demo/house/script/bootstrap.js"></script>
-  <script src="openworld/demo/house/script/loader.js"></script>
+  <div id="info">
+    <h3>Serena Open World</h3>
+    <p>Usa WASD o frecce per muoverti</p>
+    <p>Mouse per guardarti intorno</p>
+  </div>
 
-  <!-- Libreria three.js per caricare il modello FBX di Serena -->
+  <!-- Libreria three.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <!-- Libreria fflate.min.js richiesta da FBXLoader -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.0/umd/index.js"></script>
   <script>window.fflate = fflate;</script>
-
-  <!-- Bridge per personalizzare Serena e il tema all'interno del motore openworld -->
+  
+  <!-- Bridge per Serena -->
   <script src="serena-openworld-bridge.js"></script>
 </body>
 </html>
