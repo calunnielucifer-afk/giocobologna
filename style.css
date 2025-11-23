@@ -182,7 +182,7 @@ body {
 
 /* Mobile Touch Controls */
 .mobile-controls {
-    display: none;
+    display: flex;
     justify-content: center;
     margin: 20px 0;
 }
@@ -224,11 +224,13 @@ body {
 
 /* Instructions for different devices */
 .desktop-instructions {
-    display: block;
+    display: none;
 }
 
 .mobile-instructions {
-    display: none;
+    display: block;
+    text-align: center;
+    margin-bottom: 10px;
 }
 
 .game-controls {

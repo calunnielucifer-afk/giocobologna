@@ -288,83 +288,103 @@ function setupTouchControls() {
     const jumpBtn = document.getElementById('jumpBtn');
     const shootBtn = document.getElementById('shootBtn');
     
+    console.log('Setting up touch controls...', { leftBtn, rightBtn, jumpBtn, shootBtn });
+    
     if (leftBtn && rightBtn && jumpBtn && shootBtn) {
         // Touch start events
         leftBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            console.log('Left button touched');
             keys.ArrowLeft = true;
         });
         
         rightBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            console.log('Right button touched');
             keys.ArrowRight = true;
         });
         
         jumpBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            console.log('Jump button touched');
             keys.ArrowUp = true;
         });
         
         shootBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            console.log('Shoot button touched');
             keys['x'] = true;
         });
         
         // Touch end events
         leftBtn.addEventListener('touchend', (e) => {
             e.preventDefault();
+            console.log('Left button released');
             keys.ArrowLeft = false;
         });
         
         rightBtn.addEventListener('touchend', (e) => {
             e.preventDefault();
+            console.log('Right button released');
             keys.ArrowRight = false;
         });
         
         jumpBtn.addEventListener('touchend', (e) => {
             e.preventDefault();
+            console.log('Jump button released');
             keys.ArrowUp = false;
         });
         
         shootBtn.addEventListener('touchend', (e) => {
             e.preventDefault();
+            console.log('Shoot button released');
             keys['x'] = false;
         });
         
         // Mouse events for desktop testing
         leftBtn.addEventListener('mousedown', (e) => {
+            console.log('Left button clicked');
             keys.ArrowLeft = true;
         });
         
         rightBtn.addEventListener('mousedown', (e) => {
+            console.log('Right button clicked');
             keys.ArrowRight = true;
         });
         
         jumpBtn.addEventListener('mousedown', (e) => {
+            console.log('Jump button clicked');
             keys.ArrowUp = true;
         });
         
         shootBtn.addEventListener('mousedown', (e) => {
+            console.log('Shoot button clicked');
             keys['x'] = true;
         });
         
         leftBtn.addEventListener('mouseup', (e) => {
+            console.log('Left button released');
             keys.ArrowLeft = false;
         });
         
         rightBtn.addEventListener('mouseup', (e) => {
+            console.log('Right button released');
             keys.ArrowRight = false;
         });
         
         jumpBtn.addEventListener('mouseup', (e) => {
+            console.log('Jump button released');
             keys.ArrowUp = false;
         });
         
         shootBtn.addEventListener('mouseup', (e) => {
+            console.log('Shoot button released');
             keys['x'] = false;
         });
         
         console.log('Touch controls setup complete');
+    } else {
+        console.error('Touch controls not found!', { leftBtn, rightBtn, jumpBtn, shootBtn });
     }
 }
 
