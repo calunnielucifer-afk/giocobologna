@@ -56,6 +56,7 @@ let particles = [];
 // Level 2 collectible tracking (open world style)
 let level2TotalCollectibles = 0;
 let level2Collected = 0;
+let firstStepNotified = false; // Traccia se il primo passo è stato notificato
 let goal = { x: 750, y: 320, width: 40, height: 60 };
 let doors = [];
 let gamePausedForRiddle = false;
@@ -1506,9 +1507,8 @@ function createLevel1() {
 function createLevel2() {
     console.log('Creating Level 2 - Realistic Open World Village');
     
-    // NOTIFICA: Messaggio del principe al livello 2
-    showPrinceMessage();
-    playNotificationSound();
+    // Reset prima notifica del passo
+    firstStepNotified = false;
     
     // Clear all elements for open world experience
     obstacles = [];
@@ -2824,19 +2824,34 @@ function update() {
     // Handle input - Different controls for 2D vs 3D levels
     if (is3DLevel) {
         // 3D movement for levels 2+
+        let hasMoved = false;
+        
         if (keys['ArrowRight'] || keys['d'] || keys['D']) {
             serena.velocityX = serena.speed;
+            hasMoved = true;
         } else if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
             serena.velocityX = -serena.speed;
+            hasMoved = true;
         } else {
             serena.velocityX *= 0.8; // Friction
         }
         
         if (keys['s'] || keys['S']) {
             serena.z += 4; // Move backward in 3D space
+            hasMoved = true;
         }
         if (keys['w'] || keys['W']) {
             serena.z -= 4; // Move forward in 3D space
+            hasMoved = true;
+        }
+        
+        // Controlla primo passo nel livello 2 (open world)
+        if (level === 2 && !firstStepNotified && hasMoved) {
+            firstStepNotified = true;
+            setTimeout(() => {
+                showPrinceMessage();
+                playNotificationSound();
+            }, 500); // Mezzo secondo di delay per far apprezzare il movimento
         }
     } else {
         // 2D movement for level 1
