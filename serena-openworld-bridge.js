@@ -1200,6 +1200,12 @@
   function animate() {
     requestAnimationFrame(animate);
     
+    // Rimuovi il mirino dalla scena se esiste ancora
+    if (reticle && scene) {
+      scene.remove(reticle);
+      reticle = null;
+    }
+    
     const time = performance.now();
     const delta = (time - (animate.prevTime || time)) * 0.001;
     animate.prevTime = time;
