@@ -326,11 +326,11 @@
   }
 
   function loadClaire() {
-    console.log('Caricamento modello FBX di Claire con cache-busting...');
+    console.log('Caricamento modello FBX di Claire...');
     
     const fbxLoader = new THREE.FBXLoader();
     fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/claire.fbx?v=' + Date.now(),
+      'openworld/modelpg/Lady_in_red_dress/claire.fbx',
       function(object) {
         serenaModel = object;
         
@@ -403,6 +403,50 @@
       },
       function(error) {
         console.error('Errore caricamento FBX:', error);
+        console.log('Tentativo caricamento DAE come fallback...');
+        
+        // Fallback: prova con DAE
+        const colladaLoader = new THREE.ColladaLoader();
+        colladaLoader.load(
+          'openworld/modelpg/Lady_in_red_dress/claire.dae',
+          function(collada) {
+            serenaModel = collada.scene;
+            
+            // Scala appropriata per il mondo
+            serenaModel.scale.set(0.01, 0.01, 0.01);
+            
+            // Posiziona a terra
+            serenaModel.position.set(0, 0, 0);
+            
+            // Correggi orientamento
+            serenaModel.rotation.x = 0;
+            serenaModel.rotation.y = Math.PI;
+            serenaModel.rotation.z = 0;
+            
+            // Calcola bounding box
+            const box = new THREE.Box3().setFromObject(serenaModel);
+            serenaModel.position.y = -box.min.y * serenaModel.scale.y;
+            
+            // Setup ombre
+            serenaModel.traverse(function(child) {
+              if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+              }
+            });
+            
+            scene.add(serenaModel);
+            
+            // Animazioni fallback
+            mixer = new THREE.AnimationMixer(serenaModel);
+            createFallbackAnimations();
+            
+            console.log('Claire DAE caricata con successo!');
+          },
+          function(error) {
+            console.error('Errore anche con DAE:', error);
+          }
+        );
       }
     );
   }
