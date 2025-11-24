@@ -175,6 +175,10 @@
   let isMouseOrbiting = false;
   const edgeThreshold = 50; // Pixel dal bordo per attivare l'orbitale
   
+  // Sistema di interazione con E
+  let interactableObjects = [];
+  let nearbyInteractable = null;
+  
   // Animazioni Mixamo
   let walkAnimation;
   let poseAnimation;
@@ -771,6 +775,16 @@
         case 'KeyD':
           moveRight = true;  // D = destra
           break;
+        case 'KeyE':  // E = interazione
+          if (nearbyInteractable) {
+            console.log('E pressed - interacting with:', nearbyInteractable.userData);
+            if (nearbyInteractable.userData.isPokerTable) {
+              openPokerWindow();
+            }
+          } else {
+            console.log('E pressed - no nearby interactable object');
+          }
+          break;
       }
     });
 
@@ -944,33 +958,77 @@
       }
     });
 
-    // Click detection per tavola da poker (desktop)
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    
-    document.addEventListener('click', function(event) {
-      // Calcola le coordinate del mouse
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    // Sistema di proximity detection per interazione con E
+    function checkInteractableProximity() {
+      if (!serenaModel) return;
       
-      // Aggiorna il raycaster
-      raycaster.setFromCamera(mouse, camera);
+      const interactionDistance = 3; // Distanza di interazione
+      nearbyInteractable = null;
       
-      // Controlla intersezioni con tutti gli oggetti nella scena
-      const intersects = raycaster.intersectObjects(scene.children, true);
-      
-      console.log('Click detected, checking intersections...', intersects.length);
-      
-      for (let intersect of intersects) {
-        console.log('Intersected object:', intersect.object.name, intersect.object.userData);
-        
-        if (intersect.object.userData && intersect.object.userData.isPokerTable) {
-          console.log('Poker table clicked! Opening window...');
-          openPokerWindow();
+      // Controlla tutti gli oggetti interagibili
+      for (let obj of interactableObjects) {
+        const distance = serenaModel.position.distanceTo(obj.position);
+        if (distance < interactionDistance) {
+          nearbyInteractable = obj;
+          console.log('Nearby interactable found:', obj.userData, 'distance:', distance.toFixed(2));
+          
+          // Mostra提示 per l'utente (potrebbe essere un UI element)
+          if (!document.getElementById('interactionHint')) {
+            const hint = document.createElement('div');
+            hint.id = 'interactionHint';
+            hint.style.cssText = `
+              position: fixed;
+              bottom: 100px;
+              left: 50%;
+              transform: translateX(-50%);
+              background: rgba(0, 0, 0, 0.8);
+              color: white;
+              padding: 10px 20px;
+              border-radius: 5px;
+              font-family: Arial;
+              font-size: 16px;
+              z-index: 1000;
+            `;
+            hint.textContent = 'Premi E per interagire';
+            document.body.appendChild(hint);
+          }
           break;
         }
       }
-    });
+      
+      // Rimuovi il提示 se non ci sono oggetti vicini
+      if (!nearbyInteractable) {
+        const hint = document.getElementById('interactionHint');
+        if (hint) {
+          document.body.removeChild(hint);
+        }
+      }
+    }
+    
+    // Aggiungi il proximity check nel loop di animazione
+    function addProximityToAnimate() {
+      const originalAnimate = animate;
+      animate = function() {
+        originalAnimate();
+        checkInteractableProximity();
+      };
+    }
+    addProximityToAnimate();
+    
+    // Setup oggetti interagibili
+    setTimeout(() => {
+      console.log('Setup oggetti interagibili...');
+      interactableObjects = [];
+      
+      scene.traverse(function(child) {
+        if (child.userData && child.userData.isPokerTable) {
+          interactableObjects.push(child);
+          console.log('Oggetto interagibile aggiunto:', child.userData, 'position:', child.position);
+        }
+      });
+      
+      console.log('Totale oggetti interagibili:', interactableObjects.length);
+    }, 2000);
     
     // Aggiungi anche un test per verificare che la tavola sia stata creata
     setTimeout(() => {
@@ -991,12 +1049,15 @@
     window.addEventListener('resize', function() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  }
 
   function openPokerWindow() {
-    console.log('Apertura finestra poker...');
+    console.log('Apertura finestra poker - blocco controlli mondo...');
+    
+    // BLOCCA i controlli del mondo
+    moveForward = false;
+    moveBackward = false;
+    moveLeft = false;
+    moveRight = false;
     
     // Rimuovi eventuali finestre poker esistenti
     const existingModal = document.getElementById('pokerModal');
@@ -1004,7 +1065,7 @@
       document.body.removeChild(existingModal);
     }
     
-    // Crea la finestra modal per il poker
+    // Crea la finestra modal per il poker - GIOCO A SE
     const pokerModal = document.createElement('div');
     pokerModal.id = 'pokerModal';
     pokerModal.style.cssText = `
@@ -1013,30 +1074,112 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.95);
+      background: linear-gradient(135deg, #0d5f0d 0%, #1a1a1a 100%);
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 99999;
-      backdrop-filter: blur(5px);
+      backdrop-filter: blur(10px);
     `;
     
     // Contenuto della finestra poker
     const pokerContent = document.createElement('div');
     pokerContent.style.cssText = `
-      background: #1a1a1a;
+      background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
       border: 4px solid #ffd700;
-      border-radius: 15px;
-      padding: 20px;
-      width: 90%;
-      max-width: 800px;
-      height: 90%;
-      max-height: 600px;
+      border-radius: 20px;
+      padding: 30px;
+      width: 95%;
+      max-width: 900px;
+      height: 95%;
+      max-height: 700px;
       position: relative;
-      box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
-      overflow: auto;
-      animation: slideIn 0.3s ease-out;
+      box-shadow: 0 0 50px rgba(255, 215, 0, 0.9), inset 0 0 20px rgba(255, 215, 0, 0.2);
+      overflow: hidden;
+      animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     `;
+    
+    // Header con titolo e pulsante chiudi
+    const pokerHeader = document.createElement('div');
+    pokerHeader.style.cssText = `
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #ffd700;
+    `;
+    
+    const pokerTitle = document.createElement('h2');
+    pokerTitle.textContent = ' POKER CHAMPIONSHIP ';
+    pokerTitle.style.cssText = `
+      color: #ffd700;
+      font-size: 28px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      margin: 0;
+    `;
+    
+    // Pulsante chiudi migliorato
+    const closeButton = document.createElement('button');
+    closeButton.textContent = ' CHIUDI';
+    closeButton.style.cssText = `
+      background: linear-gradient(145deg, #ff4444, #cc0000);
+      color: white;
+      border: 2px solid #ffd700;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    `;
+    
+    closeButton.addEventListener('mouseenter', () => {
+      closeButton.style.background = 'linear-gradient(145deg, #ff6666, #ff0000)';
+      closeButton.style.transform = 'scale(1.05)';
+    });
+    
+    closeButton.addEventListener('mouseleave', () => {
+      closeButton.style.background = 'linear-gradient(145deg, #ff4444, #cc0000)';
+      closeButton.style.transform = 'scale(1)';
+    });
+    
+    closeButton.addEventListener('click', closePokerWindow);
+    
+    pokerHeader.appendChild(pokerTitle);
+    pokerHeader.appendChild(closeButton);
+    
+    // Area di gioco placeholder
+    const gameArea = document.createElement('div');
+    gameArea.style.cssText = `
+      background: radial-gradient(ellipse at center, #0d5f0d 0%, #063006 100%);
+      border: 3px solid #ffd700;
+      border-radius: 15px;
+      height: calc(100% - 80px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #ffd700;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    `;
+    gameArea.innerHTML = `
+      <div>
+        <div style="font-size: 48px; margin-bottom: 20px;">🃏</div>
+        <div>POKER GAME</div>
+        <div style="font-size: 18px; margin-top: 20px; opacity: 0.8;">Premi CHIUDI per tornare nel mondo</div>
+      </div>
+    `;
+    
+    // Assembla la finestra
+    pokerContent.appendChild(pokerHeader);
+    pokerContent.appendChild(gameArea);
+    pokerModal.appendChild(pokerContent);
+    document.body.appendChild(pokerModal);
     
     // Aggiungi animazione CSS
     const style = document.createElement('style');
@@ -1044,227 +1187,35 @@
       @keyframes slideIn {
         from {
           opacity: 0;
-          transform: scale(0.8) translateY(-50px);
+          transform: scale(0.5) rotate(-10deg);
         }
         to {
           opacity: 1;
-          transform: scale(1) translateY(0);
+          transform: scale(1) rotate(0deg);
         }
       }
     `;
     document.head.appendChild(style);
     
-    pokerContent.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="color: white; margin: 0;">🎰 Poker Room 🎰</h2>
-        <button id="closePoker" style="
-          background: #ff4444;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 5px;
-          cursor: pointer;
-          font-size: 16px;
-        ">✖ Chiudi</button>
-      </div>
-      
-      <div style="background: #2a2a2a; border-radius: 10px; padding: 20px; height: calc(100% - 80px); overflow-y: auto;">
-        <div style="text-align: center; color: white;">
-          <h3>🃏 Texas Hold'em Poker 🃏</h3>
-          
-          <div style="background: rgba(255,215,0,0.15); border: 2px solid #ffd700; border-radius: 10px; padding: 15px; margin: 15px 0;">
-            <div style="color: #ffd700; font-weight: bold; margin-bottom: 10px;">🔗 Invita un amico al tavolo:</div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-              <input id="inviteLink" type="text" readonly value="${window.location.origin}${window.location.pathname}#poker-table-ABC123" style="
-                flex: 1;
-                background: rgba(0,0,0,0.7);
-                color: white;
-                border: 1px solid #ffd700;
-                padding: 8px;
-                border-radius: 5px;
-                font-family: monospace;
-              ">
-              <button id="copyLink" style="
-                background: #ffd700;
-                color: black;
-                border: none;
-                padding: 8px 15px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-weight: bold;
-              ">📋 Copia</button>
-            </div>
-            <div id="copySuccess" style="color: #4CAF50; margin-top: 5px; display: none;">✅ Link copiato negli appunti!</div>
-            <div style="color: #ccc; font-size: 12px; margin-top: 5px;">📱 Condividi questo link per invitare amici al tavolo</div>
-          </div>
-          
-          <div style="background: rgba(139,69,19,0.4); border: 2px solid #8B4513; border-radius: 10px; padding: 15px; margin: 15px 0;">
-            <div style="color: #ffd700; font-weight: bold; margin-bottom: 10px;">🤖 Dealer Bot Attivo</div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-              <div style="
-                width: 60px;
-                height: 60px;
-                background: linear-gradient(135deg, #8B4513, #D2691E);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 30px;
-                border: 3px solid #ffd700;
-              ">🎩</div>
-              <div style="text-align: left;">
-                <div style="color: white;">🎰 <strong>Max Dealer</strong></div>
-                <div style="color: #ccc; font-size: 14px;">Stato: Pronto a distribuire</div>
-                <div style="color: #4CAF50; font-size: 12px;">● Online</div>
-              </div>
-            </div>
-          </div>
-          
-          <div style="display: flex; justify-content: center; gap: 20px; margin: 20px 0;">
-            <div style="background: white; color: black; padding: 10px; border-radius: 5px; font-size: 24px;">A♠</div>
-            <div style="background: white; color: black; padding: 10px; border-radius: 5px; font-size: 24px;">K♥</div>
-          </div>
-          <p style="font-size: 18px; margin: 20px 0;">Tavolo: $100/$200</p>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0;">
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
-              <div style="color: #ffd700;">👤 Giocatore 1</div>
-              <div>Fiches: $5,000</div>
-              <div style="color: #4CAF50; font-size: 12px;">● In attesa</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; border: 2px solid #ffd700;">
-              <div style="color: #ffd700;">👤 Tu</div>
-              <div>Fiches: $2,500</div>
-              <div style="color: #ff9800; font-size: 12px;">● Tuo turno</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
-              <div style="color: #ffd700;">🤖 Dealer Bot</div>
-              <div>Fiches: $10,000</div>
-              <div style="color: #f44336; font-size: 12px;">● Pensando...</div>
-            </div>
-          </div>
-          <div style="margin-top: 20px;">
-            <button style="
-              background: #4CAF50;
-              color: white;
-              border: none;
-              padding: 15px 30px;
-              margin: 5px;
-              border-radius: 5px;
-              cursor: pointer;
-              font-size: 16px;
-            ">✋ Check</button>
-            <button style="
-              background: #ff9800;
-              color: white;
-              border: none;
-              padding: 15px 30px;
-              margin: 5px;
-              border-radius: 5px;
-              cursor: pointer;
-              font-size: 16px;
-            ">📈 Raise $200</button>
-            <button style="
-              background: #f44336;
-              color: white;
-              border: none;
-              padding: 15px 30px;
-              margin: 5px;
-              border-radius: 5px;
-              cursor: pointer;
-              font-size: 16px;
-            ">🛑 Fold</button>
-          </div>
-          <div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-            <strong>Pot:</strong> $1,200 | <strong>Turno:</strong> Il tuo turno | <strong>Round:</strong> Pre-Flop
-          </div>
-        </div>
-      </div>
-    `;
+    console.log('Finra poker aperta - controlli mondo bloccati');
+  }
+  
+  function closePokerWindow() {
+    console.log('Chiusura finestra poker - ripristino controlli mondo...');
     
-    pokerModal.appendChild(pokerContent);
-    document.body.appendChild(pokerModal);
-    
-    // Event listener per chiudere
-    document.getElementById('closePoker').addEventListener('click', function() {
+    // Rimuovi la finestra
+    const pokerModal = document.getElementById('pokerModal');
+    if (pokerModal) {
       document.body.removeChild(pokerModal);
-    });
-    
-    // Event listener per copiare link
-    document.getElementById('copyLink').addEventListener('click', function() {
-      const inviteLink = document.getElementById('inviteLink');
-      inviteLink.select();
-      document.execCommand('copy');
-      
-      // Mostra messaggio di successo
-      const successMsg = document.getElementById('copySuccess');
-      successMsg.style.display = 'block';
-      
-      // Nascondi dopo 3 secondi
-      setTimeout(() => {
-        successMsg.style.display = 'none';
-      }, 3000);
-    });
-    
-    // Simula comportamento del Dealer Bot
-    let dealerAction = null;
-    const dealerStates = ['Pensando...', 'Distribuisse carte...', 'Analizza...', 'Decide...'];
-    
-    function simulateDealerBot() {
-      // Trova lo stato del dealer bot nel DOM
-      const dealerElements = pokerModal.querySelectorAll('div');
-      let dealerStatus = null;
-      
-      for (let element of dealerElements) {
-        if (element.textContent.includes('Dealer Bot') && element.textContent.includes('●')) {
-          dealerStatus = element;
-          break;
-        }
-      }
-      
-      if (dealerStatus) {
-        // Cicla tra gli stati del dealer
-        let stateIndex = 0;
-        const dealerInterval = setInterval(() => {
-          if (!document.body.contains(pokerModal)) {
-            clearInterval(dealerInterval);
-            return;
-          }
-          
-          dealerStatus.innerHTML = `<div style="color: #ffd700;">🤖 Dealer Bot</div>
-            <div>Fiches: $10,000</div>
-            <div style="color: #f44336; font-size: 12px;">● ${dealerStates[stateIndex]}</div>`;
-          stateIndex = (stateIndex + 1) % dealerStates.length;
-          
-          // Dopo qualche ciclo, il dealer fa un'azione
-          if (Math.random() > 0.7 && stateIndex === 0) {
-            clearInterval(dealerInterval);
-            dealerStatus.innerHTML = `<div style="color: #ffd700;">🤖 Dealer Bot</div>
-              <div>Fiches: $10,000</div>
-              <div style="color: #f44336; font-size: 12px;">● Ha fatto Fold</div>`;
-            
-            // Resetta dopo un po'
-            setTimeout(() => {
-              if (document.body.contains(pokerModal)) {
-                dealerStatus.innerHTML = `<div style="color: #ffd700;">🤖 Dealer Bot</div>
-                  <div>Fiches: $10,000</div>
-                  <div style="color: #4CAF50; font-size: 12px;">● In attesa</div>`;
-                simulateDealerBot(); // Ricomincia il ciclo
-              }
-            }, 3000);
-          }
-        }, 1500);
-      }
     }
     
-    // Avvia il dealer bot
-    simulateDealerBot();
+    // RIPRISTINA i controlli del mondo
+    moveForward = false;
+    moveBackward = false;
+    moveLeft = false;
+    moveRight = false;
     
-    // Chiudi anche cliccando fuori
-    pokerModal.addEventListener('click', function(e) {
-      if (e.target === pokerModal) {
-        document.body.removeChild(pokerModal);
-      }
-    });
+    console.log('Finestra poker chiusa - controlli mondo ripristinati');
   }
 
   function setupTouchJoystick() {
