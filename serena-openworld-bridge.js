@@ -459,7 +459,7 @@ function onKeyUp(event) {
     
     // Carica il modello SERENA POSE FBX 7.4 come default
     fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/SerenaPose.fbx',
+      'modelpg/Lady_in_red_dress/SerenaPose.fbx',
       function(object) {
         serenaModel = object;
         
@@ -536,7 +536,7 @@ function onKeyUp(event) {
     
     const fbxLoader = new THREE.FBXLoader();
     fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/SerenaWalking.fbx',
+      'modelpg/Lady_in_red_dress/SerenaWalking.fbx',
       function(walkingObject) {
         // Salva il modello walking e la sua animazione
         window.walkingModel = walkingObject;
@@ -594,7 +594,7 @@ function onKeyUp(event) {
 
   function applyTexturesToModel(model) {
     const textureLoader = new THREE.TextureLoader();
-    const basePath = 'openworld/modelpg/Lady_in_red_dress/textures/';
+    const basePath = 'modelpg/Lady_in_red_dress/textures/';
 
     model.traverse(function(child) {
       if (child.isMesh) {
