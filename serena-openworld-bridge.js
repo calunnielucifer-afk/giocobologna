@@ -362,11 +362,13 @@ function onKeyUp(event) {
         // Crea contesto audio
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Frequenze trombe (note musicali)
-        const trumpetNotes = [523.25, 587.33, 659.25, 698.46, 783.99]; // C5, D5, E5, F5, G5
+        console.log('🎵🎉 JINGLE FESTOSO AVVIATO! 🎉🎵');
         
-        // Suona 3 trombe in sequenza per creare un effetto fanfare
-        trumpetNotes.forEach((frequency, index) => {
+        // JINGLE COMPLETO - 3 parti con strumenti diversi
+        
+        // PARTE 1: Fanfare trombe iniziale
+        const fanfareNotes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        fanfareNotes.forEach((frequency, index) => {
           setTimeout(() => {
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
@@ -374,27 +376,26 @@ function onKeyUp(event) {
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
             
-            // Configura oscillatore per suono tipo tromba
-            oscillator.type = 'square'; // Suono più "metallico"
+            oscillator.type = 'square'; // Tromba
             oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
             
-            // Envelope per suono tromba
             gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.05); // Attack
-            gainNode.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + 0.2); // Decay
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5); // Release
+            gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
             
             oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.5);
-            
-            console.log('🎺 Tromba suonata:', frequency, 'Hz');
-          }, index * 200); // Ogni nota ogni 200ms
+            oscillator.stop(audioContext.currentTime + 0.6);
+          }, index * 150);
         });
         
-        // Seconda serie di note per effetto fanfare più lungo
+        // PARTE 2: Melodia festosa con campane
         setTimeout(() => {
-          const fanfareNotes = [659.25, 783.99, 880.00, 987.77]; // E5, G5, A5, B5
-          fanfareNotes.forEach((frequency, index) => {
+          const melodyNotes = [
+            783.99, 659.25, 523.25, 659.25,  // G5, E5, C5, E5
+            783.99, 880.00, 987.77, 1046.50   // G5, A5, B5, C6
+          ];
+          
+          melodyNotes.forEach((frequency, index) => {
             setTimeout(() => {
               const oscillator = audioContext.createOscillator();
               const gainNode = audioContext.createGain();
@@ -402,47 +403,143 @@ function onKeyUp(event) {
               oscillator.connect(gainNode);
               gainNode.connect(audioContext.destination);
               
-              oscillator.type = 'sawtooth'; // Suono più ricco
+              oscillator.type = 'sine'; // Campane cristalline
               oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
               
               gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-              gainNode.gain.linearRampToValueAtTime(0.25, audioContext.currentTime + 0.1);
-              gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+              gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.02);
+              gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
               
               oscillator.start(audioContext.currentTime);
-              oscillator.stop(audioContext.currentTime + 0.4);
-            }, index * 150);
+              oscillator.stop(audioContext.currentTime + 0.3);
+            }, index * 120);
           });
-        }, 1000);
+        }, 800);
         
-        console.log('🎺🎺 Suono trombe interno avviato!');
+        // PARTE 3: Armonia finale con coro
+        setTimeout(() => {
+          // Suono coro/organ per finale maestoso
+          const chordFrequencies = [523.25, 659.25, 783.99, 1046.50]; // Maggiore C
+          
+          chordFrequencies.forEach((frequency) => {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'triangle'; // Suono organ/chorus
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.25, audioContext.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.0);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 1.0);
+          });
+          
+          // Aggiungi un suono di piatti/cimbali per il finale
+          const cymbalOscillator = audioContext.createOscillator();
+          const cymbalGain = audioContext.createGain();
+          const cymbalFilter = audioContext.createBiquadFilter();
+          
+          cymbalOscillator.connect(cymbalFilter);
+          cymbalFilter.connect(cymbalGain);
+          cymbalGain.connect(audioContext.destination);
+          
+          cymbalFilter.type = 'highpass';
+          cymbalFilter.frequency.setValueAtTime(3000, audioContext.currentTime);
+          
+          cymbalOscillator.type = 'sawtooth';
+          cymbalOscillator.frequency.setValueAtTime(8000, audioContext.currentTime);
+          
+          cymbalGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+          cymbalGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+          
+          cymbalOscillator.start(audioContext.currentTime);
+          cymbalOscillator.stop(audioContext.currentTime + 0.5);
+          
+        }, 2000);
+        
+        // RITMO: Batteria leggera festosa
+        this.addFestiveDrums(audioContext);
         
       } catch (error) {
-        console.log('🎺 Errore suono trombe interno:', error);
-        // Fallback: mostra un messaggio visivo
-        const soundIndicator = document.createElement('div');
-        soundIndicator.style.cssText = `
-          position: fixed;
-          top: 20px;
-          right: 20px;
-          background: rgba(255, 215, 0, 0.9);
-          color: #8B0000;
-          padding: 15px 20px;
-          border-radius: 15px;
-          font-size: 18px;
-          font-weight: bold;
-          z-index: 10001;
-          animation: soundPulse 0.5s ease-out;
-        `;
-        soundIndicator.innerHTML = '🎺🎺 TROMBE! 🎺🎺';
-        document.body.appendChild(soundIndicator);
-        
-        setTimeout(() => {
-          if (soundIndicator.parentNode) {
-            document.body.removeChild(soundIndicator);
-          }
-        }, 2000);
+        console.log('🎵 Errore jingle festoso:', error);
+        // Fallback: mostra un messaggio visivo animato
+        this.showFestiveVisualFallback();
       }
+    }
+    
+    addFestiveDrums(audioContext) {
+      // Aggiungi un ritmo leggero di batteria festosa
+      const kickPattern = [0, 500, 1000, 1500]; // Pattern bass drum
+      
+      kickPattern.forEach((time) => {
+        setTimeout(() => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          const filter = audioContext.createBiquadFilter();
+          
+          oscillator.connect(filter);
+          filter.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(100, audioContext.currentTime);
+          
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(60, audioContext.currentTime); // Bass drum
+          
+          gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.1);
+        }, time);
+      });
+    }
+    
+    showFestiveVisualFallback() {
+      const visualFallback = document.createElement('div');
+      visualFallback.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24);
+        color: white;
+        padding: 30px 40px;
+        border-radius: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        z-index: 10002;
+        animation: festivePulse 1s ease-out infinite;
+        box-shadow: 0 10px 30px rgba(255, 107, 107, 0.5);
+      `;
+      visualFallback.innerHTML = '🎵🎉 JINGLE FESTOSO! 🎉🎵';
+      
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes festivePulse {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); }
+          50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      document.body.appendChild(visualFallback);
+      
+      setTimeout(() => {
+        if (visualFallback.parentNode) {
+          document.body.removeChild(visualFallback);
+        }
+        if (style.parentNode) {
+          document.head.removeChild(style);
+        }
+      }, 2000);
     }
     
     showLoveMessage(message) {
