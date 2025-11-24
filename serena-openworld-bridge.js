@@ -450,7 +450,7 @@ function onKeyUp(event) {
     
     // Crea animazione pose vuota (nessun movimento)
     poseAnimation = new THREE.AnimationClip('Pose', poseDuration, poseTracks);
-    poseAction = mixer.clipAction(poseAnimation);
+    let poseAction = mixer.clipAction(poseAnimation);
     poseAction.setEffectiveWeight(1);
     poseAction.setEffectiveTimeScale(1);
     
