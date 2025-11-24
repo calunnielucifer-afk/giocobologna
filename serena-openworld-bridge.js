@@ -1909,7 +1909,7 @@ function onKeyUp(event) {
         <!-- Header con info e link -->
         <div style="background: rgba(0,0,0,0.8); padding: ${isMobile() ? '8px' : '15px'}; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
           <div style="min-width: 200px;">
-            <h3 style="color: #ffd700; margin: 0; font-size: ${isMobile() ? '14px' : '18px'};">🎰 TEXAS HOLD'EM - 5 GIOCATORI</h3>
+            <h3 style="color: #ffd700; margin: 0; font-size: ${isMobile() ? '14px' : '18px'};">🎰 TEXAS HOLD'EM - 4 GIOCATORI + DEALER</h3>
             <p style="color: white; margin: 2px 0 0 0; font-size: ${isMobile() ? '10px' : '14px'};">Sala: <span id="roomCode">${generateRoomCode()}</span></p>
           </div>
           <div style="text-align: right; min-width: 150px;">
@@ -1930,10 +1930,11 @@ function onKeyUp(event) {
             <div style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: #ffd700; color: black; padding: ${isMobile() ? '3px 6px' : '5px 10px'}; border-radius: 15px; font-size: ${isMobile() ? '8px' : '12px'}; font-weight: bold;">DEALER</div>
           </div>
           
-          <!-- Posti giocatori (5 posti) - OTTIMIZZATI PER MOBILE -->
-          <div id="playerSeat1" class="player-seat" style="position: absolute; top: 5%; left: 50%; transform: translateX(-50%); width: ${isMobile() ? '80px' : '120px'}; height: ${isMobile() ? '60px' : '80px'};">
-            <div class="seat-content" style="font-size: ${isMobile() ? '9px' : '12px'};">🪑 Posto 1</div>
+          <!-- Posto Dealer (bloccato) -->
+          <div id="playerSeat1" class="player-seat dealer-seat" style="position: absolute; top: 5%; left: 50%; transform: translateX(-50%); width: ${isMobile() ? '80px' : '120px'}; height: ${isMobile() ? '60px' : '80px'}; background: rgba(255, 215, 0, 0.3); border: 2px solid #ffd700; pointer-events: none;">
+            <div class="seat-content" style="font-size: ${isMobile() ? '9px' : '12px'};">🤖 DEALER</div>
           </div>
+          <!-- Posti giocatori (4 posti disponibili) -->
           <div id="playerSeat2" class="player-seat" style="position: absolute; top: 25%; right: 2%; width: ${isMobile() ? '80px' : '120px'}; height: ${isMobile() ? '60px' : '80px'};">
             <div class="seat-content" style="font-size: ${isMobile() ? '9px' : '12px'};">🪑 Posto 2</div>
           </div>
@@ -1981,6 +1982,12 @@ function onKeyUp(event) {
           border-color: #ffd700;
           background: rgba(255, 215, 0, 0.2);
           animation: pulse 1s infinite;
+        }
+        .player-seat.dealer-seat {
+          background: rgba(255, 215, 0, 0.3) !important;
+          border: 2px solid #ffd700 !important;
+          opacity: 0.8;
+          cursor: not-allowed;
         }
         .seat-content {
           color: white;
@@ -2091,11 +2098,11 @@ function onKeyUp(event) {
     const nickname = prompt('Inserisci il tuo nickname per giocare a poker:');
     if (!nickname) return;
     
-    // Trova il primo posto disponibile
+    // Trova il primo posto disponibile (escludendo posto 1 - Dealer)
     let assignedSeat = null;
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 2; i <= 5; i++) { // Inizia da 2, il posto 1 è del Dealer
       const seat = document.getElementById(`playerSeat${i}`);
-      if (!seat.classList.contains('occupied')) {
+      if (seat && !seat.classList.contains('occupied')) {
         assignedSeat = i;
         break;
       }
@@ -2131,8 +2138,9 @@ function onKeyUp(event) {
   }
   
   function checkAllPlayersReady() {
-    const occupiedSeats = document.querySelectorAll('.player-seat.occupied').length;
-    console.log(`Posti occupati: ${occupiedSeats}/5`);
+    // Controlla solo i posti giocatori (2-5), escludendo il posto 1 (Dealer)
+    const occupiedSeats = document.querySelectorAll('.player-seat.occupied:not(.dealer-seat)').length;
+    console.log(`Posti occupati: ${occupiedSeats}/4`); // 4 giocatori + 1 Dealer
     
     if (occupiedSeats >= 2) {
       // Mostra pulsante PRONTO se ci sono almeno 2 giocatori
@@ -2405,20 +2413,24 @@ function onKeyUp(event) {
     pokerGameState.gamePhase = 'waiting';
     document.getElementById('potAmount').textContent = '0';
     
-    // Rimuovi tutti i giocatori
+    // Rimuovi tutti i giocatori MA MANTieni il posto Dealer
     document.querySelectorAll('.player-seat').forEach(seat => {
-      seat.classList.remove('occupied', 'current-turn');
-      seat.innerHTML = '<div class="seat-content">🪑 Posto ' + seat.id.replace('playerSeat', '') + '</div>';
-      delete seat.dataset.nickname;
-      delete seat.dataset.chips;
-      delete seat.dataset.cards;
+      if (!seat.classList.contains('dealer-seat')) {
+        // Resetta solo i posti giocatori (2-5)
+        seat.classList.remove('occupied', 'current-turn');
+        const seatNumber = seat.id.replace('playerSeat', '');
+        seat.innerHTML = `<div class="seat-content" style="font-size: ${isMobile() ? '9px' : '12px'};">🪑 Posto ${seatNumber}</div>`;
+        delete seat.dataset.nickname;
+        delete seat.dataset.chips;
+        delete seat.dataset.cards;
+      }
     });
     
     // Riabilita nuovi ingressi
     const roomCode = generateRoomCode();
     document.getElementById('roomCode').textContent = roomCode;
     const shareLink = `${window.location.origin}${window.location.pathname}#${roomCode}`;
-    document.getElementById('shareLink').innerHTML = `<div id="shareLink" style="color: #4CAF50; font-size: 10px; word-break: break-all;">${shareLink}</div>`;
+    document.getElementById('shareLink').innerHTML = `<div id="shareLink" style="color: #4CAF50; font-size: ${isMobile() ? '8px' : '10px'}; word-break: break-all;">${shareLink}</div>`;
     
     // Mostra nuovamente pulsante PRONTO
     document.getElementById('readyBtn').style.display = 'inline-block';
