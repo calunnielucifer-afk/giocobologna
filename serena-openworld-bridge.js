@@ -326,11 +326,11 @@
   }
 
   function loadClaire() {
-    console.log('Caricamento modello FBX di Claire...');
+    console.log('Caricamento modello FBX di Claire con cache-busting...');
     
     const fbxLoader = new THREE.FBXLoader();
     fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/claire.fbx',
+      'openworld/modelpg/Lady_in_red_dress/claire.fbx?v=' + Date.now(),
       function(object) {
         serenaModel = object;
         
