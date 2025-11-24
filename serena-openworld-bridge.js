@@ -393,7 +393,8 @@
         createFallbackAnimations();
         
         // Poi prova a caricare l'animazione Mixamo
-        loadWalkAnimation();
+        // DISABILITATO: loadWalkAnimation() causa PropertyBinding errors
+        console.log('Mixamo animations disabled - using fallback only');
 
         console.log('Serena caricata con successo!');
       },
@@ -1277,26 +1278,10 @@
       }
       
       // Sistema di animazione Mixamo
-      if (walkAction && idleAction) {
-        if (isMoving && currentAction !== walkAction) {
-          // Transizione a camminata
-          console.log('Transizione a camminata - velocità:', moveSpeed);
-          idleAction.fadeOut(0.3);
-          walkAction.reset().fadeIn(0.3).play();
-          walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
-          currentAction = walkAction;
-        } else if (!isMoving && currentAction !== idleAction) {
-          // Transizione a idle
-          console.log('Transizione a idle');
-          walkAction.fadeOut(0.3);
-          idleAction.reset().fadeIn(0.3).play();
-          currentAction = idleAction;
-        } else if (isMoving && currentAction === walkAction) {
-          // Aggiusta velocità camminata
-          walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
-        }
-      } else {
-        // Fallback: oscillazione semplice se le animazioni Mixamo non sono caricate
+      // DISABILITATO: Sistema animazioni Mixamo causa PropertyBinding errors
+      // Usa solo il sistema fallback oscillazione semplice
+      
+      // Fallback: oscillazione semplice se le animazioni Mixamo non sono caricate
         if (isMoving) {
           const time = Date.now() * 0.003;
           serenaModel.position.y = Math.sin(time) * 0.05; // Legale oscillazione verticale
