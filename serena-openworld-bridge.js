@@ -7,7 +7,7 @@
     constructor(playerMesh, camera) {
         this.player = playerMesh;
         this.camera = camera;
-        this.keys = { w: false, a: false, d: false }; // Stato WASD (escluso S come richiesto)
+        this.keys = { w: false, a: false, s: false, d: false }; // WASD completo
         this.speed = 5; // Velocità in unità/sec
         this.rotationSpeed = 8; // Fattore di Slerp (più alto = più reattivo)
 
@@ -61,6 +61,10 @@
 
         if (this.keys.w) {
             moveVector.add(cameraDirection);
+            isMoving = true;
+        }
+        if (this.keys.s) {
+            moveVector.sub(cameraDirection);
             isMoving = true;
         }
         if (this.keys.a) {
@@ -137,6 +141,9 @@ function onKeyDown(event) {
             case 'KeyA':
                 playerController.keys.a = true;
                 break;
+            case 'KeyS':
+                playerController.keys.s = true;
+                break;
             case 'KeyD':
                 playerController.keys.d = true;
                 break;
@@ -153,6 +160,9 @@ function onKeyUp(event) {
                 break;
             case 'KeyA':
                 playerController.keys.a = false;
+                break;
+            case 'KeyS':
+                playerController.keys.s = false;
                 break;
             case 'KeyD':
                 playerController.keys.d = false;
