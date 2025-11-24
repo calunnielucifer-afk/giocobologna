@@ -7,7 +7,7 @@
 
   // Counter bigliettini d'amore
   let collectedLoveNotes = 0;
-  let totalLoveNotes = 10;
+  let totalLoveNotes = 15; // 10 normali + 2 statue + 3 reconditi
   let loveNoteCounterElement = null;
 
   // Funzioni di input per il nuovo sistema
@@ -876,7 +876,113 @@ function onKeyUp(event) {
       loveNotes.push(note);
     });
     
-    console.log('✅ Creati', loveNotes.length, 'bigliettini d\'amore sparsi nella mappa!');
+    // Aggiungi 2 bigliettini su statue con minacce al principe
+    const statuePositions = [
+      { x: 25, y: 1.5, z: 25 }, // Statua 1 - angolo remoto
+      { x: -20, y: 1.5, z: -15 } // Statua 2 - area isolata
+    ];
+    
+    const statueThreatMessages = [
+      "Il principe Stefano morirà se osa toccare Serena... La mia gelosia non ha limiti!",
+      "Un pazzo innamorato scrive: Stefano, stai lontano da Serena o sarai la tua fine!"
+    ];
+    
+    statuePositions.forEach((pos, index) => {
+      // Crea la statua
+      const statueGeometry = new THREE.ConeGeometry(1.5, 4, 8); // Cono per sembrare statua
+      const statueMaterial = new THREE.MeshPhongMaterial({ 
+        color: 0x888888, // Grigio pietra
+        emissive: 0x222222,
+        shininess: 10
+      });
+      const statue = new THREE.Mesh(statueGeometry, statueMaterial);
+      statue.position.set(pos.x, pos.y, pos.z);
+      statue.castShadow = true;
+      statue.receiveShadow = true;
+      scene.add(statue);
+      
+      // Aggiungi bigliettino sulla statua
+      const noteGeometry = new THREE.BoxGeometry(0.8, 0.6, 0.05);
+      const noteMaterial = new THREE.MeshPhongMaterial({ 
+        color: 0xffffff,
+        emissive: 0xff0000, // Rosso sangue per le minacce
+        emissiveIntensity: 0.3
+      });
+      const note = new THREE.Mesh(noteGeometry, noteMaterial);
+      note.position.set(pos.x, pos.y + 2.2, pos.z);
+      note.rotation.y = Math.random() * Math.PI * 2;
+      
+      note.userData = {
+        isLoveNote: true,
+        collected: false,
+        message: statueThreatMessages[index],
+        type: 'statue_threat'
+      };
+      
+      // Aggiungi bordo rosso sangue
+      const borderGeometry = new THREE.EdgesGeometry(noteGeometry);
+      const borderMaterial = new THREE.LineBasicMaterial({ 
+        color: 0xff0000, // Rosso sangue
+        linewidth: 2 
+      });
+      const border = new THREE.LineSegments(borderGeometry, borderMaterial);
+      note.add(border);
+      
+      note.userData.floatOffset = Math.random() * Math.PI * 2;
+      note.userData.floatSpeed = 0.3; // Fluttuazione più lenta e inquietante
+      
+      scene.add(note);
+      loveNotes.push(note);
+    });
+    
+    // Aggiungi 3 bigliettini verdi negli angoli più reconditi con messaggi criptici
+    const hiddenCornerMessages = [
+      "Il vero amore non si urla, si sussurra... ma Stefano non sa ascoltare...",
+      "Tra le righe di questo bigliettino c'è un segreto: Serena ama, ma chi?",
+      "Il matrimonio è un inizio, ma di chi? Forse la risposta è nel vento..."
+    ];
+    
+    const hiddenCornerPositions = [
+      { x: 35, y: 0.3, z: -30 }, // Angolo estremo nord-est
+      { x: -30, y: 0.3, z: 35 },  // Angolo estremo sud-ovest  
+      { x: 30, y: 0.3, z: 30 }    // Angolo estremo sud-est
+    ];
+    
+    hiddenCornerPositions.forEach((pos, index) => {
+      const noteGeometry = new THREE.BoxGeometry(0.7, 0.5, 0.05);
+      const noteMaterial = new THREE.MeshPhongMaterial({ 
+        color: 0x90EE90, // Verde chiaro prato
+        emissive: 0x228B22, // Verde foresta
+        emissiveIntensity: 0.2
+      });
+      const note = new THREE.Mesh(noteGeometry, noteMaterial);
+      note.position.set(pos.x, pos.y, pos.z);
+      note.rotation.y = Math.random() * Math.PI * 2;
+      
+      note.userData = {
+        isLoveNote: true,
+        collected: false,
+        message: hiddenCornerMessages[index],
+        type: 'hidden_corner'
+      };
+      
+      // Aggiungi bordo verde
+      const borderGeometry = new THREE.EdgesGeometry(noteGeometry);
+      const borderMaterial = new THREE.LineBasicMaterial({ 
+        color: 0x228B22, // Verde foresta
+        linewidth: 1 
+      });
+      const border = new THREE.LineSegments(borderGeometry, borderMaterial);
+      note.add(border);
+      
+      note.userData.floatOffset = Math.random() * Math.PI * 2;
+      note.userData.floatSpeed = 0.4; // Fluttuazione molto delicata
+      
+      scene.add(note);
+      loveNotes.push(note);
+    });
+    
+    console.log('✅ Creati', loveNotes.length, 'bigliettini d\'amore totali (10 normali + 2 statue + 3 reconditi)!');
   }
   
   function showLoveNoteIndicator() {
