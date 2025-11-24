@@ -129,35 +129,45 @@ function onKeyUp(event) {
         console.log('MOVEMENT STOPPED - isMoving = false');
       }
       
-      // 4. Posizionamento Orbitale della Telecamera
-      this.updateOrbitalCamera(deltaTime);
+      // 4. Posizionamento Third-Person Camera Smooth
+      this.updateThirdPersonCamera(deltaTime);
       
       // 5. Aggiorna animazioni basate sul movimento
       this.updateAnimations();
     }
     
-    updateOrbitalCamera(deltaTime) {
-      // Calcola posizione target della camera in orbita
-      const targetPosition = new THREE.Vector3();
+    updateThirdPersonCamera(deltaTime) {
+      // Posizione target della camera: dietro la testa di Serena
+      const playerPosition = this.player.position.clone();
+      playerPosition.y += this.cameraHeight; // Altezza testa
       
-      // Posizione orbitale basata sull'angolo della camera (AGGIORNATO!)
-      const orbitX = Math.sin(this.cameraAngle) * this.cameraDistance;
-      const orbitZ = Math.cos(this.cameraAngle) * this.cameraDistance;
+      // Calcola offset della camera (dietro e sopra)
+      const cameraOffset = new THREE.Vector3();
+      cameraOffset.x = Math.sin(this.cameraAngle) * this.cameraDistance;
+      cameraOffset.y = -1.5; // Guarda leggermente dall'alto
+      cameraOffset.z = Math.cos(this.cameraAngle) * this.cameraDistance;
       
-      targetPosition.set(
-        this.player.position.x + orbitX,
-        this.player.position.y + this.cameraHeight,
-        this.player.position.z + orbitZ
-      );
+      // Posizione target della camera
+      const targetCameraPosition = playerPosition.clone().add(cameraOffset);
       
-      // Interpolazione lineare per movimento fluido della camera
-      this.camera.position.lerp(targetPosition, 5 * deltaTime);
-      this.camera.lookAt(this.player.position);
+      // Look target: leggermente sopra la testa di Serena
+      const lookTarget = playerPosition.clone();
+      lookTarget.y += 0.2; // Guarda leggermente verso l'alto
       
-      // Debug per verificare che la camera si stia muovendo
-      if (Math.abs(orbitX) > 0.01 || Math.abs(orbitZ) > 0.01) {
-        console.log('Camera orbitale - angle:', this.cameraAngle.toFixed(3), 'orbitX:', orbitX.toFixed(3), 'orbitZ:', orbitZ.toFixed(3));
-      }
+      // SMOOTH TRANSITION - Interpolazione esponenziale per movimento fluido
+      const smoothSpeed = 8.0; // Velocità di smooth (più alto = più reattivo)
+      
+      // Interpola posizione della camera
+      this.camera.position.lerp(targetCameraPosition, smoothSpeed * deltaTime);
+      
+      // Interpola look target per smooth following
+      const currentLookTarget = new THREE.Vector3();
+      this.camera.getWorldDirection(currentLookTarget);
+      currentLookTarget.add(this.camera.position);
+      currentLookTarget.lerp(lookTarget, smoothSpeed * deltaTime);
+      
+      // Applica il look smooth
+      this.camera.lookAt(currentLookTarget);
     }
     
     updateAnimations() {
