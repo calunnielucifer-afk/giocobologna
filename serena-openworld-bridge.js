@@ -19,14 +19,17 @@ function onKeyDown(event) {
     
     // Gestisci X per raccogliere bigliettini d'amore
     if (event.code === 'KeyX') {
-        if (window.closeLoveMessage) {
-            // Chiudi il messaggio d'amore
-            window.closeLoveMessage();
-        } else if (playerController && playerController instanceof AdvancedPlayerController) {
-            // Raccogli il bigliettino
-            playerController.collectLoveNote();
-        }
-        return;
+      if (window.closeWeddingMessage) {
+        // Chiudi il messaggio di nozze
+        window.closeWeddingMessage();
+      } else if (window.closeLoveMessage) {
+        // Chiudi il messaggio d'amore
+        window.closeLoveMessage();
+      } else if (playerController && playerController instanceof AdvancedPlayerController) {
+        // Raccogli il bigliettino
+        playerController.collectLoveNote();
+      }
+      return;
     }
     
     // Gestisci WASD con il nuovo controller se disponibile
@@ -286,7 +289,75 @@ function onKeyUp(event) {
       this.showLoveMessage(nearbyNote.userData.message);
       
       console.log(`Bigliettino d'amore raccolto! (${collectedNotes}/${loveNotes.length})`);
+      
+      // Controlla se ha raccolto tutti i bigliettini
+      if (collectedNotes === loveNotes.length) {
+        this.showWeddingCongratulations();
+      }
+      
       return true;
+    }
+    
+    showWeddingCongratulations() {
+      // Crea un elemento HTML per il messaggio finale
+      const messageDiv = document.createElement('div');
+      messageDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.95), rgba(255, 182, 193, 0.95));
+        color: #8B0000;
+        padding: 40px 50px;
+        border-radius: 25px;
+        font-size: 22px;
+        font-weight: bold;
+        text-align: center;
+        z-index: 10000;
+        box-shadow: 0 15px 40px rgba(139, 0, 0, 0.4);
+        border: 4px solid #ffd700;
+        max-width: 500px;
+        animation: weddingMessage 1s ease-out;
+      `;
+      messageDiv.innerHTML = `
+        <div style="font-size: 32px; margin-bottom: 20px;">🎺🎉 COMPLIMENTI SERENA! 🎉🎺</div>
+        <div style="line-height: 1.6; margin-bottom: 20px;">Il tuo viaggio di nozze è sempre più vicino...</div>
+        <div style="font-size: 18px; opacity: 0.9;">Hai raccolto tutti i 10 bigliettini d'amore! 💕</div>
+        <div style="margin-top: 25px; font-size: 16px; opacity: 0.8;">Premi X per chiudere</div>
+      `;
+      
+      // Aggiungi animazione CSS
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes weddingMessage {
+          0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+          50% { transform: translate(-50%, -50%) scale(1.1); }
+          100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      document.body.appendChild(messageDiv);
+      
+      // Suona le trombe!
+      const trumpetSound = document.getElementById('trumpetSound');
+      if (trumpetSound) {
+        trumpetSound.play().catch(e => console.log('Errore suono trombe:', e));
+      }
+      
+      // Funzione per chiudere il messaggio
+      window.closeWeddingMessage = function() {
+        if (messageDiv.parentNode) {
+          document.body.removeChild(messageDiv);
+        }
+        if (style.parentNode) {
+          document.head.removeChild(style);
+        }
+        delete window.closeWeddingMessage;
+      };
+      
+      // Auto-chiusura dopo 15 secondi
+      setTimeout(window.closeWeddingMessage, 15000);
     }
     
     showLoveMessage(message) {
@@ -1569,7 +1640,9 @@ function onKeyUp(event) {
     if (xButton) {
       xButton.addEventListener('touchstart', function(e) {
         e.preventDefault();
-        if (window.closeLoveMessage) {
+        if (window.closeWeddingMessage) {
+          window.closeWeddingMessage();
+        } else if (window.closeLoveMessage) {
           window.closeLoveMessage();
         } else if (playerController && playerController instanceof AdvancedPlayerController) {
           playerController.collectLoveNote();
@@ -1578,7 +1651,9 @@ function onKeyUp(event) {
       
       xButton.addEventListener('click', function(e) {
         e.preventDefault();
-        if (window.closeLoveMessage) {
+        if (window.closeWeddingMessage) {
+          window.closeWeddingMessage();
+        } else if (window.closeLoveMessage) {
           window.closeLoveMessage();
         } else if (playerController && playerController instanceof AdvancedPlayerController) {
           playerController.collectLoveNote();
