@@ -212,48 +212,12 @@
     console.log('Animazioni fallback create e attive');
   }
 
-  function loadWalkAnimation() {
-    console.log('Caricamento animazione claire@Walking.fbx per Claire...');
-    
-    const fbxLoader = new THREE.FBXLoader();
-    fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/claire@Walking.fbx',
-      function(object) {
-        console.log('Animazione claire@Walking.fbx caricata con successo!');
-        console.log('Animations found:', object.animations.length);
-        
-        if (object.animations.length > 0) {
-          walkAnimation = object.animations[0];
-          console.log('Walk animation name:', walkAnimation.name);
-          console.log('Walk animation duration:', walkAnimation.duration);
-          
-          // Crea l'azione di camminata
-          walkAction = mixer.clipAction(walkAnimation);
-          walkAction.setEffectiveWeight(1);
-          walkAction.setEffectiveTimeScale(1);
-          walkAction.clampWhenFinished = true;
-          
-          console.log('Animazione claire@Walking.fbx setup completata!');
-        } else {
-          console.log('Nessuna animazione trovata in claire@Walking.fbx');
-        }
-      },
-      function(xhr) {
-        console.log('claire@Walking.fbx: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
-      },
-      function(error) {
-        console.error('Errore caricamento claire@Walking.fbx:', error);
-        console.log('Mantenendo solo animazioni fallback...');
-      }
-    );
-  }
-
   function loadClaire() {
     console.log('Caricamento modello FBX di Claire...');
     
     const fbxLoader = new THREE.FBXLoader();
     fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/claire.fbx',
+      'openworld/modelpg/Lady_in_red_dress/claire@Walking.fbx',
       function(object) {
         serenaModel = object;
         
@@ -309,11 +273,26 @@
         // Animazioni con setup corretto
         mixer = new THREE.AnimationMixer(object);
         
+        // Controlla se il modello contiene già animazioni
+        if (object.animations.length > 0) {
+          console.log('Animazioni trovate nel modello Claire:', object.animations.length);
+          walkAnimation = object.animations[0];
+          console.log('Walk animation name:', walkAnimation.name);
+          console.log('Walk animation duration:', walkAnimation.duration);
+          
+          // Crea l'azione di camminata
+          walkAction = mixer.clipAction(walkAnimation);
+          walkAction.setEffectiveWeight(1);
+          walkAction.setEffectiveTimeScale(1);
+          walkAction.clampWhenFinished = true;
+          
+          console.log('Animazione Claire setup completata!');
+        } else {
+          console.log('Nessuna animazione nel modello, uso fallback');
+        }
+        
         // Crea subito animazioni di fallback per assicurarsi che funzionino
         createFallbackAnimations();
-        
-        // Poi prova a caricare l'animazione Walking.dae
-        loadWalkAnimation();
 
         console.log('Claire caricata con successo!');
       },
@@ -600,12 +579,12 @@
     document.addEventListener('keydown', function(event) {
       switch (event.code) {
         case 'ArrowUp':
-        case 'KeyS':  // FIX: S ora è forward (su)
+        case 'KeyW':  // FIX: W ora è forward (su)
           moveForward = true;
           break;
         case 'ArrowDown':
-        case 'KeyW':  // FIX: W ora è backward (giù)
-          moveBackward = true;
+        case 'KeyS':  // RIMOSSO: S non fa nulla
+          // Non fare nulla per S
           break;
         case 'ArrowLeft':
         case 'KeyA':
@@ -621,12 +600,12 @@
     document.addEventListener('keyup', function(event) {
       switch (event.code) {
         case 'ArrowUp':
-        case 'KeyS':  // FIX: S ora è forward (su)
+        case 'KeyW':  // FIX: W ora è forward (su)
           moveForward = false;
           break;
         case 'ArrowDown':
-        case 'KeyW':  // FIX: W ora è backward (giù)
-          moveBackward = false;
+        case 'KeyS':  // RIMOSSO: S non fa nulla
+          // Non fare nulla per S
           break;
         case 'ArrowLeft':
         case 'KeyA':
