@@ -439,8 +439,8 @@ function onKeyUp(event) {
     // Carica Claire
     loadClaire();
 
-    // Inizializza il controller Fortnite dopo il caricamento completo del modello
-    setTimeout(() => {
+    // Inizializza il controller Fortnite con retry loop finché tutto è pronto
+    function initializeAdvancedPlayerController() {
       if (serenaModel && camera && window.poseAction && window.walkAction) {
         // Usa il nuovo sistema AdvancedPlayerController
         playerController = new AdvancedPlayerController(serenaModel, camera);
@@ -449,14 +449,20 @@ function onKeyUp(event) {
         // Adesso setup il mouse orbitale DOPO che il controller è pronto
         setupMouseOrbitale();
       } else {
-        console.log('AdvancedPlayerController non inizializzato - elementi mancanti:', {
+        console.log('AdvancedPlayerController non ancora pronto - elementi mancanti:', {
           serenaModel: !!serenaModel,
           camera: !!camera,
           poseAction: !!window.poseAction,
           walkAction: !!window.walkAction
         });
+        
+        // Riprova tra 500ms
+        setTimeout(initializeAdvancedPlayerController, 500);
       }
-    }, 2000); // Aumentato da 1000ms a 2000ms
+    }
+    
+    // Avvia il retry loop dopo 1 secondo
+    setTimeout(initializeAdvancedPlayerController, 1000);
 
     // Loop di rendering
     animate();
