@@ -2223,13 +2223,16 @@ function onKeyUp(event) {
     }
   }
   
-  // Sistema Multiplayer Base - LocalStorage Sincronizzazione
+  // Sistema Multiplayer Base - Backend API Sincronizzazione
   class PokerMultiplayer {
     constructor() {
       this.roomCode = null;
       this.playerId = this.generatePlayerId();
       this.isHost = false;
       this.syncInterval = null;
+      
+      // URL del backend Droplet
+      this.backendURL = 'http://167.172.168.69:3001/poker-api';
       
       // Inizializza ascoltatore eventi
       this.setupEventListener();
@@ -2240,48 +2243,94 @@ function onKeyUp(event) {
     }
     
     setupEventListener() {
-      // Ascolta cambiamenti nel localStorage
-      window.addEventListener('storage', (e) => {
-        if (e.key && e.key.startsWith('poker_')) {
-          this.handleStorageChange(e.key, e.newValue);
-        }
-      });
+      // Nessun event listener necessario con API backend
+      console.log('Backend multiplayer configurato:', this.backendURL);
     }
     
-    handleStorageChange(key, newValue) {
-      if (!newValue) return;
+    async createOrJoinRoom(roomCode) {
+      this.roomCode = roomCode;
       
       try {
-        const data = JSON.parse(newValue);
-        console.log('🔄 Ricevuto aggiornamento multiplayer:', data);
+        // Prima prova a ottenere la stanza esistente
+        const response = await fetch(`${this.backendURL}/room/${roomCode}`);
         
-        // Processa diversi tipi di messaggi
-        switch (data.type) {
-          case 'player_joined':
-            this.handlePlayerJoined(data);
-            break;
-          case 'game_started':
-            this.handleGameStarted(data);
-            break;
-          case 'game_state':
-            this.handleGameStateUpdate(data);
-            break;
-          case 'player_action':
-            this.handlePlayerAction(data);
-            break;
+        if (response.ok) {
+          // Stanza esistente - unisciti
+          this.isHost = false;
+          const roomData = await response.json();
+          console.log('🏠 Unito alla stanza esistente:', roomCode);
+          
+          // Aggiungi questo giocatore alla stanza
+          await this.addPlayerToRoom();
+        } else if (response.status === 404) {
+          // Stanza non esiste - creala
+          this.isHost = true;
+          const newRoomData = {
+            roomCode: roomCode,
+            host: this.playerId,
+            players: [],
+            gameState: pokerGameState,
+            createdAt: Date.now(),
+            lastUpdate: Date.now()
+          };
+          
+          const createResponse = await fetch(`${this.backendURL}/room`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newRoomData)
+          });
+          
+          if (createResponse.ok) {
+            console.log('🏠 Stanza creata:', roomCode, 'da host:', this.playerId);
+          } else {
+            throw new Error('Errore creazione stanza');
+          }
         }
       } catch (error) {
-        console.error('Errore parsing messaggio multiplayer:', error);
+        console.error('Errore accesso stanza:', error);
+        // Fallback a localStorage se backend non disponibile
+        this.fallbackToLocalStorage(roomCode);
       }
     }
     
-    createOrJoinRoom(roomCode) {
-      this.roomCode = roomCode;
+    async addPlayerToRoom() {
+      try {
+        const response = await fetch(`${this.backendURL}/room/${this.roomCode}`);
+        if (response.ok) {
+          const roomData = await response.json();
+          
+          // Aggiungi questo giocatore se non già presente
+          if (!roomData.players.includes(this.playerId)) {
+            roomData.players.push(this.playerId);
+            roomData.lastUpdate = Date.now();
+            
+            const updateResponse = await fetch(`${this.backendURL}/room/${this.roomCode}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(roomData)
+            });
+            
+            if (updateResponse.ok) {
+              console.log('✅ Giocatore aggiunto alla stanza:', this.playerId);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Errore aggiunta giocatore:', error);
+      }
+    }
+    
+    fallbackToLocalStorage(roomCode) {
+      console.log('⚠️ Backend non disponibile, uso localStorage fallback');
+      // Implementazione localStorage come fallback
       const roomKey = `poker_${roomCode}`;
       const existingRoom = localStorage.getItem(roomKey);
       
       if (!existingRoom) {
-        // Crea nuova stanza (host)
         this.isHost = true;
         const roomData = {
           type: 'room_info',
@@ -2292,9 +2341,8 @@ function onKeyUp(event) {
           timestamp: Date.now()
         };
         localStorage.setItem(roomKey, JSON.stringify(roomData));
-        console.log('🏠 Stanza creata:', roomCode, 'da host:', this.playerId);
+        console.log('🏠 Stanza creata (fallback):', roomCode);
       } else {
-        // Unisciti a stanza esistente
         this.isHost = false;
         try {
           const roomData = JSON.parse(existingRoom);
@@ -2327,15 +2375,22 @@ function onKeyUp(event) {
             });
           }
           
+          // Aggiungi questo giocatore alla stanza
+          roomData.players.push({
+            playerId: this.playerId,
+            nickname: '',
+            seatNumber: 0,
+            timestamp: Date.now()
+          });
+          localStorage.setItem(roomKey, JSON.stringify(roomData));
+          console.log('✅ Giocatore aggiunto alla stanza (fallback):', this.playerId);
         } catch (error) {
           console.error('Errore parsing stanza esistente:', error);
         }
       }
     }
     
-    broadcastPlayerJoined(nickname, seatNumber) {
-      if (!this.roomCode) return;
-      
+    async broadcastPlayerJoined(nickname, seatNumber) {
       const message = {
         type: 'player_joined',
         playerId: this.playerId,

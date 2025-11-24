@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Room Backend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .room {
+            background: #2a2a2a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .room-code {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .players {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .player {
+            background: #3a3a3a;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .timestamp {
+            font-size: 10px;
+            color: #888;
+        }
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎰 Poker Room Backend</h1>
+    <div class="status" id="status">Stato: In attesa...</div>
+    
+    <div class="controls">
+        <button onclick="clearAllRooms()">🗑️ Pulisci Tutte</button>
+        <button onclick="exportData()">📥 Esporta Dati</button>
+        <button onclick="toggleAutoRefresh()">🔄 Auto Refresh: <span id="refreshStatus">ON</span></button>
+    </div>
+    
+    <div id="roomsList">
+        <h2>Stanze Attive</h2>
+        <div id="roomsContainer"></div>
+    </div>
+
+    <script>
+        // Sistema di storage per stanze poker
+        class PokerBackend {
+            constructor() {
+                this.rooms = new Map();
+                this.autoRefresh = true;
+                this.refreshInterval = null;
+                this.init();
+            }
+            
+            init() {
+                this.loadFromStorage();
+                this.setupEventListeners();
+                this.startAutoRefresh();
+                this.render();
+            }
+            
+            loadFromStorage() {
+                const stored = localStorage.getItem('poker_rooms_backend');
+                if (stored) {
+                    try {
+                        const data = JSON.parse(stored);
+                        this.rooms = new Map(Object.entries(data));
+                        console.log('Caricate', this.rooms.size, 'stanze dal localStorage');
+                    } catch (error) {
+                        console.error('Errore caricamento stanze:', error);
+                    }
+                }
+            }
+            
+            saveToStorage() {
+                const data = Object.fromEntries(this.rooms);
+                localStorage.setItem('poker_rooms_backend', JSON.stringify(data));
+            }
+            
+            setupEventListeners() {
+                // Ascolta messaggi dalle finestre poker
+                window.addEventListener('message', (event) => {
+                    this.handleMessage(event.data);
+                });
+                
+                // Ascolta storage events per sincronizzazione tra schede
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'poker_rooms_backend') {
+                        this.loadFromStorage();
+                        this.render();
+                    }
+                });
+            }
+            
+            handleMessage(data) {
+                if (!data || !data.type) return;
+                
+                switch (data.type) {
+                    case 'create_room':
+                        this.createRoom(data.roomCode, data.playerData);
+                        break;
+                    case 'join_room':
+                        this.joinRoom(data.roomCode, data.playerData);
+                        break;
+                    case 'leave_room':
+                        this.leaveRoom(data.roomCode, data.playerId);
+                        break;
+                    case 'update_room':
+                        this.updateRoom(data.roomCode, data.roomData);
+                        break;
+                    case 'get_room':
+                        this.sendRoomData(data.roomCode, event.source);
+                        break;
+                }
+            }
+            
+            createRoom(roomCode, playerData) {
+                if (!this.rooms.has(roomCode)) {
+                    this.rooms.set(roomCode, {
+                        code: roomCode,
+                        host: playerData.playerId,
+                        players: [playerData],
+                        gameState: {
+                            phase: 'waiting',
+                            pot: 0,
+                            communityCards: [],
+                            deck: [],
+                            currentPlayer: 0,
+                            turnTimer: 30
+                        },
+                        createdAt: Date.now(),
+                        lastUpdate: Date.now()
+                    });
+                    console.log('Stanza creata:', roomCode);
+                    this.saveAndRender();
+                }
+            }
+            
+            joinRoom(roomCode, playerData) {
+                if (this.rooms.has(roomCode)) {
+                    const room = this.rooms.get(roomCode);
+                    // Rimuovi eventuale entry precedente dello stesso giocatore
+                    room.players = room.players.filter(p => p.playerId !== playerData.playerId);
+                    // Aggiungi il nuovo giocatore
+                    room.players.push(playerData);
+                    room.lastUpdate = Date.now();
+                    console.log('Giocatore aggiunto alla stanza:', roomCode, playerData.nickname);
+                    this.saveAndRender();
+                }
+            }
+            
+            leaveRoom(roomCode, playerId) {
+                if (this.rooms.has(roomCode)) {
+                    const room = this.rooms.get(roomCode);
+                    room.players = room.players.filter(p => p.playerId !== playerId);
+                    room.lastUpdate = Date.now();
+                    
+                    // Se non ci sono più giocatori, elimina la stanza dopo 5 minuti
+                    if (room.players.length === 0) {
+                        setTimeout(() => {
+                            if (this.rooms.has(roomCode) && this.rooms.get(roomCode).players.length === 0) {
+                                this.rooms.delete(roomCode);
+                                this.saveAndRender();
+                                console.log('Stanza eliminata per inattività:', roomCode);
+                            }
+                        }, 5 * 60 * 1000); // 5 minuti
+                    }
+                    
+                    this.saveAndRender();
+                    console.log('Giocatore rimosso dalla stanza:', roomCode);
+                }
+            }
+            
+            updateRoom(roomCode, roomData) {
+                if (this.rooms.has(roomCode)) {
+                    const room = this.rooms.get(roomCode);
+                    Object.assign(room, roomData);
+                    room.lastUpdate = Date.now();
+                    this.saveAndRender();
+                }
+            }
+            
+            sendRoomData(roomCode, targetWindow) {
+                if (this.rooms.has(roomCode)) {
+                    const room = this.rooms.get(roomCode);
+                    targetWindow.postMessage({
+                        type: 'room_data',
+                        roomCode: roomCode,
+                        roomData: room
+                    }, '*');
+                }
+            }
+            
+            saveAndRender() {
+                this.saveToStorage();
+                this.render();
+                
+                // Notifica tutte le finestre poker del cambiamento
+                window.postMessage({
+                    type: 'rooms_updated',
+                    timestamp: Date.now()
+                }, '*');
+            }
+            
+            startAutoRefresh() {
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                }
+                
+                if (this.autoRefresh) {
+                    this.refreshInterval = setInterval(() => {
+                        this.render();
+                    }, 1000);
+                }
+            }
+            
+            render() {
+                const container = document.getElementById('roomsContainer');
+                const status = document.getElementById('status');
+                
+                if (this.rooms.size === 0) {
+                    container.innerHTML = '<p>Nessuna stanza attiva</p>';
+                    status.textContent = 'Stato: Nessuna stanza attiva';
+                    status.style.background = '#333';
+                    return;
+                }
+                
+                status.textContent = `Stato: ${this.rooms.size} stanze attive`;
+                status.style.background = '#2a5a2a';
+                
+                let html = '';
+                for (const [roomCode, room] of this.rooms) {
+                    const lastUpdate = new Date(room.lastUpdate).toLocaleTimeString();
+                    const playerList = room.players.map(p => 
+                        `<span class="player">${p.nickname} (Posto ${p.seatNumber})</span>`
+                    ).join('');
+                    
+                    html += `
+                        <div class="room">
+                            <div class="room-header">
+                                <span class="room-code">${roomCode}</span>
+                                <span class="timestamp">${lastUpdate}</span>
+                            </div>
+                            <div class="players">${playerList || 'Nessun giocatore'}</div>
+                            <div style="margin-top: 10px; font-size: 12px;">
+                                Host: ${room.host} | 
+                                Fase: ${room.gameState.phase} | 
+                                Pot: ${room.gameState.pot} fish
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                container.innerHTML = html;
+            }
+            
+            clearAllRooms() {
+                if (confirm('Sei sicuro di voler eliminare tutte le stanze?')) {
+                    this.rooms.clear();
+                    this.saveAndRender();
+                }
+            }
+            
+            exportData() {
+                const data = Object.fromEntries(this.rooms);
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `poker_rooms_${Date.now()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+            
+            toggleAutoRefresh() {
+                this.autoRefresh = !this.autoRefresh;
+                document.getElementById('refreshStatus').textContent = this.autoRefresh ? 'ON' : 'OFF';
+                this.startAutoRefresh();
+            }
+        }
+        
+        // Inizializza il backend
+        const backend = new PokerBackend();
+        
+        // Funzioni globali per i controlli
+        function clearAllRooms() {
+            backend.clearAllRooms();
+        }
+        
+        function exportData() {
+            backend.exportData();
+        }
+        
+        function toggleAutoRefresh() {
+            backend.toggleAutoRefresh();
+        }
+        
+        // Espone il backend globalmente per le finestre poker
+        window.pokerBackend = backend;
+    </script>
+</body>
+</html>
