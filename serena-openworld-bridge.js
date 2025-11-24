@@ -1331,6 +1331,19 @@
       serenaModel.position.x += velocity.x * delta;
       serenaModel.position.z += velocity.z * delta;
       
+      // Fai ruotare il modello nella direzione del movimento
+      if (moveForward || moveBackward || moveLeft || moveRight) {
+        // Calcola la direzione del movimento
+        const moveDirection = new THREE.Vector3(velocity.x, 0, velocity.z);
+        if (moveDirection.length() > 0.1) {
+          moveDirection.normalize();
+          // Calcola l'angolo di rotazione per far girare il modello verso la direzione
+          const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
+          // Applica la rotazione smoothly
+          serenaModel.rotation.y = THREE.MathUtils.lerp(serenaModel.rotation.y, targetAngle, 0.1);
+        }
+      }
+      
       // Ground detection per mantenere Serena a terra
       const groundLevel = 0;
       if (serenaModel.position.y > groundLevel) {
@@ -1342,8 +1355,8 @@
 
       // Camera che segue Serena
       const cameraAngle = serenaModel.rotation.y;
-      const cameraDistance = 5;
-      const cameraHeight = 3;
+      const cameraDistance = 8; // Aumentato da 5 a 8
+      const cameraHeight = 4; // Aumentato da 3 a 4
       
       camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance;
       camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance;
