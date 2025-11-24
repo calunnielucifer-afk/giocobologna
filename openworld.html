@@ -33,7 +33,9 @@
       left: 0;
       right: 0;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 20px;
       padding: 0 20px;
       z-index: 1000;
       display: none;
@@ -48,14 +50,6 @@
       align-items: center;
     }
     
-    #movementJoystick {
-      align-self: flex-start;
-    }
-    
-    #cameraJoystick {
-      align-self: flex-end;
-    }
-    
     .joystick-label {
       position: absolute;
       bottom: -25px;
@@ -63,6 +57,36 @@
       color: white;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
       font-weight: bold;
+    }
+    
+    .x-button-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .x-button {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255, 67, 54, 0.9), rgba(255, 87, 34, 0.9));
+      border: 3px solid rgba(255, 255, 255, 0.8);
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(255, 67, 54, 0.4);
+      transition: all 0.2s ease;
+      font-family: Arial, sans-serif;
+    }
+    
+    .x-button:active {
+      transform: scale(0.9);
+      background: linear-gradient(135deg, rgba(255, 87, 34, 0.9), rgba(255, 111, 0, 0.9));
+      box-shadow: 0 2px 8px rgba(255, 67, 54, 0.6);
     }
     
     .joystick-base {
@@ -237,11 +261,9 @@
       </div>
       <div class="joystick-label">WASD</div>
     </div>
-    <div class="joystick-container" id="cameraJoystick">
-      <div class="joystick-base">
-        <div class="joystick-handle"></div>
-      </div>
-      <div class="joystick-label">Camera</div>
+    <!-- Pulsante X per interagire -->
+    <div class="x-button-container">
+      <button id="xButton" class="x-button">X</button>
     </div>
   </div>
   
@@ -256,7 +278,7 @@
     <h3>🌸 Serena Open World</h3>
     <p><strong>Desktop:</strong> W=Avanti A=Sinistra S=Indietro D=Destra</p>
     <p>⬅️➡️ Frecce per guardarti attorno</p>
-    <p><strong>Mobile:</strong> Joystick sinistro=movimento, joystick destro=camera</p>
+    <p><strong>Mobile:</strong> Joystick sinistro=movimento, touch schermo=camera</p>
     <p>💕 Premi X per raccogliere bigliettini d'amore</p>
     <p>🎰 Tavola Poker: vai a coordinate (5,5) e clicca la tavola verde</p>
     <p>📱 Premi Fullscreen per modalità APK</p>
@@ -284,7 +306,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
   
   <!-- Bridge per Serena -->
-  <script src="serena-openworld-bridge.js?v=202411241800ARROWDEBUG&t=141414141"></script>
+  <script src="serena-openworld-bridge.js?v=202411241805MOBILE&t=151515151"></script>
   
   <!-- Mobile controls script -->
   <script>
