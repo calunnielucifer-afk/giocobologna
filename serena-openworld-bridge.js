@@ -1601,7 +1601,7 @@ function onKeyUp(event) {
       if (isRotatingCamera && e.touches.length === 1 && playerController) {
         e.preventDefault();
         const deltaX = e.touches[0].clientX - touchStartX;
-        playerController.updateCameraAngle(deltaX * 0.01);
+        playerController.updateCameraAngle(deltaX * 0.5); // Aumentato da 0.01 a 0.5
         touchStartX = e.touches[0].clientX;
       }
     });
