@@ -192,6 +192,54 @@
     return group;
   }
 
+  function createFallbackAnimations() {
+    console.log('Creazione animazioni fallback immediate...');
+    
+    const tracks = [];
+    const duration = 1.0;
+    const times = [0, 0.5, 1.0];
+    
+    // Animazione semplice per il corpo intero
+    serenaModel.traverse(function(child) {
+      if (child.isBone) {
+        const name = child.name;
+        
+        // Oscillazione verticale per camminata
+        const yValues = [0, 0.1, 0];
+        const positionTrack = new THREE.NumberKeyframeTrack(
+          name + '.position.y',
+          times,
+          yValues
+        );
+        
+        // Legale rotazione per effetto camminata
+        const rotValues = [0, 0.1, 0];
+        const rotationTrack = new THREE.NumberKeyframeTrack(
+          name + '.rotation.z',
+          times,
+          rotValues
+        );
+        
+        tracks.push(positionTrack, rotationTrack);
+      }
+    });
+    
+    walkAnimation = new THREE.AnimationClip('FallbackWalk', duration, tracks);
+    walkAction = mixer.clipAction(walkAnimation);
+    walkAction.setEffectiveWeight(1);
+    walkAction.setEffectiveTimeScale(1);
+    
+    // Idle animation
+    idleAction = mixer.clipAction(createIdleAnimation());
+    idleAction.setEffectiveWeight(1);
+    idleAction.setEffectiveTimeScale(1);
+    
+    idleAction.play();
+    currentAction = idleAction;
+    
+    console.log('Animazioni fallback create e attive');
+  }
+
   function loadWalkAnimation() {
     console.log('Caricamento animazione di camminata Mixamo...');
     
@@ -200,14 +248,19 @@
       'openworld/modelpg/Lady_in_red_dress/Walking.dae',
       function(collada) {
         console.log('Animazione Mixamo caricata con successo!');
+        console.log('Animations found:', collada.animations.length);
         
         // Estrai l'animazione dal file COLLADA
-        walkAnimation = collada.animations[0];
-        if (walkAnimation) {
+        if (collada.animations.length > 0) {
+          walkAnimation = collada.animations[0];
+          console.log('Walk animation name:', walkAnimation.name);
+          console.log('Walk animation duration:', walkAnimation.duration);
+          
           // Crea l'azione di camminata
           walkAction = mixer.clipAction(walkAnimation);
           walkAction.setEffectiveWeight(1);
           walkAction.setEffectiveTimeScale(1);
+          walkAction.clampWhenFinished = true;
           
           // Crea un'animazione idle di base (fermo)
           idleAction = mixer.clipAction(createIdleAnimation());
@@ -228,8 +281,58 @@
       },
       function(error) {
         console.error('Errore caricamento animazione:', error);
+        // Fallback: crea animazione di camminata semplice
+        createSimpleWalkAnimation();
       }
     );
+  }
+  
+  function createSimpleWalkAnimation() {
+    console.log('Creazione animazione camminata semplice fallback...');
+    
+    const tracks = [];
+    const duration = 1.0;
+    const times = [0, 0.5, 1.0];
+    
+    // Animazione semplice per il corpo intero
+    serenaModel.traverse(function(child) {
+      if (child.isBone) {
+        const name = child.name;
+        
+        // Oscillazione verticale per camminata
+        const yValues = [0, 0.1, 0];
+        const positionTrack = new THREE.NumberKeyframeTrack(
+          name + '.position.y',
+          times,
+          yValues
+        );
+        
+        // Legale rotazione per effetto camminata
+        const rotValues = [0, 0.1, 0];
+        const rotationTrack = new THREE.NumberKeyframeTrack(
+          name + '.rotation.z',
+          times,
+          rotValues
+        );
+        
+        tracks.push(positionTrack, rotationTrack);
+      }
+    });
+    
+    walkAnimation = new THREE.AnimationClip('SimpleWalk', duration, tracks);
+    walkAction = mixer.clipAction(walkAnimation);
+    walkAction.setEffectiveWeight(1);
+    walkAction.setEffectiveTimeScale(1);
+    
+    // Idle animation
+    idleAction = mixer.clipAction(createIdleAnimation());
+    idleAction.setEffectiveWeight(1);
+    idleAction.setEffectiveTimeScale(1);
+    
+    idleAction.play();
+    currentAction = idleAction;
+    
+    console.log('Animazione fallback creata');
   }
   
   function createIdleAnimation() {
@@ -324,7 +427,10 @@
         // Animazioni con setup corretto
         mixer = new THREE.AnimationMixer(object);
         
-        // Carica l'animazione di camminata Mixamo
+        // Crea subito animazioni di fallback per assicurarsi che funzionino
+        createFallbackAnimations();
+        
+        // Poi prova a caricare l'animazione Mixamo
         loadWalkAnimation();
 
         console.log('Serena caricata con successo!');
@@ -730,6 +836,12 @@
   function openPokerWindow() {
     console.log('Apertura finestra poker...');
     
+    // Rimuovi eventuali finestre poker esistenti
+    const existingModal = document.getElementById('pokerModal');
+    if (existingModal) {
+      document.body.removeChild(existingModal);
+    }
+    
     // Crea la finestra modal per il poker
     const pokerModal = document.createElement('div');
     pokerModal.id = 'pokerModal';
@@ -739,11 +851,12 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.95);
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 10000;
+      z-index: 99999;
+      backdrop-filter: blur(5px);
     `;
     
     // Contenuto della finestra poker
@@ -758,9 +871,26 @@
       height: 90%;
       max-height: 600px;
       position: relative;
-      box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-      overflow: hidden;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+      overflow: auto;
+      animation: slideIn 0.3s ease-out;
     `;
+    
+    // Aggiungi animazione CSS
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8) translateY(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
     
     pokerContent.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -1113,9 +1243,10 @@
 
   function animate() {
     requestAnimationFrame(animate);
-
+    
     const time = performance.now();
-    const delta = (time - prevTime) / 1000;
+    const delta = (time - (animate.prevTime || time)) * 0.001;
+    animate.prevTime = time;
 
     // Movimento WASD basato sulla direzione della camera (dove guarda l'utente)
     velocity.x -= velocity.x * 10.0 * delta;
@@ -1130,45 +1261,37 @@
       cameraDirection.y = 0;
       cameraDirection.normalize();
       
-      // Calcola il vettore perpendicolare (destra) rispetto alla camera
-      const rightDirection = new THREE.Vector3();
-      rightDirection.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
-      
-      // Calcola il movimento basato sulla visuale dell'utente
-      let moveVector = new THREE.Vector3();
-      
-      if (moveForward) {
-        moveVector.add(cameraDirection); // W = avanti rispetto a dove guarda
-      }
-      if (moveBackward) {
-        moveVector.sub(cameraDirection); // S = indietro rispetto a dove guarda
-      }
-      if (moveLeft) {
-        moveVector.sub(rightDirection); // A = sinistra rispetto a dove guarda
-      }
-      if (moveRight) {
-        moveVector.add(rightDirection); // D = destra rispetto a dove guarda
-      }
-      
-      // Normalizza e applica la velocità
-      moveVector.normalize();
-      velocity.x += moveVector.x * 40.0 * delta;
-      velocity.z += moveVector.z * 40.0 * delta;
-    }
-
     if (serenaModel) {
+      // Calcola la direzione di movimento basata sulla rotazione di Serena
+      direction.z = Number(moveForward) - Number(moveBackward);
+      direction.x = Number(moveRight) - Number(moveLeft);
+      direction.normalize(); // Normalizza per velocità costante
+
+      // Applica la direzione rispetto alla rotazione di Serena
+      const moveDirection = new THREE.Vector3(direction.x, 0, direction.z);
+      moveDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), serenaModel.rotation.y);
+
+      // Aggiorna la velocità
+      velocity.x -= velocity.x * 10.0 * delta; // Freno
+      velocity.z -= velocity.z * 10.0 * delta; // Freno
+
+      if (moveForward || moveBackward) velocity.z -= moveDirection.z * 400.0 * delta;
+      if (moveLeft || moveRight) velocity.x -= moveDirection.x * 400.0 * delta;
+
+      // Muovi Serena
       serenaModel.position.x += velocity.x * delta;
       serenaModel.position.z += velocity.z * delta;
       
-      // Ground detection - mantieni Serena a terra
+      // Ground detection per mantenere Serena a terra
       const groundLevel = 0;
-      if (serenaModel.position.y > groundLevel + 0.1) {
-        serenaModel.position.y -= 0.5; // Gravità leggera
-      } else if (serenaModel.position.y < groundLevel) {
-        serenaModel.position.y = groundLevel; // Non scendere sotto terra
+      if (serenaModel.position.y > groundLevel) {
+        serenaModel.position.y -= 0.05; // Legale gravità
       }
-      
-      // Camera segue Serena con rotazione dinamica
+      if (serenaModel.position.y < groundLevel) {
+        serenaModel.position.y = groundLevel; // Non andare sotto terra
+      }
+
+      // Camera che segue Serena
       const cameraAngle = serenaModel.rotation.y;
       const cameraDistance = 5;
       const cameraHeight = 3;
@@ -1178,6 +1301,7 @@
       camera.position.y = serenaModel.position.y + cameraHeight;
       camera.lookAt(serenaModel.position);
     }
+  }
 
     // Animazioni migliorate con Mixamo
     if (mixer && serenaModel) {
@@ -1185,11 +1309,16 @@
       const moveSpeed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
       const isMoving = moveSpeed > 0.1;
       
+      // Debug: stato animazioni
+      if (Math.random() < 0.01) { // Solo occasionalmente per non spam
+        console.log('Animazioni - walkAction:', !!walkAction, 'idleAction:', !!idleAction, 'isMoving:', isMoving, 'moveSpeed:', moveSpeed);
+      }
+      
       // Sistema di animazione Mixamo
       if (walkAction && idleAction) {
         if (isMoving && currentAction !== walkAction) {
           // Transizione a camminata
-          console.log('Transizione a camminata');
+          console.log('Transizione a camminata - velocità:', moveSpeed);
           idleAction.fadeOut(0.3);
           walkAction.reset().fadeIn(0.3).play();
           walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
@@ -1222,7 +1351,6 @@
 
     // Renderizza sempre la scena
     renderer.render(scene, camera);
-    prevTime = time;
   }
 
   // Inizializza quando la pagina è pronta
