@@ -130,6 +130,9 @@
     const indicator = new THREE.Mesh(indicatorGeometry, indicatorMaterial);
     indicator.position.set(5, 2, 5);
     
+    // Aggiungi il mirino
+    createReticle();
+    
     // Aggiungi luce sopra la tavola per renderla più visibile
     const tableLight = new THREE.PointLight(0xffd700, 1, 10);
     tableLight.position.set(5, 3, 5);
@@ -1197,7 +1200,37 @@
     moveRight = false;
   }
 
-  let cameraAngle = 0; // Angolo separato per camera per evitare zoom durante rotazione modello
+  let reticle = null; // Mirino visibile davanti al modello
+
+  function createReticle() {
+    // Crea un mirino semplice (anello)
+    const geometry = new THREE.RingGeometry(0.3, 0.4, 32);
+    const material = new THREE.MeshBasicMaterial({ 
+      color: 0xff0000, 
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.7
+    });
+    reticle = new THREE.Mesh(geometry, material);
+    reticle.rotation.x = -Math.PI / 2; // Ruota per essere orizzontale a terra
+    scene.add(reticle);
+  }
+
+  function updateReticle() {
+    if (reticle && serenaModel) {
+      // Posiziona il mirino davanti al modello alla sua altezza
+      const distance = 3; // Distanza davanti al modello
+      const height = 1.6; // Altezza circa della testa
+      
+      // Calcola posizione davanti al modello basandosi sulla sua rotazione
+      reticle.position.x = serenaModel.position.x + Math.sin(serenaModel.rotation.y) * distance;
+      reticle.position.z = serenaModel.position.z + Math.cos(serenaModel.rotation.y) * distance;
+      reticle.position.y = serenaModel.position.y + height;
+      
+      // Il mirino guarda sempre verso l'alto
+      reticle.rotation.z = serenaModel.rotation.y;
+    }
+  }
 
   function animate() {
     requestAnimationFrame(animate);
@@ -1262,15 +1295,7 @@
       }
 
       // Camera che segue Serena (visuale terza persona ravvicinata over-the-shoulder)
-      // Usa angolo globale per evitare che la camera segua la rotazione graduale del modello
-      
-      // Aggiorna l'angolo della camera solo se il modello si sta muovendo in avanti
-      if (moveForward) {
-        // Allinea la camera con il modello solo quando cammina in avanti
-        cameraAngle = serenaModel.rotation.y;
-      }
-      // Altrimenti mantiene l'ultimo angolo per evitare zoom
-      
+      const cameraAngle = serenaModel.rotation.y;
       const cameraDistance = 3; // Ridotto da 8 a 3 per visuale ravvicinata
       const cameraHeight = 2.2; // Ridotto da 4 a 2.2 per altezza spalle
       const shoulderOffset = 0.5; // Slight offset to the right for over-the-shoulder
@@ -1279,6 +1304,9 @@
       camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance + Math.sin(cameraAngle) * shoulderOffset;
       camera.position.y = serenaModel.position.y + cameraHeight;
       camera.lookAt(serenaModel.position);
+      
+      // Aggiorna posizione mirino
+      updateReticle();
       
       // Animazioni migliorate
       if (mixer) {
