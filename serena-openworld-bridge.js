@@ -458,14 +458,14 @@ function onKeyUp(event) {
     // FALLBACK IMMEDIATO - crea un placeholder geometrico per testare movement
     if (!serenaModel) {
       console.log('Creazione placeholder geometrico per Serena...');
-      const geometry = new THREE.CapsuleGeometry(0.3, 1.2, 4, 8);
+      const geometry = new THREE.CylinderGeometry(0.3, 0.3, 1.8, 8);
       const material = new THREE.MeshStandardMaterial({ 
         color: 0xff69b4, // Rosa
         metalness: 0.1,
         roughness: 0.7
       });
       serenaModel = new THREE.Mesh(geometry, material);
-      serenaModel.position.set(0, 1, 0);
+      serenaModel.position.set(0, 0.9, 0); // Metà altezza
       serenaModel.castShadow = true;
       serenaModel.receiveShadow = true;
       scene.add(serenaModel);
