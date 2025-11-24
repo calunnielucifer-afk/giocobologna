@@ -216,13 +216,13 @@
   }
 
   function loadClaire() {
-    console.log('Caricamento modello Claire pose di default...');
+    console.log('Caricamento modello Claire walking di default (pose non disponibile online)...');
     
     const fbxLoader = new THREE.FBXLoader();
     
-    // Carica il modello POSE come default
+    // Carica il modello WALKING come default (pose non disponibile online)
     fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/claire@Pose.fbx',
+      'openworld/modelpg/Lady_in_red_dress/claire@Walking.fbx',
       function(object) {
         serenaModel = object;
         
@@ -256,75 +256,61 @@
         
         scene.add(object);
 
-        // Animazioni - setup per pose (modello di default)
+        // Animazioni - setup per walking
         mixer = new THREE.AnimationMixer(object);
         
         if (object.animations.length > 0) {
-          console.log('Animazione pose trovata:', object.animations.length);
-          poseAnimation = object.animations[0];
+          console.log('Animazione walking trovata:', object.animations.length);
+          walkAnimation = object.animations[0];
           
-          // Crea l'azione pose
-          const poseAction = mixer.clipAction(poseAnimation);
-          poseAction.setEffectiveWeight(1);
-          poseAction.setEffectiveTimeScale(1);
-          poseAction.clampWhenFinished = false;
-          poseAction.setLoop(THREE.LoopRepeat);
-          
-          // Salva il riferimento
-          window.poseAction = poseAction;
-          
-          // Avvia la pose di default
-          poseAction.play();
-          currentAction = poseAction;
-          
-          console.log('Animazione pose avviata di default!');
-        }
-        
-        // Carica il modello walking per quando cammina
-        loadWalkingModel();
-        
-        console.log('Claire pose caricata con successo!');
-      },
-      function(xhr) {
-        console.log((xhr.loaded / xhr.total * 100) + '% caricato');
-      },
-      function(error) {
-        console.error('Errore caricamento FBX pose:', error);
-      }
-    );
-  }
-  
-  function loadWalkingModel() {
-    console.log('Caricamento modello walking per movimento...');
-    
-    const fbxLoader = new THREE.FBXLoader();
-    fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/claire@Walking.fbx',
-      function(walkingObject) {
-        // Salva il modello walking e la sua animazione
-        window.walkingModel = walkingObject;
-        
-        if (walkingObject.animations.length > 0) {
-          console.log('Animazione walking trovata:', walkingObject.animations.length);
-          walkAnimation = walkingObject.animations[0];
-          
-          // Crea l'azione walking nel mixer del modello pose
+          // Crea l'azione walking
           walkAction = mixer.clipAction(walkAnimation);
           walkAction.setEffectiveWeight(1);
           walkAction.setEffectiveTimeScale(1);
           walkAction.clampWhenFinished = false;
           walkAction.setLoop(THREE.LoopRepeat);
           
-          console.log('Animazione walking caricata nel mixer!');
+          console.log('Animazione walking caricata!');
         }
+        
+        // Crea animazione pose statica (vuota) per quando è fermo
+        createStaticPoseAnimation();
+        
+        console.log('Claire walking caricato con successo!');
       },
       function(xhr) {
-        console.log('Walking model: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
+        console.log((xhr.loaded / xhr.total * 100) + '% caricato');
       },
       function(error) {
-        console.error('Errore caricamento walking model:', error);
+        console.error('Errore caricamento FBX walking:', error);
       }
     );
+  }
+  
+  function createStaticPoseAnimation() {
+    console.log('Creazione animazione pose statica...');
+    
+    // Crea un'animazione vuota per la pose (nessun movimento)
+    const poseTracks = [];
+    const poseDuration = 1.0;
+    
+    poseAnimation = new THREE.AnimationClip('Pose', poseDuration, poseTracks);
+    
+    // Crea l'azione pose
+    const poseAction = mixer.clipAction(poseAnimation);
+    poseAction.setEffectiveWeight(1);
+    poseAction.setEffectiveTimeScale(1);
+    poseAction.clampWhenFinished = false;
+    poseAction.setLoop(THREE.LoopRepeat);
+    
+    // Salva il riferimento
+    window.poseAction = poseAction;
+    
+    // Avvia la pose di default
+    poseAction.play();
+    currentAction = poseAction;
+    
+    console.log('Animazione pose statica avviata di default!');
   }
   
   function createPoseAnimationWithSameMechanism() {
