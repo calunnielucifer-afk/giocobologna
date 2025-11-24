@@ -714,21 +714,21 @@ function onKeyUp(event) {
   function createHedge() {
     const group = new THREE.Group();
     
-    // Crea una siepe composta da più sfere di foglie
-    const hedgeColors = [0x228B22, 0x2E7D32, 0x388E3C, 0x43A047]; // Vari toni di verde
+    // Crea una siepe composta da più sfere di foglie - più piccole e verde scuro
+    const hedgeColors = [0x1B5E20, 0x2E7D32, 0x388E3C, 0x004D40]; // Verde scuro
     
-    for (let i = 0; i < 5; i++) {
-      for (let j = 0; j < 3; j++) {
-        const foliageGeometry = new THREE.SphereGeometry(1.5 + Math.random() * 0.5);
+    for (let i = 0; i < 3; i++) { // Ridotto da 5 a 3
+      for (let j = 0; j < 2; j++) { // Ridotto da 3 a 2
+        const foliageGeometry = new THREE.SphereGeometry(0.8 + Math.random() * 0.3); // Più piccolo
         const foliageMaterial = new THREE.MeshLambertMaterial({ 
           color: hedgeColors[Math.floor(Math.random() * hedgeColors.length)]
         });
         const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
         
         foliage.position.set(
-          (i - 2) * 1.2 + (Math.random() - 0.5) * 0.5,
-          1.5 + j * 1.2,
-          (Math.random() - 0.5) * 1.5
+          (i - 1) * 0.8 + (Math.random() - 0.5) * 0.3, // Più compatto
+          0.8 + j * 0.8, // Più basso
+          (Math.random() - 0.5) * 0.8
         );
         foliage.castShadow = true;
         group.add(foliage);
