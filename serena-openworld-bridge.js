@@ -248,10 +248,10 @@
       'openworld/modelpg/Lady_in_red_dress/Walking.dae',
       function(collada) {
         console.log('Animazione Walking.dae caricata con successo!');
-        console.log('Animations found:', collada.animations.length);
+        console.log('Animations found:', collada.scene.animations.length);
         
-        if (collada.animations.length > 0) {
-          walkAnimation = collada.animations[0];
+        if (collada.scene.animations.length > 0) {
+          walkAnimation = collada.scene.animations[0];
           console.log('Walk animation name:', walkAnimation.name);
           console.log('Walk animation duration:', walkAnimation.duration);
           
@@ -1320,8 +1320,9 @@
     animate.prevTime = time;
 
     // Movimento WASD basato sulla direzione della camera (dove guarda l'utente)
-    velocity.x -= velocity.x * 10.0 * delta;
-    velocity.z -= velocity.z * 10.0 * delta;
+    // Reset velocity per evitare accumulo
+    velocity.x = 0;
+    velocity.z = 0;
 
     if (moveForward || moveBackward || moveLeft || moveRight) {
       // Calcola la direzione della camera (dove guarda l'utente)
@@ -1337,11 +1338,13 @@
       rightDirection.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
       rightDirection.normalize();
       
-      // Applica il movimento basato sulla visuale della camera
-      if (moveForward) velocity.addScaledVector(cameraDirection, 400.0 * delta);
-      if (moveBackward) velocity.addScaledVector(cameraDirection, -400.0 * delta);
-      if (moveRight) velocity.addScaledVector(rightDirection, 400.0 * delta);
-      if (moveLeft) velocity.addScaledVector(rightDirection, -400.0 * delta);
+      // Calcola la velocità direttamente invece di accumulare
+      const moveSpeed = 8.0; // Velocità costante
+      
+      if (moveForward) velocity.addScaledVector(cameraDirection, moveSpeed);
+      if (moveBackward) velocity.addScaledVector(cameraDirection, -moveSpeed);
+      if (moveRight) velocity.addScaledVector(rightDirection, moveSpeed);
+      if (moveLeft) velocity.addScaledVector(rightDirection, -moveSpeed);
     }
     
     // Muovi Serena basandosi sulla velocity calcolata
