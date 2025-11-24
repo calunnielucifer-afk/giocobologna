@@ -343,11 +343,8 @@ function onKeyUp(event) {
   
   // Variabili globali
   let scene, camera, renderer, serenaModel, mixer;
-  let playerController; // Controller Fortnite-style
+  let playerController = null; // Nuovo sistema - usa solo AdvancedPlayerController
   let clock = new THREE.Clock();
-  let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
-  let velocity = new THREE.Vector3();
-  let direction = new THREE.Vector3();
   let joystickActive = false;
   let joystickVector = new THREE.Vector2();
   let touchStartPos = new THREE.Vector2();
@@ -944,59 +941,11 @@ function onKeyUp(event) {
   }
 
   function setupControls() {
-    document.addEventListener('keydown', function(event) {
-      switch (event.code) {
-        case 'ArrowUp':
-        case 'KeyW':  // W = forward
-          moveForward = true;
-          break;
-        case 'ArrowDown':
-        case 'KeyS':  // S = backward (RIATTIVATO)
-          moveBackward = true;
-          break;
-        case 'ArrowLeft':
-        case 'KeyA':
-          moveLeft = true;  // A = sinistra
-          break;
-        case 'ArrowRight':
-        case 'KeyD':
-          moveRight = true;  // D = destra
-          break;
-        case 'KeyE':  // E = interazione
-          if (nearbyInteractable) {
-            console.log('E pressed - interacting with:', nearbyInteractable.userData);
-            if (nearbyInteractable.userData.isPokerTable) {
-              openPokerWindow();
-            }
-          } else {
-            console.log('E pressed - no nearby interactable object');
-          }
-          break;
-      }
-    });
-
-    document.addEventListener('keyup', function(event) {
-      switch (event.code) {
-        case 'ArrowUp':
-        case 'KeyW':
-          moveForward = false;
-          break;
-        case 'ArrowDown':
-        case 'KeyS':  // S = backward release
-          moveBackward = false;
-          break;
-        case 'ArrowLeft':
-        case 'KeyA':
-          moveLeft = false;
-          break;
-        case 'ArrowRight':
-        case 'KeyD':
-          moveRight = false;
-          break;
-      }
-    });
+    // Sistema unificato globale - usa solo AdvancedPlayerController
+    document.addEventListener('keydown', onKeyDown, false);
+    document.addEventListener('keyup', onKeyUp, false);
     
-    // Mouse orbitale senza click (solo ai bordi)
+    // Mouse orbitale globale unificato
     document.addEventListener('mousemove', function(event) {
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -1208,11 +1157,13 @@ function onKeyUp(event) {
   function openPokerWindow() {
     console.log('Apertura finestra poker - blocco controlli mondo...');
     
-    // BLOCCA i controlli del mondo
-    moveForward = false;
-    moveBackward = false;
-    moveLeft = false;
-    moveRight = false;
+    // BLOCCA i controlli del mondo (nuovo sistema)
+    if (playerController && playerController instanceof AdvancedPlayerController) {
+      playerController.keys.w = false;
+      playerController.keys.a = false;
+      playerController.keys.s = false;
+      playerController.keys.d = false;
+    }
     
     // Rimuovi eventuali finestre poker esistenti
     const existingModal = document.getElementById('pokerModal');
@@ -1364,11 +1315,13 @@ function onKeyUp(event) {
       document.body.removeChild(pokerModal);
     }
     
-    // RIPRISTINA i controlli del mondo
-    moveForward = false;
-    moveBackward = false;
-    moveLeft = false;
-    moveRight = false;
+    // RIPRISTINA i controlli del mondo (nuovo sistema)
+    if (playerController && playerController instanceof AdvancedPlayerController) {
+      playerController.keys.w = false;
+      playerController.keys.a = false;
+      playerController.keys.s = false;
+      playerController.keys.d = false;
+    }
     
     console.log('Finestra poker chiusa - controlli mondo ripristinati');
   }
@@ -1378,21 +1331,6 @@ function onKeyUp(event) {
     const joystickBase = document.querySelector('.joystick-base');
     joystickHandle = document.querySelector('.joystick-handle');
     
-    if (!joystickContainer || !joystickHandle) return;
-    
-    // Touch events
-    joystickBase.addEventListener('touchstart', handleTouchStart, { passive: false });
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd, { passive: false });
-    
-    // Mouse events per testing su desktop
-    joystickBase.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }
-  
-  function handleTouchStart(e) {
-    e.preventDefault();
     const touch = e.touches[0];
     const rect = e.target.getBoundingClientRect();
     touchStartPos.x = touch.clientX - rect.left - rect.width / 2;
@@ -1427,16 +1365,13 @@ function onKeyUp(event) {
     joystickVector.x = deltaX / maxDistance;
     joystickVector.y = -deltaY / maxDistance; // Invert Y per coordinate 3D
     
-    // Aggiorna controlli movimento
-    moveForward = joystickVector.y > 0.3;
-    moveBackward = joystickVector.y < -0.3;
-    // A/D funzionano solo se si sta camminando in avanti
-    if (joystickVector.y > 0.3) {
-      moveRight = joystickVector.x > 0.3;
-      moveLeft = joystickVector.x < -0.3;
-    } else {
-      moveRight = false;
-      moveLeft = false;
+    // Aggiorna controlli movimento (nuovo sistema)
+    if (playerController && playerController instanceof AdvancedPlayerController) {
+      playerController.keys.w = joystickVector.y > 0.3;
+      playerController.keys.s = joystickVector.y < -0.3;
+      // A/D funzionano indipendentemente nel nuovo sistema
+      playerController.keys.a = joystickVector.x < -0.3;
+      playerController.keys.d = joystickVector.x > 0.3;
     }
   }
   
@@ -1452,11 +1387,13 @@ function onKeyUp(event) {
       joystickHandle.style.transform = 'translate(0, 0)';
     }
     
-    // Resetta controlli movimento
-    moveForward = false;
-    moveBackward = false;
-    moveLeft = false;
-    moveRight = false;
+    // Resetta controlli movimento (nuovo sistema)
+    if (playerController && playerController instanceof AdvancedPlayerController) {
+      playerController.keys.w = false;
+      playerController.keys.a = false;
+      playerController.keys.s = false;
+      playerController.keys.d = false;
+    }
   }
   
   // Mouse events per testing
@@ -1492,15 +1429,13 @@ function onKeyUp(event) {
     joystickVector.x = deltaX / maxDistance;
     joystickVector.y = -deltaY / maxDistance;
     
-    moveForward = joystickVector.y > 0.3;
-    moveBackward = joystickVector.y < -0.3;
-    // A/D funzionano solo se si sta camminando in avanti
-    if (joystickVector.y > 0.3) {
-      moveRight = joystickVector.x > 0.3;
-      moveLeft = joystickVector.x < -0.3;
-    } else {
-      moveRight = false;
-      moveLeft = false;
+    // Aggiorna controlli movimento (nuovo sistema)
+    if (playerController && playerController instanceof AdvancedPlayerController) {
+      playerController.keys.w = joystickVector.y > 0.3;
+      playerController.keys.s = joystickVector.y < -0.3;
+      // A/D funzionano indipendentemente nel nuovo sistema
+      playerController.keys.a = joystickVector.x < -0.3;
+      playerController.keys.d = joystickVector.x > 0.3;
     }
   }
   
@@ -1515,10 +1450,13 @@ function onKeyUp(event) {
       joystickHandle.style.transform = 'translate(0, 0)';
     }
     
-    moveForward = false;
-    moveBackward = false;
-    moveLeft = false;
-    moveRight = false;
+    // Resetta controlli movimento (nuovo sistema)
+    if (playerController && playerController instanceof AdvancedPlayerController) {
+      playerController.keys.w = false;
+      playerController.keys.a = false;
+      playerController.keys.s = false;
+      playerController.keys.d = false;
+    }
   }
 
   function animate() {
@@ -1527,102 +1465,12 @@ function onKeyUp(event) {
     // Calcola il deltaTime usando THREE.Clock per consistenza
     const deltaTime = clock.getDelta();
 
-    // Nuovo sistema AdvancedPlayerController
+    // Sistema unificato - usa solo AdvancedPlayerController
     if (playerController && playerController instanceof AdvancedPlayerController) {
       playerController.update(deltaTime);
-    } else {
-      // Fallback al vecchio sistema se il controller non è ancora inizializzato
-      if (serenaModel) {
-        // Mantieni il vecchio sistema come fallback
-        velocity.x = 0;
-        velocity.z = 0;
-
-        if (moveForward || moveBackward || moveLeft || moveRight) {
-          const cameraDirection = new THREE.Vector3();
-          camera.getWorldDirection(cameraDirection);
-          cameraDirection.y = 0;
-          cameraDirection.normalize();
-          
-          const rightDirection = new THREE.Vector3();
-          rightDirection.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
-          rightDirection.normalize();
-          
-          const forwardSpeed = 4.0;
-          
-          if (moveForward) {
-            velocity.addScaledVector(cameraDirection, forwardSpeed);
-            if (moveRight) {
-              const curveIntensity = Math.min(forwardSpeed * 0.4, 1.5);
-              velocity.addScaledVector(rightDirection, curveIntensity);
-            }
-            if (moveLeft) {
-              const curveIntensity = Math.min(forwardSpeed * 0.4, 1.5);
-              velocity.addScaledVector(rightDirection, -curveIntensity);
-            }
-          }
-        }
-        
-        serenaModel.position.x += velocity.x * deltaTime;
-        serenaModel.position.z += velocity.z * deltaTime;
-        
-        if (moveForward) {
-          const moveDirection = new THREE.Vector3(velocity.x, 0, velocity.z);
-          if (moveDirection.length() > 0.1) {
-            moveDirection.normalize();
-            const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
-            serenaModel.rotation.y = THREE.MathUtils.lerp(serenaModel.rotation.y, targetAngle, 0.25);
-          }
-        }
-        
-        // Ground detection
-        const groundLevel = 0;
-        if (serenaModel.position.y > groundLevel) {
-          serenaModel.position.y -= 0.05;
-        }
-        if (serenaModel.position.y < groundLevel) {
-          serenaModel.position.y = groundLevel;
-        }
-
-        // Camera fallback
-        const cameraAngle = serenaModel.rotation.y;
-        const cameraDistance = 3;
-        const cameraHeight = 2.2;
-        const shoulderOffset = 0.5;
-        
-        camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance + Math.cos(cameraAngle) * shoulderOffset;
-        camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance + Math.sin(cameraAngle) * shoulderOffset;
-        camera.position.y = serenaModel.position.y + cameraHeight;
-        camera.lookAt(serenaModel.position);
-
-        // Animazioni fallback
-        const isMoving = velocity.length() > 0.1;
-        const moveSpeed = velocity.length();
-        
-        if (window.poseAction && window.walkAction) {
-          if (isMoving && moveSpeed > 0.2) {
-            if (currentAction !== window.walkAction) {
-              window.poseAction.fadeOut(0.2);
-              window.walkAction.reset().fadeIn(0.2).setEffectiveTimeScale(Math.min(moveSpeed / 4, 1.5));
-              window.walkAction.play();
-              currentAction = window.walkAction;
-            }
-          } else {
-            if (currentAction !== window.poseAction) {
-              window.walkAction.fadeOut(0.2);
-              window.poseAction.reset().fadeIn(0.2);
-              window.poseAction.play();
-              currentAction = window.poseAction;
-            }
-          }
-        }
-        
-        if (mixer) {
-          mixer.update(deltaTime);
-        }
-      }
     }
-
-    // Renderizza sempre la scena
+    
+    // Rendering
     renderer.render(scene, camera);
   }
 
