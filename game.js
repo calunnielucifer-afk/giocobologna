@@ -4478,7 +4478,7 @@ function updateUI() {
 // Expose necessary functions to global scope for HTML event handlers
 window.SerenaGame = {
     startGame,
-    pauseGame,
+    pauseGame, 
     restartGame,
     gameOver
 };
