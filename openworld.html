@@ -247,8 +247,27 @@
   <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.0/umd/index.js"></script>
   <script>window.fflate = fflate;</script>
   
-  <!-- Bridge per Serena -->
-  <script src="serena-openworld-bridge.js"></script>
+  <!-- Bridge per Serena - defer to ensure THREE is loaded -->
+  <script>
+    // Wait for THREE to be available
+    function loadSerenaBridge() {
+      if (typeof THREE !== 'undefined') {
+        // Load the bridge script
+        const script = document.createElement('script');
+        script.src = 'serena-openworld-bridge.js';
+        script.onload = function() {
+          console.log('Serena Bridge loaded successfully!');
+        };
+        document.head.appendChild(script);
+      } else {
+        // Retry after 100ms
+        setTimeout(loadSerenaBridge, 100);
+      }
+    }
+    
+    // Start loading check
+    loadSerenaBridge();
+  </script>
   
   <!-- Mobile controls script -->
   <script>
