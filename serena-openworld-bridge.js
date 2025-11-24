@@ -856,8 +856,20 @@ function onKeyUp(event) {
     poseAction.setEffectiveWeight(1);
     poseAction.setEffectiveTimeScale(1);
     
-    // Salva anche in window.poseAction per consistenza
-    window.poseAction = poseAction;
+    // Event listener per pulsante anteprima finale
+    const previewFinalBtn = document.getElementById('previewFinalBtn');
+    if (previewFinalBtn) {
+      previewFinalBtn.addEventListener('click', function() {
+        console.log('🎺 ANTEPRIMA FINALE ATTIVATA!');
+        if (playerController && playerController.showWeddingCongratulations) {
+          playerController.showWeddingCongratulations();
+        }
+      });
+    }
+    
+    // Funzioni globali per controlli esterni
+    window.openPokerWindow = openPokerWindow;
+    window.closePokerWindow = closePokerWindow;
     
     poseAction.play();
     currentAction = poseAction;
