@@ -130,9 +130,6 @@
     const indicator = new THREE.Mesh(indicatorGeometry, indicatorMaterial);
     indicator.position.set(5, 2, 5);
     
-    // Aggiungi il mirino
-    createReticle();
-    
     // Aggiungi luce sopra la tavola per renderla più visibile
     const tableLight = new THREE.PointLight(0xffd700, 1, 10);
     tableLight.position.set(5, 3, 5);
@@ -1200,35 +1197,6 @@
     moveRight = false;
   }
 
-  let reticle = null; // Mirino visibile davanti al modello
-
-  function createReticle() {
-    // Crea un mirino semplice (pallino)
-    const geometry = new THREE.SphereGeometry(0.15, 16, 16); // Pallino piccolo
-    const material = new THREE.MeshBasicMaterial({ 
-      color: 0xff0000, 
-      transparent: true,
-      opacity: 0.8
-    });
-    reticle = new THREE.Mesh(geometry, material);
-    scene.add(reticle);
-  }
-
-  function updateReticle() {
-    if (reticle && serenaModel) {
-      // Posiziona il mirino davanti al modello alla sua altezza, meglio centrato
-      const distance = 2.5; // Distanza davanti al modello
-      const height = 1.7; // Altezza occhi/testa
-      
-      // Calcola posizione davanti al modello basandosi sulla sua rotazione
-      reticle.position.x = serenaModel.position.x + Math.sin(serenaModel.rotation.y) * distance;
-      reticle.position.z = serenaModel.position.z + Math.cos(serenaModel.rotation.y) * distance;
-      reticle.position.y = serenaModel.position.y + height;
-      
-      // Il pallino non ha bisogno di rotazione
-    }
-  }
-
   function animate() {
     requestAnimationFrame(animate);
     
@@ -1301,9 +1269,6 @@
       camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance + Math.sin(cameraAngle) * shoulderOffset;
       camera.position.y = serenaModel.position.y + cameraHeight;
       camera.lookAt(serenaModel.position);
-      
-      // Aggiorna posizione mirino
-      updateReticle();
       
       // Animazioni migliorate
       if (mixer) {
