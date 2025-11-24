@@ -144,6 +144,9 @@ function onKeyUp(event) {
     }
     
     updateThirdPersonCamera(deltaTime) {
+      // TOGGLE FOLLOW CAMERA - SEMPRE ATTIVA
+      if (!followCameraEnabled) return;
+      
       // Posizione target della camera: dietro la testa di Serena
       const playerPosition = this.player.position.clone();
       playerPosition.y += this.cameraHeight; // Altezza testa
@@ -218,12 +221,26 @@ function onKeyUp(event) {
       this.cameraAngle += deltaX * this.mouseSensitivity;
       console.log('Camera angle updated - new angle:', this.cameraAngle.toFixed(4), 'deltaX:', deltaX.toFixed(4));
     }
+    
+    toggleFollowCamera() {
+      // La camera segue SEMPRE Serena - toggle solo per logica futura
+      followCameraEnabled = !followCameraEnabled;
+      console.log('Follow camera toggled:', followCameraEnabled ? 'ON' : 'OFF');
+      return followCameraEnabled;
+    }
+    
+    isFollowCameraEnabled() {
+      return followCameraEnabled;
+    }
   }
   
   // Variabili globali
   let scene, camera, renderer, serenaModel, mixer;
   let playerController = null; // Nuovo sistema - usa solo AdvancedPlayerController
   let clock = new THREE.Clock();
+  
+  // Toggle follow camera system
+  let followCameraEnabled = true; // SEMPRE ATTIVA
   
   // Dual joystick system
   let movementJoystickActive = false;
@@ -1434,6 +1451,21 @@ function onKeyUp(event) {
   } else {
     initScene();
   }
+  
+  // Setup toggle camera button
+  function setupToggleCameraButton() {
+    const toggleBtn = document.getElementById('toggleCameraBtn');
+    if (toggleBtn && playerController) {
+      toggleBtn.addEventListener('click', function() {
+        const isEnabled = playerController.toggleFollowCamera();
+        toggleBtn.textContent = isEnabled ? '📷 Camera: ON' : '📷 Camera: OFF';
+        toggleBtn.style.background = isEnabled ? 'rgba(76, 175, 80, 0.8)' : 'rgba(244, 67, 54, 0.8)';
+      });
+    }
+  }
+  
+  // Chiama dopo che il player controller è inizializzato
+  setTimeout(setupToggleCameraButton, 3000);
   
   // Controlla se c'è un hash URL per il poker
   window.addEventListener('load', function() {
