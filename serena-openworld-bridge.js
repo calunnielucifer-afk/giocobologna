@@ -106,8 +106,8 @@
     }
     
     updateAnimations() {
-      if (!window.poseAction || !walkAction) {
-        console.log('Animation actions not available - poseAction:', !!window.poseAction, 'walkAction:', !!walkAction);
+      if (!window.poseAction || !window.walkAction) {
+        console.log('Animation actions not available - poseAction:', !!window.poseAction, 'walkAction:', !!window.walkAction);
         return;
       }
       
@@ -115,25 +115,25 @@
       const moveThreshold = 0.3;
       const stopThreshold = 0.1;
       
-      console.log('Animation check - isMoving:', this.isMoving, 'currentAction:', currentAction === walkAction ? 'walk' : 'pose');
+      console.log('Animation check - isMoving:', this.isMoving, 'currentAction:', currentAction === window.walkAction ? 'walk' : 'pose');
       
       if (this.isMoving) {
         // Transizione a camminata solo se supera la soglia
-        if (currentAction !== walkAction) {
+        if (currentAction !== window.walkAction) {
           console.log('Transizione a camminata stile Fortnite - MOVIMENTO DETECTED');
           
           window.poseAction.fadeOut(0.15);
-          walkAction.reset().fadeIn(0.15).setEffectiveTimeScale(1.0);
-          walkAction.play();
+          window.walkAction.reset().fadeIn(0.15).setEffectiveTimeScale(1.0);
+          window.walkAction.play();
           
-          currentAction = walkAction;
+          currentAction = window.walkAction;
         }
       } else {
         // Transizione a pose solo se sotto la soglia di stop
         if (currentAction !== window.poseAction) {
           console.log('Transizione a pose stile Fortnite - FERMO');
           
-          walkAction.fadeOut(0.15);
+          window.walkAction.fadeOut(0.15);
           window.poseAction.reset().fadeIn(0.15);
           window.poseAction.play();
           
@@ -478,6 +478,9 @@
           walkAction.setEffectiveTimeScale(1);
           walkAction.clampWhenFinished = false;
           walkAction.setLoop(THREE.LoopRepeat);
+          
+          // Rendi walkAction globale come poseAction
+          window.walkAction = walkAction;
           
           console.log('Animazione Serena walking FBX 7.4 caricata nel mixer!');
         }
@@ -830,7 +833,10 @@
         
         // Aggiorna l'angolo della camera nel controller
         if (playerController) {
+          console.log('Calling updateCameraAngle with speed:', orbitSpeed.toFixed(4));
           playerController.updateCameraAngle(orbitSpeed);
+        } else {
+          console.log('PlayerController not available for mouse orbitale');
         }
       } else {
         isMouseOrbiting = false;
