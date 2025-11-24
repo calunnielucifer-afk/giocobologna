@@ -432,6 +432,17 @@ function onKeyUp(event) {
   function createFallbackAnimations() {
     console.log('Creazione animazioni fallback immediate...');
     
+    // Crea il mixer se non esiste
+    if (!mixer && serenaModel) {
+      mixer = new THREE.AnimationMixer(serenaModel);
+      console.log('Mixer creato per il placeholder');
+    }
+    
+    if (!mixer) {
+      console.error('Impossibile creare animazioni - mixer o serenaModel mancanti');
+      return;
+    }
+    
     // Animazione pose semplice (fermo)
     const poseTracks = [];
     const poseDuration = 1.0;
