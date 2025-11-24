@@ -48,13 +48,13 @@ function onKeyDown(event) {
             case 'ArrowLeft':
                 console.log('⬅️ FRECCIA SINISTRA PREMUTA!');
                 if (playerController && playerController.updateCameraAngle) {
-                    playerController.updateCameraAngle(-0.05); // Rotazione sinistra
+                    playerController.updateCameraAngle(-50); // Rotazione sinistra veloce
                 }
                 break;
             case 'ArrowRight':
                 console.log('➡️ FRECCIA DESTRA PREMUTA!');
                 if (playerController && playerController.updateCameraAngle) {
-                    playerController.updateCameraAngle(0.05); // Rotazione destra
+                    playerController.updateCameraAngle(50); // Rotazione destra veloce
                 }
                 break;
         }
@@ -436,15 +436,27 @@ function onKeyUp(event) {
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // Alberi semplici
-    for (let i = 0; i < 20; i++) {
+    // Alberi semplici - aumentati per nascondere meglio i bigliettini
+    for (let i = 0; i < 50; i++) { // Da 20 a 50 alberi
       const tree = createTree();
       tree.position.set(
-        (Math.random() - 0.5) * 100,
+        (Math.random() - 0.5) * 150, // Aumentato area di spawn
         0,
-        (Math.random() - 0.5) * 100
+        (Math.random() - 0.5) * 150
       );
       scene.add(tree);
+    }
+    
+    // Aggiungi siepi per nascondere meglio i bigliettini
+    for (let i = 0; i < 30; i++) { // 30 siepi
+      const hedge = createHedge();
+      hedge.position.set(
+        (Math.random() - 0.5) * 120,
+        0,
+        (Math.random() - 0.5) * 120
+      );
+      hedge.rotation.y = Math.random() * Math.PI * 2;
+      scene.add(hedge);
     }
 
     // Tavola da poker
@@ -509,32 +521,52 @@ function onKeyUp(event) {
       "🦢 Sei il cigno che nuova eleganza nel lago del mio anima"
     ];
     
-    // Posizioni nascoste nella mappa (dietro alberi, tra cespugli)
-    const notePositions = [
-      { x: 8, z: 3, rotation: Math.PI / 4 },      // Dietro un albero
-      { x: -6, z: 7, rotation: -Math.PI / 3 },     // Tra i cespugli
-      { x: 12, z: -4, rotation: Math.PI / 6 },     // Nascosto nel verde
-      { x: -9, z: -2, rotation: Math.PI / 2 },      // Dietro un cespuglio
-      { x: 4, z: 10, rotation: -Math.PI / 4 },     // Sotto un albero
-      { x: -3, z: -8, rotation: Math.PI / 8 },     // Tra le foglie
-      { x: 15, z: 2, rotation: -Math.PI / 6 },     // Nascosto nel giardino
-      { x: -11, z: 5, rotation: Math.PI / 5 },     // Dietro un fiore
-      { x: 7, z: -6, rotation: -Math.PI / 8 },     // Tra i cespugli
-      { x: -4, z: 9, rotation: Math.PI / 3 }       // Sotto un albero
-    ];
+    // Posizioni nascoste nella mappa - più distanti e randomiche su tutta l'area
+    const notePositions = [];
+    const minDistance = 15; // Distanza minima tra bigliettini
+    
+    // Genera posizioni randomiche con distanza minima
+    while (notePositions.length < 10) {
+      const newPos = {
+        x: (Math.random() - 0.5) * 140, // Area più grande
+        z: (Math.random() - 0.5) * 140,
+        rotation: Math.random() * Math.PI * 2
+      };
+      
+      // Verifica distanza minima dagli altri bigliettini
+      let tooClose = false;
+      for (let pos of notePositions) {
+        const distance = Math.sqrt(
+          Math.pow(newPos.x - pos.x, 2) + 
+          Math.pow(newPos.z - pos.z, 2)
+        );
+        if (distance < minDistance) {
+          tooClose = true;
+          break;
+        }
+      }
+      
+      // Verifica che non sia troppo vicino all'area di spawn (0,0)
+      const spawnDistance = Math.sqrt(newPos.x * newPos.x + newPos.z * newPos.z);
+      if (spawnDistance < 10) tooClose = true;
+      
+      if (!tooClose) {
+        notePositions.push(newPos);
+      }
+    }
     
     notePositions.forEach((pos, index) => {
-      // Crea il bigliettino (piccolo piano)
-      const noteGeometry = new THREE.PlaneGeometry(0.3, 0.2);
+      // Crea il bigliettino - più piccolo e meno visibile
+      const noteGeometry = new THREE.PlaneGeometry(0.2, 0.15); // Più piccolo
       const noteMaterial = new THREE.MeshBasicMaterial({ 
         color: 0xffe6e6, // Rosa chiaro
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.9
+        opacity: 0.7 // Meno visibile
       });
       
       const note = new THREE.Mesh(noteGeometry, noteMaterial);
-      note.position.set(pos.x, 0.5, pos.z); // leggermente sopra terra
+      note.position.set(pos.x, 0.3, pos.z); // Più basso per nasconderlo meglio
       note.rotation.y = pos.rotation;
       note.userData = {
         isLoveNote: true,
@@ -543,15 +575,18 @@ function onKeyUp(event) {
         collected: false
       };
       
-      // Aggiungi un piccolo bordo dorato
+      // Aggiungi un piccolo bordo dorato - più sottile
       const borderGeometry = new THREE.EdgesGeometry(noteGeometry);
-      const borderMaterial = new THREE.LineBasicMaterial({ color: 0xffd700, linewidth: 2 });
+      const borderMaterial = new THREE.LineBasicMaterial({ 
+        color: 0xffd700, 
+        linewidth: 1 
+      });
       const border = new THREE.LineSegments(borderGeometry, borderMaterial);
       note.add(border);
       
-      // Aggiungi animazione fluttuante
+      // Aggiungi animazione fluttuante - più lenta e delicata
       note.userData.floatOffset = Math.random() * Math.PI * 2;
-      note.userData.floatSpeed = 1 + Math.random() * 0.5;
+      note.userData.floatSpeed = 0.5 + Math.random() * 0.3; // Più lenta
       
       scene.add(note);
       loveNotes.push(note);
@@ -674,6 +709,33 @@ function onKeyUp(event) {
     scene.add(sign);
     
     console.log('Tavola da poker creata a posizione (5, 0, 5)');
+  }
+
+  function createHedge() {
+    const group = new THREE.Group();
+    
+    // Crea una siepe composta da più sfere di foglie
+    const hedgeColors = [0x228B22, 0x2E7D32, 0x388E3C, 0x43A047]; // Vari toni di verde
+    
+    for (let i = 0; i < 5; i++) {
+      for (let j = 0; j < 3; j++) {
+        const foliageGeometry = new THREE.SphereGeometry(1.5 + Math.random() * 0.5);
+        const foliageMaterial = new THREE.MeshLambertMaterial({ 
+          color: hedgeColors[Math.floor(Math.random() * hedgeColors.length)]
+        });
+        const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+        
+        foliage.position.set(
+          (i - 2) * 1.2 + (Math.random() - 0.5) * 0.5,
+          1.5 + j * 1.2,
+          (Math.random() - 0.5) * 1.5
+        );
+        foliage.castShadow = true;
+        group.add(foliage);
+      }
+    }
+    
+    return group;
   }
 
   function createTree() {
@@ -1664,17 +1726,17 @@ function onKeyUp(event) {
       playerController.update(deltaTime);
     }
     
-    // Animazione fluttuante bigliettini d'amore
+    // Animazione fluttuante bigliettini d'amore - più sottile
     if (loveNotes && loveNotes.length > 0) {
       const time = clock.getElapsedTime();
       loveNotes.forEach(note => {
         if (!note.userData.collected) {
-          // Fluttuazione delicata
-          const floatY = Math.sin(time * note.userData.floatSpeed + note.userData.floatOffset) * 0.1;
-          note.position.y = 0.5 + floatY;
+          // Fluttuazione molto delicata
+          const floatY = Math.sin(time * note.userData.floatSpeed + note.userData.floatOffset) * 0.05; // Più sottile
+          note.position.y = 0.3 + floatY;
           
-          // Rotazione leggera
-          note.rotation.y += 0.005;
+          // Rotazione molto leggera
+          note.rotation.y += 0.002; // Più lenta
         }
       });
       
