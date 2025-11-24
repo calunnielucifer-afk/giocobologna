@@ -20,7 +20,7 @@
 
 ### 📱 Funzionalità
 
-- **Desktop**: WASD per movimento, mouse drag per guardarsi intorno
+- **Desktop**: WASD per movimento, mouse ai bordi per ruotare la telecamera
 - **Mobile**: Joystick virtuale + touch slide per visuale
 - **🎯 Mirino Centrale**: Croce rossa come punto di mira
 - **Movimento smart**: WASD segue esattamente la direzione del mirino
@@ -68,7 +68,7 @@ Una volta deployato, il gioco sarà disponibile all'URL:
 - A = Sinistra (rispetto al mirino)
 - S = Indietro (via dal mirino)
 - D = Destra (rispetto al mirino)
-- Mouse drag = Guardarsi intorno
+- Mouse ai bordi = Ruota la telecamera
 - Click sulla tavola verde = Apri poker
 
 **Mobile:**
