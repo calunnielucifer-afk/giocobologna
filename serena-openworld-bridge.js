@@ -1273,65 +1273,56 @@
         serenaModel.position.y = groundLevel; // Non andare sotto terra
       }
 
-      // Camera sempre attaccata al modello - senza transizioni
-      const cameraAngle = serenaModel.rotation.y;
-      const cameraDistance = 3;
-      const cameraHeight = 2.2;
-      const shoulderOffset = 0.5;
+      // Sistema animazioni smooth - elimina gli scatti
+      const isMoving = velocity.length() > 0.1;
+      const moveSpeed = velocity.length();
       
-      camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance + Math.cos(cameraAngle) * shoulderOffset;
-      camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance + Math.sin(cameraAngle) * shoulderOffset;
-      camera.position.y = serenaModel.position.y + cameraHeight;
-      camera.lookAt(serenaModel.position);
-      
-      // Animazioni migliorate
-      if (mixer) {
-        // Velocità di movimento per animazione
-        const moveSpeed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-        const isMoving = moveSpeed > 0.1;
+      if (window.poseAction && walkAction) {
+        console.log('Animazioni - walkAction:', !!walkAction, 'poseAction:', !!window.poseAction, 'isMoving:', isMoving, 'moveSpeed:', moveSpeed.toFixed(2));
         
-        // Debug: stato animazioni
-        if (Math.random() < 0.01) { // Solo occasionalmente per non spam
-          console.log('Animazioni - walkAction:', !!walkAction, 'poseAction:', !!window.poseAction, 'isMoving:', isMoving, 'moveSpeed:', moveSpeed);
-        }
-        
-        // Sistema di animazione completo - stesso meccanismo per pose e walking
-        if (walkAction && window.poseAction) {
-          if (isMoving && currentAction !== walkAction) {
-            // Transizione a camminata - esattamente come sistema walking
-            console.log('Transizione a camminata - velocità:', moveSpeed);
-            window.poseAction.fadeOut(0.5); // Fade out pose
-            walkAction.reset().fadeIn(0.5).play(); // Fade in walking
-            walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.2, 1.0));
-            walkAction.setLoop(THREE.LoopRepeat);
+        if (isMoving && moveSpeed > 0.2) {
+          // Transizione smooth a camminata
+          if (currentAction !== walkAction) {
+            console.log('Transizione a camminata - velocità:', moveSpeed.toFixed(2));
+            
+            // Fade out pose con transizione lunga e smooth
+            window.poseAction.fadeOut(0.5);
+            // Fade in walking con transizione lunga e smooth
+            walkAction.reset().fadeIn(0.5).setEffectiveTimeScale(Math.min(moveSpeed / 4, 1.5));
+            walkAction.play();
+            
             currentAction = walkAction;
-          } else if (moveSpeed < 0.2 && currentAction !== window.poseAction) {
-            // Transizione a pose quando velocità < 0.2 - esattamente come sistema walking
-            console.log('Transizione a pose (velocità < 0.2)');
-            walkAction.fadeOut(0.5); // Fade out walking
-            window.poseAction.reset().fadeIn(0.5).play(); // Fade in pose
-            window.poseAction.setLoop(THREE.LoopRepeat);
-            currentAction = window.poseAction;
-          } else if (isMoving && currentAction === walkAction) {
-            // Aggiusta velocità camminata in modo più fluido
-            const targetTimeScale = Math.min(moveSpeed * 0.2, 1.0);
-            const currentTimeScale = walkAction.getEffectiveTimeScale();
-            walkAction.setEffectiveTimeScale(currentTimeScale + (targetTimeScale - currentTimeScale) * 0.05);
           }
         } else {
-          // Fallback: oscillazione semplice se le animazioni non sono caricate
-          if (isMoving) {
-            const time = Date.now() * 0.005;
-            serenaModel.position.y = Math.sin(time) * 0.15;
-            serenaModel.rotation.x = Math.sin(time * 2) * 0.05;
-            serenaModel.rotation.z = Math.sin(time * 1.5) * 0.03;
-          } else {
-            serenaModel.position.y = 0;
-            serenaModel.rotation.x = 0;
-            serenaModel.rotation.z = 0;
+          // Transizione smooth a pose
+          if (currentAction !== window.poseAction) {
+            console.log('Transizione a pose (velocità < 0.2)');
+            
+            // Fade out walking con transizione lunga e smooth
+            walkAction.fadeOut(0.5);
+            // Fade in pose con transizione lunga e smooth
+            window.poseAction.reset().fadeIn(0.5);
+            window.poseAction.play();
+            
+            currentAction = window.poseAction;
           }
         }
-        
+      } else {
+        // Fallback: oscillazione semplice se le animazioni non sono caricate
+        if (isMoving) {
+          const time = Date.now() * 0.005;
+          serenaModel.position.y = Math.sin(time) * 0.15;
+          serenaModel.rotation.x = Math.sin(time * 2) * 0.05;
+          serenaModel.rotation.z = Math.sin(time * 1.5) * 0.03;
+        } else {
+          serenaModel.position.y = 0;
+          serenaModel.rotation.x = 0;
+          serenaModel.rotation.z = 0;
+        }
+      }
+      
+      // Aggiorna il mixer con delta time corretto
+      if (mixer) {
         mixer.update(clock.getDelta());
       }
     }
