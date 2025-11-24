@@ -4475,16 +4475,6 @@ function updateUI() {
     document.getElementById('level').textContent = level;
 }
 
-// Game loop
-function gameLoop() {
-    if (!gameRunning) return;
-    
-    update();
-    draw();
-    
-    gameAnimationId = requestAnimationFrame(gameLoop);
-}
-
 // Start game
 function startGame() {
     console.log('Start game called, gameRunning:', gameRunning);
