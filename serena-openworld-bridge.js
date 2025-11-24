@@ -15,7 +15,7 @@
       this.cameraDistance = 5;
       this.cameraHeight = 2;
       this.cameraAngle = 0; // Angolo orbitale della camera
-      this.mouseSensitivity = 0.002;
+      this.mouseSensitivity = 0.001; // Sensibilità normale (ridotto da 0.002)
       this.isMoving = false;
     }
     
@@ -774,9 +774,14 @@
       const x = event.clientX;
       const y = event.clientY;
       
-      // Controlla se il mouse è ai bordi
-      const nearLeftEdge = x < edgeThreshold;
-      const nearRightEdge = x > width - edgeThreshold;
+      // Calcola la distanza dai bordi (dal centro verso i bordi)
+      const fromLeftEdge = x; // Distanza dal bordo sinistro
+      const fromRightEdge = width - x; // Distanza dal bordo destro
+      const edgeZone = 100; // Zona sensibile ai bordi
+      
+      // Controlla se il mouse è nella zona sensibile ai bordi
+      const nearLeftEdge = fromLeftEdge < edgeZone;
+      const nearRightEdge = fromRightEdge < edgeZone;
       
       if (nearLeftEdge || nearRightEdge) {
         isMouseOrbiting = true;
@@ -784,9 +789,11 @@
         // Calcola la velocità di orbitale basata sulla distanza dal bordo
         let orbitSpeed = 0;
         if (nearLeftEdge) {
-          orbitSpeed = -(edgeThreshold - x) / edgeThreshold * 0.05; // Sinistra = negativo
+          // Più sei vicino al bordo sinistro, più veloce giri a sinistra
+          orbitSpeed = -(1 - fromLeftEdge / edgeZone) * 0.02; // Sensibilità normale
         } else if (nearRightEdge) {
-          orbitSpeed = (x - (width - edgeThreshold)) / edgeThreshold * 0.05; // Destra = positivo
+          // Più sei vicino al bordo destro, più veloce giri a destra
+          orbitSpeed = (1 - fromRightEdge / edgeZone) * 0.02; // Sensibilità normale
         }
         
         // Aggiorna l'angolo della camera nel controller
