@@ -46,10 +46,16 @@ function onKeyDown(event) {
                 break;
             // FRECCE per camera rotation
             case 'ArrowLeft':
-                playerController.updateCameraAngle(-0.05); // Rotazione sinistra
+                console.log('⬅️ FRECCIA SINISTRA PREMUTA!');
+                if (playerController && playerController.updateCameraAngle) {
+                    playerController.updateCameraAngle(-0.05); // Rotazione sinistra
+                }
                 break;
             case 'ArrowRight':
-                playerController.updateCameraAngle(0.05); // Rotazione destra
+                console.log('➡️ FRECCIA DESTRA PREMUTA!');
+                if (playerController && playerController.updateCameraAngle) {
+                    playerController.updateCameraAngle(0.05); // Rotazione destra
+                }
                 break;
         }
     }
@@ -233,8 +239,9 @@ function onKeyUp(event) {
     }
     
     updateCameraAngle(deltaX) {
+      console.log('🎥 updateCameraAngle chiamato con deltaX:', deltaX, 'cameraAngle attuale:', this.cameraAngle);
       this.cameraAngle += deltaX * this.mouseSensitivity;
-      console.log('Camera angle updated - new angle:', this.cameraAngle.toFixed(4), 'deltaX:', deltaX.toFixed(4));
+      console.log('🎥 Camera angle aggiornato - nuovo angolo:', this.cameraAngle.toFixed(4), 'deltaX:', deltaX.toFixed(4));
     }
     
     toggleFollowCamera() {
