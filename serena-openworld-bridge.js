@@ -1273,7 +1273,18 @@
         serenaModel.position.y = groundLevel; // Non andare sotto terra
       }
 
-      // Sistema animazioni smooth - elimina gli scatti
+      // Camera sempre attaccata al modello - segue Serena
+      const cameraAngle = serenaModel.rotation.y;
+      const cameraDistance = 3;
+      const cameraHeight = 2.2;
+      const shoulderOffset = 0.5;
+      
+      camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance + Math.cos(cameraAngle) * shoulderOffset;
+      camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance + Math.sin(cameraAngle) * shoulderOffset;
+      camera.position.y = serenaModel.position.y + cameraHeight;
+      camera.lookAt(serenaModel.position);
+
+      // Sistema animazioni smooth - fade ridotto per eliminare scatti
       const isMoving = velocity.length() > 0.1;
       const moveSpeed = velocity.length();
       
@@ -1281,27 +1292,27 @@
         console.log('Animazioni - walkAction:', !!walkAction, 'poseAction:', !!window.poseAction, 'isMoving:', isMoving, 'moveSpeed:', moveSpeed.toFixed(2));
         
         if (isMoving && moveSpeed > 0.2) {
-          // Transizione smooth a camminata
+          // Transizione rapida a camminata
           if (currentAction !== walkAction) {
             console.log('Transizione a camminata - velocità:', moveSpeed.toFixed(2));
             
-            // Fade out pose con transizione lunga e smooth
-            window.poseAction.fadeOut(0.5);
-            // Fade in walking con transizione lunga e smooth
-            walkAction.reset().fadeIn(0.5).setEffectiveTimeScale(Math.min(moveSpeed / 4, 1.5));
+            // Fade out pose - tempo ridotto
+            window.poseAction.fadeOut(0.2);
+            // Fade in walking - tempo ridotto
+            walkAction.reset().fadeIn(0.2).setEffectiveTimeScale(Math.min(moveSpeed / 4, 1.5));
             walkAction.play();
             
             currentAction = walkAction;
           }
         } else {
-          // Transizione smooth a pose
+          // Transizione rapida a pose
           if (currentAction !== window.poseAction) {
             console.log('Transizione a pose (velocità < 0.2)');
             
-            // Fade out walking con transizione lunga e smooth
-            walkAction.fadeOut(0.5);
-            // Fade in pose con transizione lunga e smooth
-            window.poseAction.reset().fadeIn(0.5);
+            // Fade out walking - tempo ridotto
+            walkAction.fadeOut(0.2);
+            // Fade in pose - tempo ridotto
+            window.poseAction.reset().fadeIn(0.2);
             window.poseAction.play();
             
             currentAction = window.poseAction;
