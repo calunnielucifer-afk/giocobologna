@@ -216,11 +216,13 @@
   }
 
   function loadClaire() {
-    console.log('Caricamento modello FBX di Claire...');
+    console.log('Caricamento modello Claire pose di default...');
     
     const fbxLoader = new THREE.FBXLoader();
+    
+    // Carica il modello POSE come default
     fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/claire@Walking.fbx',
+      'openworld/modelpg/Lady_in_red_dress/claire@Pose.fbx',
       function(object) {
         serenaModel = object;
         
@@ -245,135 +247,82 @@
             // Abilita cast shadow e receive shadow
             child.castShadow = true;
             child.receiveShadow = true;
-            
-            // Log per debug
-            console.log('Mesh:', child.name, 'Position:', child.position);
           }
         });
         
         // Calcola il bounding box per centrare il modello a terra
         const box = new THREE.Box3().setFromObject(object);
-        const height = box.max.y - box.min.y;
-        
-        // Posiziona il modello così che i piedi toccano terra
-        // FIX per Claire: aggiungi offset extra per evitare che sia sepolta
         object.position.y = (-box.min.y * object.scale.y) + 0.5;
-        
-        console.log('Altezza modello Claire:', height, 'Bounding box min Y:', box.min.y, 'Posizione Y:', object.position.y);
         
         scene.add(object);
 
-        // Log dei mesh per capire il nuovo modello
-        console.log('=== DEBUG: Mesh names in claire@Walking.fbx model ===');
-        object.traverse(function(child) {
-          if (child.isMesh) {
-            console.log('Mesh found:', child.name, 'Type:', child.geometry?.type || 'No geometry');
-            // Check if mesh already has material
-            if (child.material) {
-              console.log('  Existing material:', child.material.type, child.material.name || 'unnamed');
-              console.log('  Material color:', child.material.color?.getHexString() || 'no color');
-              console.log('  Has texture map:', !!child.material.map);
-            }
-          }
-        });
-        console.log('=== END DEBUG ===');
-
-        // Applica texture (temporaneamente disabilitato per test)
-        // applyTexturesToModel(object);
-        console.log('Texture application disabilitata per test - controllo se il modello ha già texture');
-
-        // Animazioni con setup corretto
+        // Animazioni - setup per pose (modello di default)
         mixer = new THREE.AnimationMixer(object);
         
-        // Controlla se il modello contiene già animazioni
         if (object.animations.length > 0) {
-          console.log('Animazioni trovate nel modello Claire:', object.animations.length);
-          walkAnimation = object.animations[0];
-          console.log('Walk animation name:', walkAnimation.name);
-          console.log('Walk animation duration:', walkAnimation.duration);
+          console.log('Animazione pose trovata:', object.animations.length);
+          poseAnimation = object.animations[0];
           
-          // Crea l'azione di camminata
-          walkAction = mixer.clipAction(walkAnimation);
-          walkAction.setEffectiveWeight(1);
-          walkAction.setEffectiveTimeScale(1);
-          walkAction.clampWhenFinished = false; // Non clamp per loop continuo
-          walkAction.setLoop(THREE.LoopRepeat); // Loop infinito
+          // Crea l'azione pose
+          const poseAction = mixer.clipAction(poseAnimation);
+          poseAction.setEffectiveWeight(1);
+          poseAction.setEffectiveTimeScale(1);
+          poseAction.clampWhenFinished = false;
+          poseAction.setLoop(THREE.LoopRepeat);
           
-          console.log('Animazione Claire setup completata!');
-        } else {
-          console.log('Nessuna animazione nel modello, uso fallback');
+          // Salva il riferimento
+          window.poseAction = poseAction;
+          
+          // Avvia la pose di default
+          poseAction.play();
+          currentAction = poseAction;
+          
+          console.log('Animazione pose avviata di default!');
         }
         
-        // Crea subito animazioni di fallback per assicurarsi che funzionino
-        createFallbackAnimations();
-
-        // Crea animazione pose usando lo stesso meccanismo della camminata
-        createPoseAnimationWithSameMechanism();
-
-        // Imposta animazione pose di default allo spawn
-        if (window.poseAction) {
-          console.log('Imposto pose di default allo spawn');
-          window.poseAction.play();
-          currentAction = window.poseAction;
-          
-          // Ferma l'animazione walking se sta girando
-          if (walkAction) {
-            walkAction.stop();
-          }
-        }
-
-        console.log('Claire caricata con successo!');
+        // Carica il modello walking per quando cammina
+        loadWalkingModel();
+        
+        console.log('Claire pose caricata con successo!');
       },
       function(xhr) {
         console.log((xhr.loaded / xhr.total * 100) + '% caricato');
       },
       function(error) {
-        console.error('Errore caricamento FBX:', error);
-        console.log('Tentativo caricamento DAE come fallback...');
+        console.error('Errore caricamento FBX pose:', error);
+      }
+    );
+  }
+  
+  function loadWalkingModel() {
+    console.log('Caricamento modello walking per movimento...');
+    
+    const fbxLoader = new THREE.FBXLoader();
+    fbxLoader.load(
+      'openworld/modelpg/Lady_in_red_dress/claire@Walking.fbx',
+      function(walkingObject) {
+        // Salva il modello walking e la sua animazione
+        window.walkingModel = walkingObject;
         
-        // Fallback: prova con DAE
-        const colladaLoader = new THREE.ColladaLoader();
-        colladaLoader.load(
-          'openworld/modelpg/Lady_in_red_dress/claire.dae',
-          function(collada) {
-            serenaModel = collada.scene;
-            
-            // Scala appropriata per il mondo
-            serenaModel.scale.set(0.01, 0.01, 0.01);
-            
-            // Posiziona a terra
-            serenaModel.position.set(0, 0, 0);
-            
-            // Correggi orientamento
-            serenaModel.rotation.x = 0;
-            serenaModel.rotation.y = Math.PI;
-            serenaModel.rotation.z = 0;
-            
-            // Calcola bounding box
-            const box = new THREE.Box3().setFromObject(serenaModel);
-            // FIX per Claire DAE: aggiungi offset extra
-            serenaModel.position.y = (-box.min.y * serenaModel.scale.y) + 0.5;
-            
-            // Setup ombre
-            serenaModel.traverse(function(child) {
-              if (child.isMesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
-              }
-            });
-            
-            scene.add(serenaModel);
-            
-            // Animazioni fallback
-            mixer = new THREE.AnimationMixer(serenaModel);
-            createFallbackAnimations();
-            
-            console.log('Claire DAE caricata con successo!');
-          },
-          function(error) {
-            console.error('Errore anche con DAE:', error);
-          }
-        );
+        if (walkingObject.animations.length > 0) {
+          console.log('Animazione walking trovata:', walkingObject.animations.length);
+          walkAnimation = walkingObject.animations[0];
+          
+          // Crea l'azione walking nel mixer del modello pose
+          walkAction = mixer.clipAction(walkAnimation);
+          walkAction.setEffectiveWeight(1);
+          walkAction.setEffectiveTimeScale(1);
+          walkAction.clampWhenFinished = false;
+          walkAction.setLoop(THREE.LoopRepeat);
+          
+          console.log('Animazione walking caricata nel mixer!');
+        }
+      },
+      function(xhr) {
+        console.log('Walking model: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
+      },
+      function(error) {
+        console.error('Errore caricamento walking model:', error);
       }
     );
   }
