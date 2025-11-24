@@ -1395,6 +1395,11 @@ function onKeyUp(event) {
     // Calcola il deltaTime usando THREE.Clock per consistenza
     const deltaTime = clock.getDelta();
 
+    // Aggiorna il mixer per le animazioni FBX
+    if (mixer) {
+      mixer.update(deltaTime);
+    }
+
     // Sistema unificato - usa solo AdvancedPlayerController
     if (playerController && playerController instanceof AdvancedPlayerController) {
       playerController.update(deltaTime);
