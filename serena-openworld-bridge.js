@@ -1782,6 +1782,12 @@ function onKeyUp(event) {
   function openPokerWindow() {
     console.log('Apertura finestra poker - blocco controlli mondo...');
     
+    // Funzione per rilevare mobile
+    function isMobile() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+             (window.innerWidth <= 768);
+    }
+    
     // BLOCCA i controlli del mondo (nuovo sistema)
     if (playerController && playerController instanceof AdvancedPlayerController) {
       playerController.keys.w = false;
@@ -1813,17 +1819,17 @@ function onKeyUp(event) {
       backdrop-filter: blur(10px);
     `;
     
-    // Contenuto della finestra poker
+    // Contenuto della finestra poker - RESPONSIVE PER MOBILE
     const pokerContent = document.createElement('div');
     pokerContent.style.cssText = `
       background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
       border: 4px solid #ffd700;
       border-radius: 20px;
-      padding: 20px;
+      padding: ${isMobile() ? '10px' : '20px'};
       width: 95%;
-      max-width: 1200px;
+      max-width: ${isMobile() ? '100%' : '1200px'};
       height: 95%;
-      max-height: 800px;
+      max-height: ${isMobile() ? '100vh' : '800px'};
       position: relative;
       box-shadow: 0 0 50px rgba(255, 215, 0, 0.9), inset 0 0 20px rgba(255, 215, 0, 0.2);
       overflow: hidden;
@@ -1901,57 +1907,57 @@ function onKeyUp(event) {
     gameArea.innerHTML = `
       <div id="pokerGameContainer" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
         <!-- Header con info e link -->
-        <div style="background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h3 style="color: #ffd700; margin: 0;">🎰 TEXAS HOLD'EM - 5 GIOCATORI</h3>
-            <p style="color: white; margin: 5px 0 0 0; font-size: 14px;">Sala: <span id="roomCode">${generateRoomCode()}</span></p>
+        <div style="background: rgba(0,0,0,0.8); padding: ${isMobile() ? '8px' : '15px'}; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <div style="min-width: 200px;">
+            <h3 style="color: #ffd700; margin: 0; font-size: ${isMobile() ? '14px' : '18px'};">🎰 TEXAS HOLD'EM - 5 GIOCATORI</h3>
+            <p style="color: white; margin: 2px 0 0 0; font-size: ${isMobile() ? '10px' : '14px'};">Sala: <span id="roomCode">${generateRoomCode()}</span></p>
           </div>
-          <div style="text-align: right;">
-            <button id="copyLinkBtn" style="background: #4CAF50; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-bottom: 5px;">📋 Copia Link</button>
-            <div id="shareLink" style="color: #4CAF50; font-size: 10px; word-break: break-all;"></div>
+          <div style="text-align: right; min-width: 150px;">
+            <button id="copyLinkBtn" style="background: #4CAF50; color: white; border: none; padding: ${isMobile() ? '4px 8px' : '8px 15px'}; border-radius: 5px; cursor: pointer; font-size: ${isMobile() ? '10px' : '12px'}; margin-bottom: 5px;">📋 Copia Link</button>
+            <div id="shareLink" style="color: #4CAF50; font-size: ${isMobile() ? '8px' : '10px'}; word-break: break-all; max-width: 200px;"></div>
           </div>
         </div>
         
         <!-- Tavolo da poker -->
-        <div style="flex: 1; display: flex; justify-content: center; align-items: center; position: relative;">
+        <div style="flex: 1; display: flex; justify-content: center; align-items: center; position: relative; min-height: ${isMobile() ? '250px' : '300px'};">
           <!-- Tavolo -->
-          <div style="width: 400px; height: 250px; background: radial-gradient(ellipse at center, #2d5f2d, #1a3d1a); border: 8px solid #8B4513; border-radius: 150px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+          <div style="width: ${isMobile() ? '280px' : '400px'}; height: ${isMobile() ? '180px' : '250px'}; background: radial-gradient(ellipse at center, #2d5f2d, #1a3d1a); border: ${isMobile() ? '4px' : '8px'} solid #8B4513; border-radius: ${isMobile() ? '100px' : '150px'}; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
             <!-- Area carte comunità -->
-            <div id="communityCards" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 5px;">
+            <div id="communityCards" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: ${isMobile() ? '2px' : '5px'};">
               <!-- Carte comunità appariranno qui -->
             </div>
             <!-- Dealer -->
-            <div style="position: absolute; top: -30px; left: 50%; transform: translateX(-50%); background: #ffd700; color: black; padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold;">DEALER</div>
+            <div style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: #ffd700; color: black; padding: ${isMobile() ? '3px 6px' : '5px 10px'}; border-radius: 15px; font-size: ${isMobile() ? '8px' : '12px'}; font-weight: bold;">DEALER</div>
           </div>
           
-          <!-- Posti giocatori (5 posti) -->
-          <div id="playerSeat1" class="player-seat" style="position: absolute; top: 10%; left: 50%; transform: translateX(-50%);">
-            <div class="seat-content">🪑 Posto 1</div>
+          <!-- Posti giocatori (5 posti) - OTTIMIZZATI PER MOBILE -->
+          <div id="playerSeat1" class="player-seat" style="position: absolute; top: 5%; left: 50%; transform: translateX(-50%); width: ${isMobile() ? '80px' : '120px'}; height: ${isMobile() ? '60px' : '80px'};">
+            <div class="seat-content" style="font-size: ${isMobile() ? '9px' : '12px'};">🪑 Posto 1</div>
           </div>
-          <div id="playerSeat2" class="player-seat" style="position: absolute; top: 30%; right: 5%;">
-            <div class="seat-content">🪑 Posto 2</div>
+          <div id="playerSeat2" class="player-seat" style="position: absolute; top: 25%; right: 2%; width: ${isMobile() ? '80px' : '120px'}; height: ${isMobile() ? '60px' : '80px'};">
+            <div class="seat-content" style="font-size: ${isMobile() ? '9px' : '12px'};">🪑 Posto 2</div>
           </div>
-          <div id="playerSeat3" class="player-seat" style="position: absolute; bottom: 10%; right: 20%;">
-            <div class="seat-content">🪑 Posto 3</div>
+          <div id="playerSeat3" class="player-seat" style="position: absolute; bottom: 5%; right: 15%; width: ${isMobile() ? '80px' : '120px'}; height: ${isMobile() ? '60px' : '80px'};">
+            <div class="seat-content" style="font-size: ${isMobile() ? '9px' : '12px'};">🪑 Posto 3</div>
           </div>
-          <div id="playerSeat4" class="player-seat" style="position: absolute; bottom: 10%; left: 20%;">
-            <div class="seat-content">🪑 Posto 4</div>
+          <div id="playerSeat4" class="player-seat" style="position: absolute; bottom: 5%; left: 15%; width: ${isMobile() ? '80px' : '120px'}; height: ${isMobile() ? '60px' : '80px'};">
+            <div class="seat-content" style="font-size: ${isMobile() ? '9px' : '12px'};">🪑 Posto 4</div>
           </div>
-          <div id="playerSeat5" class="player-seat" style="position: absolute; top: 30%; left: 5%;">
-            <div class="seat-content">🪑 Posto 5</div>
+          <div id="playerSeat5" class="player-seat" style="position: absolute; top: 25%; left: 2%; width: ${isMobile() ? '80px' : '120px'}; height: ${isMobile() ? '60px' : '80px'};">
+            <div class="seat-content" style="font-size: ${isMobile() ? '9px' : '12px'};">🪑 Posto 5</div>
           </div>
         </div>
         
         <!-- Area controlli -->
-        <div style="background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; margin-top: 20px;">
-          <div id="gameControls" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px;">
-            <button id="readyBtn" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">🎯 PRONTO</button>
-            <button id="checkBtn" style="background: #2196F3; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: none;">✋ CHECK</button>
-            <button id="callBtn" style="background: #FF9800; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: none;">📞 CALL</button>
-            <button id="raiseBtn" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: none;">🔥 RAISE</button>
-            <button id="foldBtn" style="background: #9E9E9E; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: none;">🏳️ FOLD</button>
+        <div style="background: rgba(0,0,0,0.8); padding: ${isMobile() ? '8px' : '15px'}; border-radius: 10px; margin-top: 10px;">
+          <div id="gameControls" style="display: flex; justify-content: center; gap: ${isMobile() ? '4px' : '10px'}; margin-bottom: 8px; flex-wrap: wrap;">
+            <button id="readyBtn" style="background: #4CAF50; color: white; border: none; padding: ${isMobile() ? '6px 10px' : '10px 20px'}; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: ${isMobile() ? '10px' : '14px'};">🎯 PRONTO</button>
+            <button id="checkBtn" style="background: #2196F3; color: white; border: none; padding: ${isMobile() ? '6px 10px' : '10px 20px'}; border-radius: 5px; cursor: pointer; display: none; font-size: ${isMobile() ? '10px' : '14px'};">✋ CHECK</button>
+            <button id="callBtn" style="background: #FF9800; color: white; border: none; padding: ${isMobile() ? '6px 10px' : '10px 20px'}; border-radius: 5px; cursor: pointer; display: none; font-size: ${isMobile() ? '10px' : '14px'};">📞 CALL</button>
+            <button id="raiseBtn" style="background: #f44336; color: white; border: none; padding: ${isMobile() ? '6px 10px' : '10px 20px'}; border-radius: 5px; cursor: pointer; display: none; font-size: ${isMobile() ? '10px' : '14px'};">🔥 RAISE</button>
+            <button id="foldBtn" style="background: #9E9E9E; color: white; border: none; padding: ${isMobile() ? '6px 10px' : '10px 20px'}; border-radius: 5px; cursor: pointer; display: none; font-size: ${isMobile() ? '10px' : '14px'};">🏳️ FOLD</button>
           </div>
-          <div id="gameInfo" style="text-align: center; color: white; font-size: 14px;">
+          <div id="gameInfo" style="text-align: center; color: white; font-size: ${isMobile() ? '11px' : '14px'};">
             <div>Timer: <span id="turnTimer">30</span>s | Fiches: <span id="playerChips">10,000</span> | Pot: <span id="potAmount">0</span></div>
           </div>
         </div>
@@ -1959,8 +1965,6 @@ function onKeyUp(event) {
       
       <style>
         .player-seat {
-          width: 120px;
-          height: 80px;
           background: rgba(0,0,0,0.8);
           border: 2px solid #666;
           border-radius: 10px;
@@ -1980,12 +1984,11 @@ function onKeyUp(event) {
         }
         .seat-content {
           color: white;
-          font-size: 12px;
           text-align: center;
           padding: 5px;
         }
         .player-info {
-          font-size: 10px;
+          font-size: 9px;
           opacity: 0.8;
         }
         @keyframes pulse {
@@ -1993,18 +1996,28 @@ function onKeyUp(event) {
           50% { transform: translateX(-50%) scale(1.05); }
         }
         .card {
-          width: 40px;
-          height: 60px;
           background: white;
           border: 1px solid #333;
           border-radius: 5px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 16px;
           font-weight: bold;
           color: black;
         }
+        ${isMobile() ? `
+        .card {
+          width: 25px;
+          height: 35px;
+          font-size: 10px;
+        }
+        ` : `
+        .card {
+          width: 40px;
+          height: 60px;
+          font-size: 16px;
+        }
+        `}
       </style>
     `;
     
@@ -2451,7 +2464,9 @@ function onKeyUp(event) {
     if (xButton) {
       xButton.addEventListener('touchstart', function(e) {
         e.preventDefault();
-        if (window.closeWeddingMessage) {
+        if (nearbyInteractable && nearbyInteractable.userData.isPokerTable) {
+          openPokerWindow();
+        } else if (window.closeWeddingMessage) {
           window.closeWeddingMessage();
         } else if (window.closeLoveMessage) {
           window.closeLoveMessage();
@@ -2462,7 +2477,9 @@ function onKeyUp(event) {
       
       xButton.addEventListener('click', function(e) {
         e.preventDefault();
-        if (window.closeWeddingMessage) {
+        if (nearbyInteractable && nearbyInteractable.userData.isPokerTable) {
+          openPokerWindow();
+        } else if (window.closeWeddingMessage) {
           window.closeWeddingMessage();
         } else if (window.closeLoveMessage) {
           window.closeLoveMessage();
