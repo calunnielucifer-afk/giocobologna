@@ -216,13 +216,13 @@
   }
 
   function loadClaire() {
-    console.log('Caricamento modello Claire pose di default...');
+    console.log('Caricamento modello Serena pose FBX 7.4 di default...');
     
     const fbxLoader = new THREE.FBXLoader();
     
-    // Carica il modello POSE come default
+    // Carica il modello SERENA POSE FBX 7.4 come default
     fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/claire@Pose.fbx',
+      'openworld/modelpg/Lady_in_red_dress/SerenaPose.fbx',
       function(object) {
         serenaModel = object;
         
@@ -260,7 +260,7 @@
         mixer = new THREE.AnimationMixer(object);
         
         if (object.animations.length > 0) {
-          console.log('Animazione pose trovata:', object.animations.length);
+          console.log('Animazione Serena pose FBX 7.4 trovata:', object.animations.length);
           poseAnimation = object.animations[0];
           
           // Crea l'azione pose
@@ -277,35 +277,35 @@
           poseAction.play();
           currentAction = poseAction;
           
-          console.log('Animazione pose avviata di default!');
+          console.log('Animazione Serena pose FBX 7.4 avviata di default!');
         }
         
         // Carica il modello walking per quando cammina
         loadWalkingModel();
         
-        console.log('Claire pose caricata con successo!');
+        console.log('Serena pose FBX 7.4 caricata con successo!');
       },
       function(xhr) {
         console.log((xhr.loaded / xhr.total * 100) + '% caricato');
       },
       function(error) {
-        console.error('Errore caricamento FBX pose:', error);
+        console.error('Errore caricamento FBX Serena pose:', error);
       }
     );
   }
   
   function loadWalkingModel() {
-    console.log('Caricamento modello walking per movimento...');
+    console.log('Caricamento modello Serena walking FBX 7.4 per movimento...');
     
     const fbxLoader = new THREE.FBXLoader();
     fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/claire@Walking.fbx',
+      'openworld/modelpg/Lady_in_red_dress/SerenaWalking.fbx',
       function(walkingObject) {
         // Salva il modello walking e la sua animazione
         window.walkingModel = walkingObject;
         
         if (walkingObject.animations.length > 0) {
-          console.log('Animazione walking trovata:', walkingObject.animations.length);
+          console.log('Animazione Serena walking FBX 7.4 trovata:', walkingObject.animations.length);
           walkAnimation = walkingObject.animations[0];
           
           // Crea l'azione walking nel mixer del modello pose
@@ -315,14 +315,14 @@
           walkAction.clampWhenFinished = false;
           walkAction.setLoop(THREE.LoopRepeat);
           
-          console.log('Animazione walking caricata nel mixer!');
+          console.log('Animazione Serena walking FBX 7.4 caricata nel mixer!');
         }
       },
       function(xhr) {
-        console.log('Walking model: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
+        console.log('Serena walking FBX 7.4 model: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
       },
       function(error) {
-        console.error('Errore caricamento walking model:', error);
+        console.error('Errore caricamento Serena walking FBX 7.4 model:', error);
       }
     );
   }
