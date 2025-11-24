@@ -493,6 +493,12 @@ function onKeyUp(event) {
     fbxLoader.load(
       'modelpg/Lady_in_red_dress/SerenaPose.fbx',
       function(object) {
+        // Rimuovi il placeholder se esiste
+        if (serenaModel && serenaModel.isMesh) {
+          console.log('Rimuovendo placeholder Serena...');
+          scene.remove(serenaModel);
+        }
+        
         serenaModel = object;
         
         // Scala appropriata per il mondo
@@ -524,6 +530,8 @@ function onKeyUp(event) {
         object.position.y = (-box.min.y * object.scale.y) + 0.5;
         
         scene.add(object);
+        
+        console.log('✅ Modello FBX Serena caricato e sostituito al placeholder!');
 
         // Animazioni - setup per pose (modello di default)
         mixer = new THREE.AnimationMixer(object);
