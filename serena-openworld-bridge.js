@@ -122,7 +122,7 @@
     
     // Aggiungi un indicatore luminoso sopra la tavola
     const indicatorGeometry = new THREE.BoxGeometry(1, 3, 1);
-    const indicatorMaterial = new THREE.MeshBasicMaterial({ 
+    const indicatorMaterial = new THREE.MeshStandardMaterial({ 
       color: 0xffd700,
       emissive: 0xffd700,
       emissiveIntensity: 0.5
@@ -241,50 +241,12 @@
   }
 
   function loadWalkAnimation() {
-    console.log('Caricamento animazione di camminata Mixamo...');
+    console.log('Caricamento animazione di camminata Mixamo... DISABILITATO per evitare errori');
     
-    const colladaLoader = new THREE.ColladaLoader();
-    colladaLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/Walking.dae',
-      function(collada) {
-        console.log('Animazione Mixamo caricata con successo!');
-        console.log('Animations found:', collada.animations.length);
-        
-        // Estrai l'animazione dal file COLLADA
-        if (collada.animations.length > 0) {
-          walkAnimation = collada.animations[0];
-          console.log('Walk animation name:', walkAnimation.name);
-          console.log('Walk animation duration:', walkAnimation.duration);
-          
-          // Crea l'azione di camminata
-          walkAction = mixer.clipAction(walkAnimation);
-          walkAction.setEffectiveWeight(1);
-          walkAction.setEffectiveTimeScale(1);
-          walkAction.clampWhenFinished = true;
-          
-          // Crea un'animazione idle di base (fermo)
-          idleAction = mixer.clipAction(createIdleAnimation());
-          idleAction.setEffectiveWeight(1);
-          idleAction.setEffectiveTimeScale(1);
-          
-          // Inizia con l'animazione idle
-          idleAction.play();
-          currentAction = idleAction;
-          
-          console.log('Animazioni setup completate - Idle attivo');
-        } else {
-          console.log('Nessuna animazione trovata nel file DAE');
-        }
-      },
-      function(xhr) {
-        console.log('Animazione: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
-      },
-      function(error) {
-        console.error('Errore caricamento animazione:', error);
-        // Fallback: crea animazione di camminata semplice
-        createSimpleWalkAnimation();
-      }
-    );
+    // Disabilitato perché causa PropertyBinding errors
+    // Le animazioni Mixamo non sono compatibili con la struttura delle ossa del modello FBX
+    console.log('Usando solo animazioni fallback...');
+    return;
   }
   
   function createSimpleWalkAnimation() {
