@@ -1049,6 +1049,9 @@
     window.addEventListener('resize', function() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  }
 
   function openPokerWindow() {
     console.log('Apertura finestra poker - blocco controlli mondo...');
