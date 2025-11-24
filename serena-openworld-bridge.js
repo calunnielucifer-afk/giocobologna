@@ -315,6 +315,11 @@
           console.log('Imposto pose di default allo spawn');
           window.poseAction.play();
           currentAction = window.poseAction;
+          
+          // Ferma l'animazione walking se sta girando
+          if (walkAction) {
+            walkAction.stop();
+          }
         }
 
         console.log('Claire caricata con successo!');
