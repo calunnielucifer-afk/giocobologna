@@ -1506,6 +1506,10 @@ function createLevel1() {
 function createLevel2() {
     console.log('Creating Level 2 - Realistic Open World Village');
     
+    // NOTIFICA: Messaggio del principe al livello 2
+    showPrinceMessage();
+    playNotificationSound();
+    
     // Clear all elements for open world experience
     obstacles = [];
     platforms = [];
@@ -4390,6 +4394,132 @@ function drawClouds() {
     ctx.arc(725, 90, 28, 0, Math.PI * 2);
     ctx.arc(750, 90, 22, 0, Math.PI * 2);
     ctx.fill();
+}
+
+function showPrinceMessage() {
+    // Crea un elemento HTML per il messaggio del principe
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(70, 130, 180, 0.95), rgba(106, 90, 205, 0.95));
+        color: white;
+        padding: 30px 40px;
+        border-radius: 20px;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        z-index: 10000;
+        box-shadow: 0 15px 40px rgba(70, 130, 180, 0.4);
+        border: 3px solid #4682B4;
+        max-width: 400px;
+        animation: princeMessage 1s ease-out;
+    `;
+    messageDiv.innerHTML = `
+        <div style="font-size: 24px; margin-bottom: 15px;">🤴💭</div>
+        <div style="line-height: 1.6; margin-bottom: 15px;">Sembra che il principe abbia lasciato qualcosa durante la fuga...</div>
+        <div style="font-size: 16px; opacity: 0.9;">Di cosa si tratterà mai?</div>
+        <div style="margin-top: 20px; font-size: 14px; opacity: 0.8;">Esplora il villaggio per scoprirlo!</div>
+    `;
+    
+    // Aggiungi animazione CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes princeMessage {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(messageDiv);
+    
+    // Auto-chiusura dopo 5 secondi
+    setTimeout(() => {
+        if (messageDiv.parentNode) {
+            document.body.removeChild(messageDiv);
+        }
+        if (style.parentNode) {
+            document.head.removeChild(style);
+        }
+    }, 5000);
+}
+
+function playNotificationSound() {
+    try {
+        // Crea contesto audio per suono notifica
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Suono notifica misterioso (triangolo wave con envelope)
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.type = 'triangle'; // Suono morbido e misterioso
+        oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // Nota C5
+        oscillator.frequency.exponentialRampToValueAtTime(261.63, audioContext.currentTime + 0.3); // Scende a C4
+        
+        // Envelope per suono notifica
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.05); // Attack
+        gainNode.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + 0.2); // Decay
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5); // Release
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+        
+        // Seconda nota per enfatizzare
+        setTimeout(() => {
+            const oscillator2 = audioContext.createOscillator();
+            const gainNode2 = audioContext.createGain();
+            
+            oscillator2.connect(gainNode2);
+            gainNode2.connect(audioContext.destination);
+            
+            oscillator2.type = 'sine'; // Suono più puro
+            oscillator2.frequency.setValueAtTime(392.00, audioContext.currentTime); // Nota G4
+            
+            gainNode2.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode2.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.03);
+            gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator2.start(audioContext.currentTime);
+            oscillator2.stop(audioContext.currentTime + 0.3);
+        }, 600);
+        
+        console.log('🔔 Suono notifica misterioso avviato!');
+        
+    } catch (error) {
+        console.log('🔔 Errore suono notifica:', error);
+        // Fallback: mostra un indicatore visivo
+        const soundIndicator = document.createElement('div');
+        soundIndicator.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(70, 130, 180, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 10001;
+            animation: soundPulse 0.5s ease-out;
+        `;
+        soundIndicator.innerHTML = '🔔 Messaggio del Principe!';
+        document.body.appendChild(soundIndicator);
+        
+        setTimeout(() => {
+            if (soundIndicator.parentNode) {
+                document.body.removeChild(soundIndicator);
+            }
+        }, 2000);
+    }
 }
 
 // Expose necessary functions to global scope for HTML event handlers
