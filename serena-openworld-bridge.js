@@ -305,8 +305,15 @@
         // Crea subito animazioni di fallback per assicurarsi che funzionino
         createFallbackAnimations();
 
-        // Crea animazione pose statica usando lo stesso modello
-        createPoseAnimation();
+        // Crea animazione pose usando lo stesso meccanismo della camminata
+        createPoseAnimationWithSameMechanism();
+
+        // Imposta animazione pose di default allo spawn
+        if (window.poseAction) {
+          console.log('Imposto pose di default allo spawn');
+          window.poseAction.play();
+          currentAction = window.poseAction;
+        }
 
         console.log('Claire caricata con successo!');
       },
@@ -364,31 +371,29 @@
     );
   }
   
-  function createPoseAnimation() {
-    console.log('Creazione animazione pose statica...');
+  function createPoseAnimationWithSameMechanism() {
+    console.log('Creazione animazione pose con stesso meccanismo della camminata...');
     
-    // Crea un'animazione vuota per la pose (nessun movimento)
+    // Crea un'animazione vuota (nessuna track = nessun movimento)
     const poseTracks = [];
-    const poseDuration = 1.0; // 1 secondo di pose statica
+    const poseDuration = 1.0; // Durata come la camminata
     
-    // Non aggiungere tracks - l'animazione manterrà il modello nella posa attuale
+    // Crea animation clip vuota esattamente come viene fatto per la camminata
     poseAnimation = new THREE.AnimationClip('Pose', poseDuration, poseTracks);
+    console.log('Pose animation name:', poseAnimation.name);
+    console.log('Pose animation duration:', poseAnimation.duration);
     
-    // Crea l'azione pose nel mixer esistente
-    try {
-      const poseAction = mixer.clipAction(poseAnimation);
-      poseAction.setEffectiveWeight(1);
-      poseAction.setEffectiveTimeScale(1);
-      poseAction.clampWhenFinished = false;
-      poseAction.setLoop(THREE.LoopRepeat);
-      
-      // Salva il riferimento per usarlo dopo
-      window.poseAction = poseAction;
-      
-      console.log('Animazione pose statica creata e aggiunta al mixer!');
-    } catch (error) {
-      console.error('Errore nel creare poseAction:', error);
-    }
+    // Crea l'azione pose esattamente come walkAction
+    const poseAction = mixer.clipAction(poseAnimation);
+    poseAction.setEffectiveWeight(1);
+    poseAction.setEffectiveTimeScale(1);
+    poseAction.clampWhenFinished = false; // Non clamp per loop continuo
+    poseAction.setLoop(THREE.LoopRepeat); // Loop infinito
+    
+    // Salva il riferimento esattamente come per walkAction
+    window.poseAction = poseAction;
+    
+    console.log('Animazione pose setup completata con stesso meccanismo!');
   }
 
   function applyTexturesToModel(model) {
@@ -1334,50 +1339,28 @@
           console.log('Animazioni - walkAction:', !!walkAction, 'idleAction:', !!idleAction, 'isMoving:', isMoving, 'moveSpeed:', moveSpeed);
         }
         
-        // Sistema di animazione completo
-        if (walkAction && idleAction) {
+        // Sistema di animazione completo - stesso meccanismo per pose e walking
+        if (walkAction && window.poseAction) {
           if (isMoving && currentAction !== walkAction) {
-            // Transizione a camminata
+            // Transizione a camminata - esattamente come sistema walking
             console.log('Transizione a camminata - velocità:', moveSpeed);
-            idleAction.fadeOut(0.5); // Transizione più lunga
-            walkAction.reset().fadeIn(0.5).play(); // Transizione più lunga
-            walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.2, 1.0)); // Ridotto da 0.3 a 0.2 e max da 1.5 a 1.0
-            walkAction.setLoop(THREE.LoopRepeat); // Assicura loop continuo
+            window.poseAction.fadeOut(0.5); // Fade out pose
+            walkAction.reset().fadeIn(0.5).play(); // Fade in walking
+            walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.2, 1.0));
+            walkAction.setLoop(THREE.LoopRepeat);
             currentAction = walkAction;
-          } else if (moveSpeed < 0.2 && currentAction !== idleAction) {
-            // Transizione a pose quando velocità < 0.2
+          } else if (moveSpeed < 0.2 && currentAction !== window.poseAction) {
+            // Transizione a pose quando velocità < 0.2 - esattamente come sistema walking
             console.log('Transizione a pose (velocità < 0.2)');
-            console.log('poseAnimation disponibile:', !!poseAnimation);
-            console.log('window.poseAction disponibile:', !!window.poseAction);
-            
-            walkAction.fadeOut(0.5); // Transizione più lunga
-            
-            if (window.poseAction) {
-              // Usa l'animazione pose da fermo (riferimento salvato)
-              console.log('Uso window.poseAction salvato');
-              window.poseAction.reset().fadeIn(0.5).play();
-              window.poseAction.setLoop(THREE.LoopRepeat);
-              currentAction = window.poseAction;
-            } else if (poseAnimation) {
-              // Ricrea l'azione pose se necessario
-              console.log('Ricreo poseAction da poseAnimation');
-              const poseAction = mixer.clipAction(poseAnimation);
-              poseAction.reset().fadeIn(0.5).play();
-              poseAction.setLoop(THREE.LoopRepeat);
-              window.poseAction = poseAction; // Salva per futuro
-              currentAction = poseAction;
-            } else {
-              // Fallback a idle normale
-              console.log('Fallback a idle normale - pose non disponibile');
-              idleAction.reset().fadeIn(0.5).play();
-              currentAction = idleAction;
-            }
+            walkAction.fadeOut(0.5); // Fade out walking
+            window.poseAction.reset().fadeIn(0.5).play(); // Fade in pose
+            window.poseAction.setLoop(THREE.LoopRepeat);
+            currentAction = window.poseAction;
           } else if (isMoving && currentAction === walkAction) {
             // Aggiusta velocità camminata in modo più fluido
-            const targetTimeScale = Math.min(moveSpeed * 0.2, 1.0); // Ridotto da 0.3 a 0.2 e max da 1.5 a 1.0
+            const targetTimeScale = Math.min(moveSpeed * 0.2, 1.0);
             const currentTimeScale = walkAction.getEffectiveTimeScale();
-            // Interpolazione molto smooth per evitare scatti
-            walkAction.setEffectiveTimeScale(currentTimeScale + (targetTimeScale - currentTimeScale) * 0.05); // Ridotto da 0.1 a 0.05
+            walkAction.setEffectiveTimeScale(currentTimeScale + (targetTimeScale - currentTimeScale) * 0.05);
           }
         } else {
           // Fallback: oscillazione semplice se le animazioni non sono caricate
