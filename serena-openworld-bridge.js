@@ -92,8 +92,8 @@
     // Setup touch joystick per mobile
     setupTouchJoystick();
 
-    // Carica Serena
-    loadSerena();
+    // Carica Claire
+    loadClaire();
 
     // Loop di rendering
     animate();
@@ -325,12 +325,12 @@
     return new THREE.AnimationClip('Idle', duration, tracks);
   }
 
-  function loadSerena() {
-    console.log('Caricamento modello FBX di Serena...');
+  function loadClaire() {
+    console.log('Caricamento modello FBX di Claire...');
     
     const fbxLoader = new THREE.FBXLoader();
     fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/Lady in red dress.fbx',
+      'openworld/modelpg/Lady_in_red_dress/claire.fbx',
       function(object) {
         serenaModel = object;
         
@@ -396,7 +396,7 @@
         // DISABILITATO: loadWalkAnimation() causa PropertyBinding errors
         console.log('Mixamo animations disabled - using fallback only');
 
-        console.log('Serena caricata con successo!');
+        console.log('Claire caricata con successo!');
       },
       function(xhr) {
         console.log((xhr.loaded / xhr.total * 100) + '% caricato');
