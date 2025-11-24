@@ -293,7 +293,8 @@
           walkAction = mixer.clipAction(walkAnimation);
           walkAction.setEffectiveWeight(1);
           walkAction.setEffectiveTimeScale(1);
-          walkAction.clampWhenFinished = true;
+          walkAction.clampWhenFinished = false; // Non clamp per loop continuo
+          walkAction.setLoop(THREE.LoopRepeat); // Loop infinito
           
           console.log('Animazione Claire setup completata!');
         } else {
@@ -1285,19 +1286,23 @@
           if (isMoving && currentAction !== walkAction) {
             // Transizione a camminata
             console.log('Transizione a camminata - velocità:', moveSpeed);
-            idleAction.fadeOut(0.3);
-            walkAction.reset().fadeIn(0.3).play();
-            walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
+            idleAction.fadeOut(0.5); // Transizione più lunga
+            walkAction.reset().fadeIn(0.5).play(); // Transizione più lunga
+            walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.3, 1.5)); // Velocità più bassa e sincronizzata
+            walkAction.setLoop(THREE.LoopRepeat); // Assicura loop continuo
             currentAction = walkAction;
           } else if (!isMoving && currentAction !== idleAction) {
             // Transizione a idle
             console.log('Transizione a idle');
-            walkAction.fadeOut(0.3);
-            idleAction.reset().fadeIn(0.3).play();
+            walkAction.fadeOut(0.5); // Transizione più lunga
+            idleAction.reset().fadeIn(0.5).play(); // Transizione più lunga
             currentAction = idleAction;
           } else if (isMoving && currentAction === walkAction) {
-            // Aggiusta velocità camminata
-            walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
+            // Aggiusta velocità camminata in modo più fluido
+            const targetTimeScale = Math.min(moveSpeed * 0.3, 1.5);
+            const currentTimeScale = walkAction.getEffectiveTimeScale();
+            // Interpolazione smooth per evitare scatti
+            walkAction.setEffectiveTimeScale(currentTimeScale + (targetTimeScale - currentTimeScale) * 0.1);
           }
         } else {
           // Fallback: oscillazione semplice se le animazioni non sono caricate
