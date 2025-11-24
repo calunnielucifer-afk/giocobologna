@@ -5,6 +5,11 @@
   // Tracking primo passo per notifica principe
   let firstStepNotified = false;
 
+  // Counter bigliettini d'amore
+  let collectedLoveNotes = 0;
+  let totalLoveNotes = 10;
+  let loveNoteCounterElement = null;
+
   // Funzioni di input per il nuovo sistema
 function onKeyDown(event) {
     // Gestisci prima l'interazione con E
@@ -297,6 +302,15 @@ function onKeyUp(event) {
       scene.remove(nearbyNote);
       nearbyNote.userData.collected = true;
       collectedNotes++;
+      collectedLoveNotes++;
+      
+      // Mostra il counter al primo bigliettino
+      if (collectedLoveNotes === 1) {
+        showLoveNoteCounter();
+      }
+      
+      // Aggiorna il counter
+      updateLoveNoteCounter();
       
       // Mostra il messaggio d'amore
       this.showLoveMessage(nearbyNote.userData.message);
@@ -306,6 +320,10 @@ function onKeyUp(event) {
       // Controlla se ha raccolto tutti i bigliettini
       if (collectedNotes === loveNotes.length) {
         this.showWeddingCongratulations();
+        // Nascondi il counter dopo il messaggio finale
+        setTimeout(() => {
+          hideLoveNoteCounter();
+        }, 15000); // Aspetta 15 secondi (durata messaggio finale)
       }
       
       return true;
@@ -2138,6 +2156,68 @@ function onKeyUp(event) {
   // Fallback per mobile - controlla anche dopo un ritardo
   setTimeout(setupCloseInfoButton, 1000);
   setTimeout(setupCloseInfoButton, 3000);
+
+  function showLoveNoteCounter() {
+    if (!loveNoteCounterElement) {
+      loveNoteCounterElement = document.createElement('div');
+      loveNoteCounterElement.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: rgba(255, 0, 0, 0.9);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 10001;
+        border: 2px solid #ff0000;
+        box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+        animation: counterPulse 0.5s ease-out;
+      `;
+      document.body.appendChild(loveNoteCounterElement);
+      
+      // Aggiungi animazione CSS
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes counterPulse {
+          0% { opacity: 0; transform: scale(0.8); }
+          50% { transform: scale(1.1); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fadeOut {
+          0% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    updateLoveNoteCounter();
+  }
+
+  function updateLoveNoteCounter() {
+    if (loveNoteCounterElement) {
+      loveNoteCounterElement.innerHTML = `${collectedLoveNotes}/${totalLoveNotes}`;
+      
+      // Effetto speciale quando raccogli un bigliettino
+      loveNoteCounterElement.style.animation = 'none';
+      setTimeout(() => {
+        loveNoteCounterElement.style.animation = 'counterPulse 0.3s ease-out';
+      }, 10);
+    }
+  }
+
+  function hideLoveNoteCounter() {
+    if (loveNoteCounterElement) {
+      loveNoteCounterElement.style.animation = 'fadeOut 0.5s ease-out';
+      setTimeout(() => {
+        if (loveNoteCounterElement.parentNode) {
+          document.body.removeChild(loveNoteCounterElement);
+        }
+        loveNoteCounterElement = null;
+      }, 500);
+    }
+  }
 
   function showPrinceMessage() {
     console.log('🤴 showPrinceMessage() CHIAMATA!');
