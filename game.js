@@ -3468,38 +3468,6 @@ function handleDragEnd(e) {
     this.style.opacity = '1';
 }
 
-function skipPuzzle() {
-    if (lives > 1) {
-        lives--;
-        updateUI();
-        
-        const feedback = document.getElementById('puzzleFeedback');
-        feedback.textContent = `🚪 Porta aperta ma hai perso una vita! Vite rimaste: ${lives}`;
-        feedback.className = 'puzzle-feedback correct';
-        
-        if (currentDoor) {
-            currentDoor.locked = false;
-        }
-        
-        setTimeout(() => {
-            closeRiddleModal();
-        }, 1500);
-    } else {
-        const feedback = document.getElementById('puzzleFeedback');
-        feedback.textContent = '❌ Non puoi saltare! Hai solo una vita rimasta!';
-        feedback.className = 'puzzle-feedback wrong';
-    }
-}
-
-function closeRiddleModal() {
-    document.getElementById('riddleModal').classList.add('hidden');
-    gamePausedForRiddle = false;
-    currentRiddle = null;
-    currentDoor = null;
-    currentPuzzle = null;
-    gamePaused = false;
-}
-
 function selectRiddle(riddleIndex) {
     const riddleId = parseInt(riddleIndex);
     const riddle = riddles[riddleId];
@@ -3515,34 +3483,6 @@ function selectRiddle(riddleIndex) {
     document.getElementById('riddleAnswer').value = '';
     document.getElementById('riddleFeedback').textContent = '';
     document.getElementById('riddleFeedback').className = 'riddle-feedback';
-}
-
-function checkRiddleAnswer() {
-    const userAnswer = document.getElementById('riddleAnswer').value.toLowerCase().trim();
-    const feedback = document.getElementById('riddleFeedback');
-    
-    // Check both main answer and variant answer
-    const isCorrect = userAnswer === currentRiddle.answer || 
-                     (currentRiddle.variantAnswer && userAnswer === currentRiddle.variantAnswer);
-    
-    if (isCorrect) {
-        feedback.textContent = '✅ Risposta corretta! Porta aperta!';
-        feedback.className = 'riddle-feedback correct';
-        score += 200;
-        updateUI();
-        
-        if (currentDoor) {
-            currentDoor.locked = false;
-        }
-        
-        setTimeout(() => {
-            closeRiddleModal();
-        }, 1500);
-    } else {
-        feedback.textContent = '❌ Risposta sbagliata! Riprova.';
-        feedback.className = 'riddle-feedback wrong';
-        document.getElementById('riddleAnswer').value = '';
-    }
 }
 
 function skipRiddle() {
@@ -3566,22 +3506,6 @@ function skipRiddle() {
         const feedback = document.getElementById('riddleFeedback');
         feedback.textContent = '❌ Non puoi saltare! Hai solo una vita rimasta!';
         feedback.className = 'riddle-feedback wrong';
-    }
-}
-
-// Lose life
-function loseLife() {
-    lives--;
-    updateUI();
-    
-    if (lives <= 0) {
-        gameOver();
-    } else {
-        // Reset position
-        serena.x = 50;
-        serena.y = 300;
-        serena.velocityX = 0;
-        serena.velocityY = 0;
     }
 }
 
@@ -4468,13 +4392,6 @@ function drawClouds() {
     ctx.fill();
 }
 
-// Update UI
-function updateUI() {
-    document.getElementById('score').textContent = score;
-    document.getElementById('lives').textContent = lives;
-    document.getElementById('level').textContent = level;
-}
-
 // Expose necessary functions to global scope for HTML event handlers
 window.SerenaGame = {
     startGame: startGame,
@@ -4482,5 +4399,7 @@ window.SerenaGame = {
     restartGame: restartGame,
     gameOver: gameOver
 };
+
+} // Close any remaining function scopes
 
 })(); // Close IIFE
