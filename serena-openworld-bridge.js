@@ -22,7 +22,6 @@
   let walkAnimation;
   let poseAnimation;
   let walkAction;
-  let idleAction;
   let currentAction;
 
   // Inizializza la scena three.js
@@ -196,19 +195,22 @@
   function createFallbackAnimations() {
     console.log('Creazione animazioni fallback immediate...');
     
-    // Animazione idle semplice (fermo)
-    const idleTracks = [];
-    const idleDuration = 1.0;
-    const idleTimes = [0, idleDuration];
+    // Animazione pose semplice (fermo)
+    const poseTracks = [];
+    const poseDuration = 1.0;
+    const poseTimes = [0, poseDuration];
     
-    // Crea animazione idle vuota (nessun movimento)
-    idleAnimation = new THREE.AnimationClip('Idle', idleDuration, idleTracks);
-    idleAction = mixer.clipAction(idleAnimation);
-    idleAction.setEffectiveWeight(1);
-    idleAction.setEffectiveTimeScale(1);
+    // Crea animazione pose vuota (nessun movimento)
+    poseAnimation = new THREE.AnimationClip('Pose', poseDuration, poseTracks);
+    poseAction = mixer.clipAction(poseAnimation);
+    poseAction.setEffectiveWeight(1);
+    poseAction.setEffectiveTimeScale(1);
     
-    idleAction.play();
-    currentAction = idleAction;
+    // Salva anche in window.poseAction per consistenza
+    window.poseAction = poseAction;
+    
+    poseAction.play();
+    currentAction = poseAction;
     
     console.log('Animazioni fallback create e attive');
   }
@@ -1336,7 +1338,7 @@
         
         // Debug: stato animazioni
         if (Math.random() < 0.01) { // Solo occasionalmente per non spam
-          console.log('Animazioni - walkAction:', !!walkAction, 'idleAction:', !!idleAction, 'isMoving:', isMoving, 'moveSpeed:', moveSpeed);
+          console.log('Animazioni - walkAction:', !!walkAction, 'poseAction:', !!window.poseAction, 'isMoving:', isMoving, 'moveSpeed:', moveSpeed);
         }
         
         // Sistema di animazione completo - stesso meccanismo per pose e walking
