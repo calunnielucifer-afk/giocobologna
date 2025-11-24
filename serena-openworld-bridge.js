@@ -194,8 +194,13 @@ function onKeyUp(event) {
         if (currentAction !== window.walkAction) {
           console.log('Transizione a camminata stile Fortnite - MOVIMENTO DETECTED');
           
-          window.poseAction.fadeOut(0.15);
-          window.walkAction.reset().fadeIn(0.15).setEffectiveTimeScale(1.0);
+          window.poseAction.fadeOut(0.2);
+          window.walkAction.reset().fadeIn(0.2).setEffectiveTimeScale(1.0);
+          
+          // Inizia da un punto casuale per evitare sincronizzazione visibile del loop
+          const randomStart = Math.random() * walkAnimation.duration;
+          window.walkAction.time = randomStart;
+          
           window.walkAction.play();
           
           currentAction = window.walkAction;
@@ -609,12 +614,18 @@ function onKeyUp(event) {
           // ACCORCIA DURATA ANIMAZIONE del 20% per eliminare mezzo passo in più
           walkAnimation.duration = walkAnimation.duration * 0.8;
           
+          // Rendi il loop seamless - elimina discontinuità
+          walkAnimation.clampWhenFinished = false;
+          
           // Crea l'azione walking nel mixer del modello pose
           walkAction = mixer.clipAction(walkAnimation);
           walkAction.setEffectiveWeight(1);
           walkAction.setEffectiveTimeScale(1); // Torna a velocità normale
           walkAction.clampWhenFinished = false;
-          walkAction.setLoop(THREE.LoopRepeat);
+          walkAction.setLoop(THREE.LoopRepeat, Infinity); // Loop infinito seamless
+          
+          // Imposta zero threshold per evitare salti al loop
+          walkAction.fadeIn(0.1); // Fade in più smooth
           
           // Rendi walkAction globale come poseAction
           window.walkAction = walkAction;
