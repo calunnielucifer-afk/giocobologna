@@ -304,6 +304,9 @@
         // Crea subito animazioni di fallback per assicurarsi che funzionino
         createFallbackAnimations();
 
+        // Attacca la camera al modello come un osso
+        attachCameraToModel();
+
         console.log('Claire caricata con successo!');
       },
       function(xhr) {
@@ -1209,6 +1212,37 @@
     moveRight = false;
   }
 
+  let cameraOffset = new THREE.Vector3(); // Offset fisico della camera rispetto al modello
+
+  function attachCameraToModel() {
+    // Calcola l'offset fisico della camera rispetto al modello (come un osso)
+    const cameraDistance = 3; // Distanza dietro le spalle
+    const cameraHeight = 2.2; // Altezza collo/spalle
+    const shoulderOffset = 0.5; // Offset laterale spalla destra
+    
+    // Calcola l'offset basato sulla rotazione iniziale del modello
+    cameraOffset.x = Math.sin(serenaModel.rotation.y) * cameraDistance - Math.cos(serenaModel.rotation.y) * shoulderOffset;
+    cameraOffset.y = cameraHeight;
+    cameraOffset.z = Math.cos(serenaModel.rotation.y) * cameraDistance + Math.sin(serenaModel.rotation.y) * shoulderOffset;
+  }
+
+  function updateCameraPosition() {
+    if (serenaModel) {
+      // Camera sempre attaccata al modello con offset fisso
+      camera.position.x = serenaModel.position.x - cameraOffset.x;
+      camera.position.y = serenaModel.position.y + cameraOffset.y;
+      camera.position.z = serenaModel.position.z - cameraOffset.z;
+      
+      // Camera guarda sempre verso il centro del modello (collo)
+      const lookAtPosition = new THREE.Vector3(
+        serenaModel.position.x,
+        serenaModel.position.y + 1.6, // Altezza collo
+        serenaModel.position.z
+      );
+      camera.lookAt(lookAtPosition);
+    }
+  }
+
   function animate() {
     requestAnimationFrame(animate);
     
@@ -1275,17 +1309,8 @@
         serenaModel.position.y = groundLevel; // Non andare sotto terra
       }
 
-      // Camera fissa alle spalle del modello - sempre attaccata
-      const cameraAngle = serenaModel.rotation.y; // Usa sempre la rotazione del modello
-      const cameraDistance = 3; // Distanza fissa
-      const cameraHeight = 2.2; // Altezza spalle
-      const shoulderOffset = 0.5; // Offset spalla destra
-      
-      // Camera sempre attaccata al modello
-      camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance + Math.cos(cameraAngle) * shoulderOffset;
-      camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance + Math.sin(cameraAngle) * shoulderOffset;
-      camera.position.y = serenaModel.position.y + cameraHeight;
-      camera.lookAt(serenaModel.position);
+      // Camera attaccata al modello come un osso - nessun lag
+      updateCameraPosition();
       
       // Animazioni migliorate
       if (mixer) {
