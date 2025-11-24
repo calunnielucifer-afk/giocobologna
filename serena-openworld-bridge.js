@@ -106,11 +106,16 @@
     }
     
     updateAnimations() {
-      if (!window.poseAction || !walkAction) return;
+      if (!window.poseAction || !walkAction) {
+        console.log('Animation actions not available - poseAction:', !!window.poseAction, 'walkAction:', !!walkAction);
+        return;
+      }
       
       // Aggiungi hysteresis per evitare switch continui
       const moveThreshold = 0.3;
       const stopThreshold = 0.1;
+      
+      console.log('Animation check - isMoving:', this.isMoving, 'currentAction:', currentAction === walkAction ? 'walk' : 'pose');
       
       if (this.isMoving) {
         // Transizione a camminata solo se supera la soglia
@@ -145,6 +150,7 @@
     
     updateCameraAngle(deltaX) {
       this.cameraAngle += deltaX * this.mouseSensitivity;
+      console.log('Camera angle updated - new angle:', this.cameraAngle.toFixed(4), 'deltaX:', deltaX.toFixed(4));
     }
   }
   
