@@ -305,8 +305,8 @@
         // Crea subito animazioni di fallback per assicurarsi che funzionino
         createFallbackAnimations();
 
-        // Carica anche l'animazione pose da fermo
-        loadPoseAnimation();
+        // Crea animazione pose statica usando lo stesso modello
+        createPoseAnimation();
 
         console.log('Claire caricata con successo!');
       },
@@ -364,44 +364,31 @@
     );
   }
   
-  function loadPoseAnimation() {
-    console.log('Caricamento animazione pose...');
+  function createPoseAnimation() {
+    console.log('Creazione animazione pose statica...');
     
-    const fbxLoader = new THREE.FBXLoader();
-    fbxLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/claire@Pose.fbx',
-      function(poseObject) {
-        if (poseObject.animations.length > 0) {
-          console.log('Animazione pose trovata:', poseObject.animations.length);
-          poseAnimation = poseObject.animations[0];
-          
-          // Aggiungi l'animazione di pose al mixer esistente
-          try {
-            const poseAction = mixer.clipAction(poseAnimation);
-            poseAction.setEffectiveWeight(1);
-            poseAction.setEffectiveTimeScale(1);
-            poseAction.clampWhenFinished = false;
-            poseAction.setLoop(THREE.LoopRepeat);
-            
-            // Salva il riferimento per usarlo dopo
-            window.poseAction = poseAction;
-            
-            console.log('Animazione pose caricata nel mixer!');
-          } catch (error) {
-            console.error('Errore nel creare poseAction:', error);
-          }
-        } else {
-          console.log('Nessuna animazione pose trovata nel file');
-        }
-      },
-      function(xhr) {
-        console.log('Pose animation: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
-      },
-      function(error) {
-        console.error('Errore caricamento animazione pose:', error);
-        console.log('Il file pose esiste ma non può essere caricato, uso fallback');
-      }
-    );
+    // Crea un'animazione vuota per la pose (nessun movimento)
+    const poseTracks = [];
+    const poseDuration = 1.0; // 1 secondo di pose statica
+    
+    // Non aggiungere tracks - l'animazione manterrà il modello nella posa attuale
+    poseAnimation = new THREE.AnimationClip('Pose', poseDuration, poseTracks);
+    
+    // Crea l'azione pose nel mixer esistente
+    try {
+      const poseAction = mixer.clipAction(poseAnimation);
+      poseAction.setEffectiveWeight(1);
+      poseAction.setEffectiveTimeScale(1);
+      poseAction.clampWhenFinished = false;
+      poseAction.setLoop(THREE.LoopRepeat);
+      
+      // Salva il riferimento per usarlo dopo
+      window.poseAction = poseAction;
+      
+      console.log('Animazione pose statica creata e aggiunta al mixer!');
+    } catch (error) {
+      console.error('Errore nel creare poseAction:', error);
+    }
   }
 
   function applyTexturesToModel(model) {
