@@ -195,42 +195,14 @@
   function createFallbackAnimations() {
     console.log('Creazione animazioni fallback immediate...');
     
-    const tracks = [];
-    const duration = 1.0;
-    const times = [0, 0.5, 1.0];
+    // Animazione idle semplice (fermo)
+    const idleTracks = [];
+    const idleDuration = 1.0;
+    const idleTimes = [0, idleDuration];
     
-    // Animazione semplice per il corpo intero
-    serenaModel.traverse(function(child) {
-      if (child.isBone) {
-        const name = child.name;
-        
-        // Oscillazione verticale per camminata
-        const yValues = [0, 0.1, 0];
-        const positionTrack = new THREE.NumberKeyframeTrack(
-          name + '.position.y',
-          times,
-          yValues
-        );
-        
-        // Legale rotazione per effetto camminata
-        const rotValues = [0, 0.1, 0];
-        const rotationTrack = new THREE.NumberKeyframeTrack(
-          name + '.rotation.z',
-          times,
-          rotValues
-        );
-        
-        tracks.push(positionTrack, rotationTrack);
-      }
-    });
-    
-    walkAnimation = new THREE.AnimationClip('FallbackWalk', duration, tracks);
-    walkAction = mixer.clipAction(walkAnimation);
-    walkAction.setEffectiveWeight(1);
-    walkAction.setEffectiveTimeScale(1);
-    
-    // Idle animation
-    idleAction = mixer.clipAction(createIdleAnimation());
+    // Crea animazione idle vuota (nessun movimento)
+    idleAnimation = new THREE.AnimationClip('Idle', idleDuration, idleTracks);
+    idleAction = mixer.clipAction(idleAnimation);
     idleAction.setEffectiveWeight(1);
     idleAction.setEffectiveTimeScale(1);
     
@@ -241,17 +213,17 @@
   }
 
   function loadWalkAnimation() {
-    console.log('Caricamento animazione Walking.dae per Claire...');
+    console.log('Caricamento animazione claire@Walking.fbx per Claire...');
     
-    const colladaLoader = new THREE.ColladaLoader();
-    colladaLoader.load(
-      'openworld/modelpg/Lady_in_red_dress/Walking.dae',
-      function(collada) {
-        console.log('Animazione Walking.dae caricata con successo!');
-        console.log('Animations found:', collada.scene.animations.length);
+    const fbxLoader = new THREE.FBXLoader();
+    fbxLoader.load(
+      'openworld/modelpg/Lady_in_red_dress/claire@Walking.fbx',
+      function(object) {
+        console.log('Animazione claire@Walking.fbx caricata con successo!');
+        console.log('Animations found:', object.animations.length);
         
-        if (collada.scene.animations.length > 0) {
-          walkAnimation = collada.scene.animations[0];
+        if (object.animations.length > 0) {
+          walkAnimation = object.animations[0];
           console.log('Walk animation name:', walkAnimation.name);
           console.log('Walk animation duration:', walkAnimation.duration);
           
@@ -261,95 +233,19 @@
           walkAction.setEffectiveTimeScale(1);
           walkAction.clampWhenFinished = true;
           
-          console.log('Animazione Walking.dae setup completata!');
+          console.log('Animazione claire@Walking.fbx setup completata!');
         } else {
-          console.log('Nessuna animazione trovata in Walking.dae');
+          console.log('Nessuna animazione trovata in claire@Walking.fbx');
         }
       },
       function(xhr) {
-        console.log('Walking.dae: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
+        console.log('claire@Walking.fbx: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
       },
       function(error) {
-        console.error('Errore caricamento Walking.dae:', error);
+        console.error('Errore caricamento claire@Walking.fbx:', error);
         console.log('Mantenendo solo animazioni fallback...');
       }
     );
-  }
-  
-  function createSimpleWalkAnimation() {
-    console.log('Creazione animazione camminata semplice fallback...');
-    
-    const tracks = [];
-    const duration = 1.0;
-    const times = [0, 0.5, 1.0];
-    
-    // Animazione semplice per il corpo intero
-    serenaModel.traverse(function(child) {
-      if (child.isBone) {
-        const name = child.name;
-        
-        // Oscillazione verticale per camminata
-        const yValues = [0, 0.1, 0];
-        const positionTrack = new THREE.NumberKeyframeTrack(
-          name + '.position.y',
-          times,
-          yValues
-        );
-        
-        // Legale rotazione per effetto camminata
-        const rotValues = [0, 0.1, 0];
-        const rotationTrack = new THREE.NumberKeyframeTrack(
-          name + '.rotation.z',
-          times,
-          rotValues
-        );
-        
-        tracks.push(positionTrack, rotationTrack);
-      }
-    });
-    
-    walkAnimation = new THREE.AnimationClip('SimpleWalk', duration, tracks);
-    walkAction = mixer.clipAction(walkAnimation);
-    walkAction.setEffectiveWeight(1);
-    walkAction.setEffectiveTimeScale(1);
-    
-    // Idle animation
-    idleAction = mixer.clipAction(createIdleAnimation());
-    idleAction.setEffectiveWeight(1);
-    idleAction.setEffectiveTimeScale(1);
-    
-    idleAction.play();
-    currentAction = idleAction;
-    
-    console.log('Animazione fallback creata');
-  }
-  
-  function createIdleAnimation() {
-    // Crea un'animazione idle semplice (fermo)
-    const tracks = [];
-    const duration = 1.0;
-    const times = [0, duration];
-    
-    // Aggiungi track per ogni osso del modello per mantenerlo fermo
-    serenaModel.traverse(function(child) {
-      if (child.isBone) {
-        const name = child.name;
-        const positionTrack = new THREE.VectorKeyframeTrack(
-          name + '.position',
-          times,
-          [child.position.x, child.position.y, child.position.z, child.position.x, child.position.y, child.position.z]
-        );
-        const rotationTrack = new THREE.QuaternionKeyframeTrack(
-          name + '.quaternion',
-          times,
-          [child.quaternion.x, child.quaternion.y, child.quaternion.z, child.quaternion.w, 
-           child.quaternion.x, child.quaternion.y, child.quaternion.z, child.quaternion.w]
-        );
-        tracks.push(positionTrack, rotationTrack);
-      }
-    });
-    
-    return new THREE.AnimationClip('Idle', duration, tracks);
   }
 
   function loadClaire() {
