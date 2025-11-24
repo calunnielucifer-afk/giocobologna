@@ -339,11 +339,8 @@ function onKeyUp(event) {
       
       document.body.appendChild(messageDiv);
       
-      // Suona le trombe!
-      const trumpetSound = document.getElementById('trumpetSound');
-      if (trumpetSound) {
-        trumpetSound.play().catch(e => console.log('Errore suono trombe:', e));
-      }
+      // Suona le trombe con Audio API interno
+      this.playTrumpetSound();
       
       // Funzione per chiudere il messaggio
       window.closeWeddingMessage = function() {
@@ -358,6 +355,94 @@ function onKeyUp(event) {
       
       // Auto-chiusura dopo 15 secondi
       setTimeout(window.closeWeddingMessage, 15000);
+    }
+    
+    playTrumpetSound() {
+      try {
+        // Crea contesto audio
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Frequenze trombe (note musicali)
+        const trumpetNotes = [523.25, 587.33, 659.25, 698.46, 783.99]; // C5, D5, E5, F5, G5
+        
+        // Suona 3 trombe in sequenza per creare un effetto fanfare
+        trumpetNotes.forEach((frequency, index) => {
+          setTimeout(() => {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Configura oscillatore per suono tipo tromba
+            oscillator.type = 'square'; // Suono più "metallico"
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            
+            // Envelope per suono tromba
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.05); // Attack
+            gainNode.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + 0.2); // Decay
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5); // Release
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+            
+            console.log('🎺 Tromba suonata:', frequency, 'Hz');
+          }, index * 200); // Ogni nota ogni 200ms
+        });
+        
+        // Seconda serie di note per effetto fanfare più lungo
+        setTimeout(() => {
+          const fanfareNotes = [659.25, 783.99, 880.00, 987.77]; // E5, G5, A5, B5
+          fanfareNotes.forEach((frequency, index) => {
+            setTimeout(() => {
+              const oscillator = audioContext.createOscillator();
+              const gainNode = audioContext.createGain();
+              
+              oscillator.connect(gainNode);
+              gainNode.connect(audioContext.destination);
+              
+              oscillator.type = 'sawtooth'; // Suono più ricco
+              oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+              
+              gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+              gainNode.gain.linearRampToValueAtTime(0.25, audioContext.currentTime + 0.1);
+              gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+              
+              oscillator.start(audioContext.currentTime);
+              oscillator.stop(audioContext.currentTime + 0.4);
+            }, index * 150);
+          });
+        }, 1000);
+        
+        console.log('🎺🎺 Suono trombe interno avviato!');
+        
+      } catch (error) {
+        console.log('🎺 Errore suono trombe interno:', error);
+        // Fallback: mostra un messaggio visivo
+        const soundIndicator = document.createElement('div');
+        soundIndicator.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: rgba(255, 215, 0, 0.9);
+          color: #8B0000;
+          padding: 15px 20px;
+          border-radius: 15px;
+          font-size: 18px;
+          font-weight: bold;
+          z-index: 10001;
+          animation: soundPulse 0.5s ease-out;
+        `;
+        soundIndicator.innerHTML = '🎺🎺 TROMBE! 🎺🎺';
+        document.body.appendChild(soundIndicator);
+        
+        setTimeout(() => {
+          if (soundIndicator.parentNode) {
+            document.body.removeChild(soundIndicator);
+          }
+        }, 2000);
+      }
     }
     
     showLoveMessage(message) {
