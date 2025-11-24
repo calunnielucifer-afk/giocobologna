@@ -2069,10 +2069,16 @@ function onKeyUp(event) {
   function initializePokerGame() {
     console.log('Inizializzazione sistema Texas Hold\'em...');
     
+    // Inizializza sistema multiplayer
+    pokerMultiplayer = new PokerMultiplayer();
+    
     // Genera e mostra il link condivisibile
     const roomCode = document.getElementById('roomCode').textContent;
     const shareLink = `${window.location.origin}${window.location.pathname}#${roomCode}`;
     document.getElementById('shareLink').textContent = shareLink;
+    
+    // Unisciti o crea la stanza multiplayer
+    pokerMultiplayer.createOrJoinRoom(roomCode);
     
     // Setup eventi pulsanti
     document.getElementById('copyLinkBtn').addEventListener('click', () => {
@@ -2091,6 +2097,16 @@ function onKeyUp(event) {
       const hashRoomCode = window.location.hash.substring(1);
       document.getElementById('roomCode').textContent = hashRoomCode;
       console.log('Accesso diretto alla sala:', hashRoomCode);
+      
+      // Unisciti alla stanza specificata nell'URL
+      if (pokerMultiplayer) {
+        pokerMultiplayer.createOrJoinRoom(hashRoomCode);
+      }
+    }
+    
+    // Avvia sincronizzazione multiplayer
+    if (pokerMultiplayer) {
+      pokerMultiplayer.startSync();
     }
   }
   
@@ -2120,18 +2136,24 @@ function onKeyUp(event) {
     seat.classList.add('occupied');
     seat.innerHTML = `
       <div class="seat-content">
-        <div style="font-size: 16px; margin-bottom: 5px;">👤</div>
+        <div style="font-size: ${isMobile ? '14px' : '16px'}; margin-bottom: 5px;">👤</div>
         <div style="font-weight: bold;">${nickname}</div>
         <div class="player-info">10,000 fish</div>
-        <div class="player-info" style="margin-top: 5px;">🃏 🃏</div>
+        <div class="player-info" style="margin-top: 5px;" id="playerCards${seatNumber}">🎴 🎴</div>
       </div>
     `;
     
     // Salva i dati del giocatore
     seat.dataset.nickname = nickname;
     seat.dataset.chips = '10000';
+    seat.dataset.seatNumber = seatNumber;
     
     console.log(`Giocatore ${nickname} seduto al posto ${seatNumber}`);
+    
+    // Notifica multiplayer che un giocatore si è unito
+    if (pokerMultiplayer) {
+      pokerMultiplayer.broadcastPlayerJoined(nickname, seatNumber);
+    }
     
     // Controlla se tutti i posti sono occupati
     checkAllPlayersReady();
@@ -2147,6 +2169,198 @@ function onKeyUp(event) {
       document.getElementById('readyBtn').style.display = 'inline-block';
     }
   }
+  
+  // Sistema Multiplayer Base - LocalStorage Sincronizzazione
+  class PokerMultiplayer {
+    constructor() {
+      this.roomCode = null;
+      this.playerId = this.generatePlayerId();
+      this.isHost = false;
+      this.syncInterval = null;
+      
+      // Inizializza ascoltatore eventi
+      this.setupEventListener();
+    }
+    
+    generatePlayerId() {
+      return 'player_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    setupEventListener() {
+      // Ascolta cambiamenti nel localStorage
+      window.addEventListener('storage', (e) => {
+        if (e.key && e.key.startsWith('poker_')) {
+          this.handleStorageChange(e.key, e.newValue);
+        }
+      });
+    }
+    
+    handleStorageChange(key, newValue) {
+      if (!newValue) return;
+      
+      try {
+        const data = JSON.parse(newValue);
+        console.log('🔄 Ricevuto aggiornamento multiplayer:', data);
+        
+        // Processa diversi tipi di messaggi
+        switch (data.type) {
+          case 'player_joined':
+            this.handlePlayerJoined(data);
+            break;
+          case 'game_started':
+            this.handleGameStarted(data);
+            break;
+          case 'game_state':
+            this.handleGameStateUpdate(data);
+            break;
+          case 'player_action':
+            this.handlePlayerAction(data);
+            break;
+        }
+      } catch (error) {
+        console.error('Errore parsing messaggio multiplayer:', error);
+      }
+    }
+    
+    createOrJoinRoom(roomCode) {
+      this.roomCode = roomCode;
+      const roomKey = `poker_${roomCode}`;
+      const existingRoom = localStorage.getItem(roomKey);
+      
+      if (!existingRoom) {
+        // Crea nuova stanza (host)
+        this.isHost = true;
+        const roomData = {
+          type: 'room_created',
+          roomCode: roomCode,
+          host: this.playerId,
+          players: [],
+          gameState: pokerGameState,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(roomKey, JSON.stringify(roomData));
+        console.log('🏠 Stanza creata:', roomCode);
+      } else {
+        // Unisciti a stanza esistente
+        this.isHost = false;
+        console.log('🚪 Unione alla stanza:', roomCode);
+      }
+    }
+    
+    broadcastPlayerJoined(nickname, seatNumber) {
+      if (!this.roomCode) return;
+      
+      const message = {
+        type: 'player_joined',
+        playerId: this.playerId,
+        nickname: nickname,
+        seatNumber: seatNumber,
+        timestamp: Date.now()
+      };
+      
+      this.broadcast(message);
+    }
+    
+    broadcastGameStarted() {
+      if (!this.roomCode || !this.isHost) return;
+      
+      const message = {
+        type: 'game_started',
+        gameState: pokerGameState,
+        timestamp: Date.now()
+      };
+      
+      this.broadcast(message);
+    }
+    
+    broadcast(message) {
+      if (!this.roomCode) return;
+      
+      const roomKey = `poker_${this.roomCode}`;
+      localStorage.setItem(roomKey, JSON.stringify(message));
+    }
+    
+    handlePlayerJoined(data) {
+      if (data.playerId === this.playerId) return; // Ignora se siamo noi
+      
+      console.log(`👋 Giocatore ${data.nickname} si è unito al posto ${data.seatNumber}`);
+      
+      // Aggiorna l'interfaccia con il nuovo giocatore
+      const seat = document.getElementById(`playerSeat${data.seatNumber}`);
+      if (seat && !seat.classList.contains('occupied')) {
+        occupySeat(data.seatNumber, data.nickname);
+      }
+    }
+    
+    handleGameStarted(data) {
+      console.log('🎮 Partita avviata dal host');
+      
+      // Sincronizza lo stato del gioco
+      pokerGameState = data.gameState;
+      
+      // Aggiorna l'interfaccia
+      this.updateUIFromGameState();
+    }
+    
+    handleGameStateUpdate(data) {
+      console.log('🔄 Aggiornamento stato gioco');
+      pokerGameState = data.gameState;
+      this.updateUIFromGameState();
+    }
+    
+    handlePlayerAction(data) {
+      console.log(`🎯 Azione giocatore ${data.playerId}: ${data.action}`);
+      // Processa l'azione ricevuta da altri giocatori
+    }
+    
+    updateUIFromGameState() {
+      // Aggiorna pot, community cards, etc.
+      document.getElementById('potAmount').textContent = pokerGameState.pot.toLocaleString();
+      
+      // Aggiorna carte comunità
+      const communityCardsDiv = document.getElementById('communityCards');
+      communityCardsDiv.innerHTML = '';
+      pokerGameState.communityCards.forEach(card => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        cardDiv.textContent = `${card.rank}${card.suit}`;
+        communityCardsDiv.appendChild(cardDiv);
+      });
+    }
+    
+    startSync() {
+      // Sincronizzazione periodica
+      this.syncInterval = setInterval(() => {
+        if (this.isHost && this.roomCode) {
+          // Host invia aggiornamenti periodici dello stato
+          this.broadcast({
+            type: 'game_state',
+            gameState: pokerGameState,
+            timestamp: Date.now()
+          });
+        }
+      }, 2000); // Ogni 2 secondi
+    }
+    
+    stopSync() {
+      if (this.syncInterval) {
+        clearInterval(this.syncInterval);
+        this.syncInterval = null;
+      }
+    }
+    
+    leaveRoom() {
+      if (this.roomCode) {
+        const roomKey = `poker_${this.roomCode}`;
+        localStorage.removeItem(roomKey);
+        this.roomCode = null;
+        this.stopSync();
+      }
+    }
+  }
+  
+  // Istanza globale del multiplayer
+  let pokerMultiplayer = null;
   
   // Variabili globali per il gioco
   let pokerGameState = {
@@ -2194,6 +2408,11 @@ function onKeyUp(event) {
     
     // Avvia il timer del dealer
     startDealerTimer();
+    
+    // Notifica tutti i giocatori che la partita è iniziata
+    if (pokerMultiplayer && pokerMultiplayer.isHost) {
+      pokerMultiplayer.broadcastGameStarted();
+    }
   }
   
   function initializeDeck() {
@@ -2229,20 +2448,35 @@ function onKeyUp(event) {
   
   function dealInitialCards() {
     // Distribuisci 2 carte a ogni giocatore
-    const occupiedSeats = document.querySelectorAll('.player-seat.occupied');
+    const occupiedSeats = document.querySelectorAll('.player-seat.occupied:not(.dealer-seat)');
     occupiedSeats.forEach((seat, index) => {
       const card1 = pokerGameState.deck.pop();
       const card2 = pokerGameState.deck.pop();
       
-      // Aggiorna le carte visualizzate
-      const cardDisplay = seat.querySelector('.player-info:last-child');
-      if (cardDisplay) {
-        cardDisplay.textContent = `${card1.rank}${card1.suit} ${card2.rank}${card2.suit}`;
-      }
-      
       // Salva le carte del giocatore
       seat.dataset.cards = JSON.stringify([card1, card2]);
+      
+      // Mostra le carte al giocatore (solo se è il giocatore corrente)
+      const seatNumber = seat.dataset.seatNumber;
+      const cardDisplay = document.getElementById(`playerCards${seatNumber}`);
+      
+      if (cardDisplay) {
+        // Per ora mostriamo le carte a tutti (nel multiplayer reale solo al proprietario)
+        cardDisplay.innerHTML = `
+          <span style="background: white; color: black; padding: 2px 4px; border-radius: 3px; margin: 0 1px; font-size: 10px; font-weight: bold;">
+            ${card1.rank}${card1.suit}
+          </span>
+          <span style="background: white; color: black; padding: 2px 4px; border-radius: 3px; margin: 0 1px; font-size: 10px; font-weight: bold;">
+            ${card2.rank}${card2.suit}
+          </span>
+        `;
+        cardDisplay.style.fontSize = isMobile ? '8px' : '10px';
+      }
+      
+      console.log(`Carte distribuite a ${seat.dataset.nickname}: ${card1.rank}${card1.suit} ${card2.rank}${card2.suit}`);
     });
+    
+    console.log('Distribuite 2 carte a ogni giocatore - Inizio preflop');
   }
   
   function startBettingRound(phase) {
@@ -2438,6 +2672,13 @@ function onKeyUp(event) {
   
   function closePokerWindow() {
     console.log('Chiusura finestra poker - ripristino controlli mondo...');
+    
+    // Ferma sincronizzazione multiplayer
+    if (pokerMultiplayer) {
+      pokerMultiplayer.stopSync();
+      pokerMultiplayer.leaveRoom();
+      pokerMultiplayer = null;
+    }
     
     // Rimuovi la finestra
     const pokerModal = document.getElementById('pokerModal');
