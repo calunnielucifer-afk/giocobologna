@@ -1118,8 +1118,14 @@
     // Aggiorna controlli movimento
     moveForward = joystickVector.y > 0.3;
     moveBackward = joystickVector.y < -0.3;
-    moveRight = joystickVector.x > 0.3;
-    moveLeft = joystickVector.x < -0.3;
+    // A/D funzionano solo se si sta camminando in avanti
+    if (joystickVector.y > 0.3) {
+      moveRight = joystickVector.x > 0.3;
+      moveLeft = joystickVector.x < -0.3;
+    } else {
+      moveRight = false;
+      moveLeft = false;
+    }
   }
   
   function handleTouchEnd(e) {
@@ -1176,8 +1182,14 @@
     
     moveForward = joystickVector.y > 0.3;
     moveBackward = joystickVector.y < -0.3;
-    moveRight = joystickVector.x > 0.3;
-    moveLeft = joystickVector.x < -0.3;
+    // A/D funzionano solo se si sta camminando in avanti
+    if (joystickVector.y > 0.3) {
+      moveRight = joystickVector.x > 0.3;
+      moveLeft = joystickVector.x < -0.3;
+    } else {
+      moveRight = false;
+      moveLeft = false;
+    }
   }
   
   function handleMouseUp(e) {
@@ -1225,11 +1237,15 @@
       
       // Calcola la velocità direttamente invece di accumulare
       const forwardSpeed = 4.0; // Velocità avanti con W
-      const lateralSpeed = 0.8; // Ridotto da 1.5 a 0.8 per curve molto lente
+      const lateralSpeed = 0.8; // Velocità laterale solo quando si cammina
       
-      if (moveForward) velocity.addScaledVector(cameraDirection, forwardSpeed);
-      if (moveRight) velocity.addScaledVector(rightDirection, lateralSpeed);
-      if (moveLeft) velocity.addScaledVector(rightDirection, -lateralSpeed);
+      if (moveForward) {
+        velocity.addScaledVector(cameraDirection, forwardSpeed);
+        // A/D funzionano solo se si sta camminando in avanti
+        if (moveRight) velocity.addScaledVector(rightDirection, lateralSpeed);
+        if (moveLeft) velocity.addScaledVector(rightDirection, -lateralSpeed);
+      }
+      // Se non si preme W, A/D non fanno nulla
     }
     
     // Muovi Serena basandosi sulla velocity calcolata
@@ -1238,7 +1254,7 @@
       serenaModel.position.z += velocity.z * delta;
       
       // Fai ruotare il modello nella direzione del movimento - più reattivo
-      if (moveForward || moveLeft || moveRight) {
+      if (moveForward) {
         // Calcola la direzione del movimento
         const moveDirection = new THREE.Vector3(velocity.x, 0, velocity.z);
         if (moveDirection.length() > 0.1) {
