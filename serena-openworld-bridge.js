@@ -1779,14 +1779,65 @@ function onKeyUp(event) {
     });
   }
 
-  function openPokerWindow() {
-    console.log('Apertura finestra poker - blocco controlli mondo...');
+  // Controlla se c'è un hash URL per accesso diretto alla stanza poker
+  function checkDirectPokerAccess() {
+    if (window.location.hash && window.location.hash.length > 1) {
+      const hashRoomCode = window.location.hash.substring(1);
+      console.log('🔗 Rilevato accesso diretto alla sala poker:', hashRoomCode);
+      
+      // Nascondi il mondo e apri direttamente il poker
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        canvas.style.display = 'none';
+      }
+      
+      // Nascondi elementi del mondo
+      const worldElements = document.querySelectorAll('#movementJoystick, #xButton, .info-panel');
+      worldElements.forEach(el => el.style.display = 'none');
+      
+      // Apri direttamente la finestra poker con il roomCode
+      setTimeout(() => {
+        openPokerWindowWithRoom(hashRoomCode);
+      }, 500);
+      
+      return true; // Indica che stiamo andando direttamente al poker
+    }
+    return false;
+  }
+  
+  // Funzione per aprire poker con roomCode specifico
+  function openPokerWindowWithRoom(roomCode) {
+    console.log('🎰 Apertura diretta sala poker:', roomCode);
     
+    // Inizializza il gioco del poker con il roomCode specifico
+    initializePokerGameWithRoom(roomCode);
+  }
+  
+  // Funzione per inizializzare poker con roomCode specifico
+  function initializePokerGameWithRoom(roomCode) {
+    console.log('🎰 Inizializzazione diretta sala poker:', roomCode);
+    
+    // Crea la finestra modal per il poker
+    createPokerModal(roomCode);
+  }
+  
+  // Controlla accesso diretto all'avvio
+  document.addEventListener('DOMContentLoaded', function() {
+    checkDirectPokerAccess();
+  });
+  
+  // Controlla anche subito (per quando il DOM è già caricato)
+  checkDirectPokerAccess();
+  
+  // Funzione per creare la finestra modal poker
+  function createPokerModal(roomCode = null) {
     // Funzione per rilevare mobile
     function isMobile() {
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
              (window.innerWidth <= 768);
     }
+    
+    console.log('Apertura finestra poker - blocco controlli mondo...');
     
     // BLOCCA i controlli del mondo (nuovo sistema)
     if (playerController && playerController instanceof AdvancedPlayerController) {
@@ -1910,7 +1961,7 @@ function onKeyUp(event) {
         <div style="background: rgba(0,0,0,0.8); padding: ${isMobile() ? '8px' : '15px'}; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
           <div style="min-width: 200px;">
             <h3 style="color: #ffd700; margin: 0; font-size: ${isMobile() ? '14px' : '18px'};">🎰 TEXAS HOLD'EM - 4 GIOCATORI + DEALER</h3>
-            <p style="color: white; margin: 2px 0 0 0; font-size: ${isMobile() ? '10px' : '14px'};">Sala: <span id="roomCode">${generateRoomCode()}</span></p>
+            <p style="color: white; margin: 2px 0 0 0; font-size: ${isMobile() ? '10px' : '14px'};">Sala: <span id="roomCode">${roomCode || generateRoomCode()}</span></p>
           </div>
           <div style="text-align: right; min-width: 150px;">
             <button id="copyLinkBtn" style="background: #4CAF50; color: white; border: none; padding: ${isMobile() ? '4px 8px' : '8px 15px'}; border-radius: 5px; cursor: pointer; font-size: ${isMobile() ? '10px' : '12px'}; margin-bottom: 5px;">📋 Copia Link</button>
@@ -2052,8 +2103,15 @@ function onKeyUp(event) {
     
     console.log('Finestra poker aperta - controlli mondo bloccati');
     
-    // Inizializza il gioco del poker
-    initializePokerGame();
+    // Inizializza il gioco del poker con il roomCode
+    initializePokerGame(roomCode);
+  }
+  
+  function openPokerWindow() {
+    console.log('Apertura finestra poker - blocco controlli mondo...');
+    
+    // Usa la funzione createPokerModal senza roomCode specifico
+    createPokerModal();
   }
   
   // Funzioni di supporto per il poker
@@ -2066,27 +2124,26 @@ function onKeyUp(event) {
     return code;
   }
   
-  function initializePokerGame() {
+  function initializePokerGame(roomCode = null) {
     console.log('Inizializzazione sistema Texas Hold\'em...');
     
     // Inizializza sistema multiplayer
     pokerMultiplayer = new PokerMultiplayer();
     
-    // Controlla se c'è un hash URL per entrare automaticamente PRIMA di generare
-    let roomCode = document.getElementById('roomCode').textContent;
-    if (window.location.hash && window.location.hash.length > 1) {
-      const hashRoomCode = window.location.hash.substring(1);
-      roomCode = hashRoomCode;
-      document.getElementById('roomCode').textContent = hashRoomCode;
-      console.log('Accesso diretto alla sala:', hashRoomCode);
+    // Usa il roomCode passato o genera uno nuovo
+    const finalRoomCode = roomCode || document.getElementById('roomCode').textContent;
+    
+    // Se abbiamo un roomCode passato, aggiornalo nell'interfaccia
+    if (roomCode) {
+      document.getElementById('roomCode').textContent = roomCode;
     }
     
-    // Genera e mostra il link condivisibile SOLO se non c'è già un roomCode
-    const shareLink = `${window.location.origin}${window.location.pathname}#${roomCode}`;
+    // Genera e mostra il link condivisibile
+    const shareLink = `${window.location.origin}${window.location.pathname}#${finalRoomCode}`;
     document.getElementById('shareLink').textContent = shareLink;
     
     // Unisciti o crea la stanza multiplayer
-    pokerMultiplayer.createOrJoinRoom(roomCode);
+    pokerMultiplayer.createOrJoinRoom(finalRoomCode);
     
     // Setup eventi pulsanti
     document.getElementById('copyLinkBtn').addEventListener('click', () => {
