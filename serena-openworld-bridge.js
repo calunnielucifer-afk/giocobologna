@@ -1667,6 +1667,7 @@ function onKeyUp(event) {
     
     document.addEventListener('touchstart', function(e) {
       if (e.touches.length === 1 && !movementJoystickActive) {
+        console.log('📱 Touch camera rotation START - joystick non attivo');
         touchStartX = e.touches[0].clientX;
         isRotatingCamera = true;
       }
@@ -1676,7 +1677,8 @@ function onKeyUp(event) {
       if (isRotatingCamera && e.touches.length === 1 && playerController) {
         e.preventDefault();
         const deltaX = e.touches[0].clientX - touchStartX;
-        playerController.updateCameraAngle(deltaX * 0.5); // Aumentato da 0.01 a 0.5
+        console.log('📱 Touch camera MOVE - deltaX:', deltaX, 'solo camera rotation');
+        playerController.updateCameraAngle(deltaX * 5); // Aumentato drasticamente per rotazione visibile
         touchStartX = e.touches[0].clientX;
       }
     });
