@@ -12,21 +12,21 @@
 
   // Funzioni di input per il nuovo sistema
 function onKeyDown(event) {
-    // Gestisci prima l'interazione con E
-    if (event.code === 'KeyE') {
+    // Gestisci prima l'interazione con X
+    if (event.code === 'KeyX') {
         if (nearbyInteractable) {
-            console.log('E pressed - interacting with:', nearbyInteractable.userData);
+            console.log('X pressed - interacting with:', nearbyInteractable.userData);
             if (nearbyInteractable.userData.isPokerTable) {
                 openPokerWindow();
             }
         } else {
-            console.log('E pressed - no nearby interactable object');
+            console.log('X pressed - no nearby interactable object');
         }
         return;
     }
     
-    // Gestisci X per raccogliere bigliettini d'amore
-    if (event.code === 'KeyX') {
+    // Gestisci X per raccogliere bigliettini d'amore (se non c'è interazione)
+    if (event.code === 'KeyE') {
       if (window.closeWeddingMessage) {
         // Chiudi il messaggio di nozze
         window.closeWeddingMessage();
@@ -1796,7 +1796,7 @@ function onKeyUp(event) {
       document.body.removeChild(existingModal);
     }
     
-    // Crea la finestra modal per il poker - GIOCO A SE
+    // Crea la finestra modal per il poker - SISTEMA TEXAS HOLD'EM MULTIPLAYER
     const pokerModal = document.createElement('div');
     pokerModal.id = 'pokerModal';
     pokerModal.style.cssText = `
@@ -1819,11 +1819,11 @@ function onKeyUp(event) {
       background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
       border: 4px solid #ffd700;
       border-radius: 20px;
-      padding: 30px;
+      padding: 20px;
       width: 95%;
-      max-width: 900px;
+      max-width: 1200px;
       height: 95%;
-      max-height: 700px;
+      max-height: 800px;
       position: relative;
       box-shadow: 0 0 50px rgba(255, 215, 0, 0.9), inset 0 0 20px rgba(255, 215, 0, 0.2);
       overflow: hidden;
@@ -1899,11 +1899,113 @@ function onKeyUp(event) {
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     `;
     gameArea.innerHTML = `
-      <div>
-        <div style="font-size: 48px; margin-bottom: 20px;">🃏</div>
-        <div>POKER GAME</div>
-        <div style="font-size: 18px; margin-top: 20px; opacity: 0.8;">Premi CHIUDI per tornare nel mondo</div>
+      <div id="pokerGameContainer" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+        <!-- Header con info e link -->
+        <div style="background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h3 style="color: #ffd700; margin: 0;">🎰 TEXAS HOLD'EM - 5 GIOCATORI</h3>
+            <p style="color: white; margin: 5px 0 0 0; font-size: 14px;">Sala: <span id="roomCode">${generateRoomCode()}</span></p>
+          </div>
+          <div style="text-align: right;">
+            <button id="copyLinkBtn" style="background: #4CAF50; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-bottom: 5px;">📋 Copia Link</button>
+            <div id="shareLink" style="color: #4CAF50; font-size: 10px; word-break: break-all;"></div>
+          </div>
+        </div>
+        
+        <!-- Tavolo da poker -->
+        <div style="flex: 1; display: flex; justify-content: center; align-items: center; position: relative;">
+          <!-- Tavolo -->
+          <div style="width: 400px; height: 250px; background: radial-gradient(ellipse at center, #2d5f2d, #1a3d1a); border: 8px solid #8B4513; border-radius: 150px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <!-- Area carte comunità -->
+            <div id="communityCards" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 5px;">
+              <!-- Carte comunità appariranno qui -->
+            </div>
+            <!-- Dealer -->
+            <div style="position: absolute; top: -30px; left: 50%; transform: translateX(-50%); background: #ffd700; color: black; padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold;">DEALER</div>
+          </div>
+          
+          <!-- Posti giocatori (5 posti) -->
+          <div id="playerSeat1" class="player-seat" style="position: absolute; top: 10%; left: 50%; transform: translateX(-50%);">
+            <div class="seat-content">🪑 Posto 1</div>
+          </div>
+          <div id="playerSeat2" class="player-seat" style="position: absolute; top: 30%; right: 5%;">
+            <div class="seat-content">🪑 Posto 2</div>
+          </div>
+          <div id="playerSeat3" class="player-seat" style="position: absolute; bottom: 10%; right: 20%;">
+            <div class="seat-content">🪑 Posto 3</div>
+          </div>
+          <div id="playerSeat4" class="player-seat" style="position: absolute; bottom: 10%; left: 20%;">
+            <div class="seat-content">🪑 Posto 4</div>
+          </div>
+          <div id="playerSeat5" class="player-seat" style="position: absolute; top: 30%; left: 5%;">
+            <div class="seat-content">🪑 Posto 5</div>
+          </div>
+        </div>
+        
+        <!-- Area controlli -->
+        <div style="background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; margin-top: 20px;">
+          <div id="gameControls" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px;">
+            <button id="readyBtn" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">🎯 PRONTO</button>
+            <button id="checkBtn" style="background: #2196F3; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: none;">✋ CHECK</button>
+            <button id="callBtn" style="background: #FF9800; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: none;">📞 CALL</button>
+            <button id="raiseBtn" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: none;">🔥 RAISE</button>
+            <button id="foldBtn" style="background: #9E9E9E; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: none;">🏳️ FOLD</button>
+          </div>
+          <div id="gameInfo" style="text-align: center; color: white; font-size: 14px;">
+            <div>Timer: <span id="turnTimer">30</span>s | Fiches: <span id="playerChips">10,000</span> | Pot: <span id="potAmount">0</span></div>
+          </div>
+        </div>
       </div>
+      
+      <style>
+        .player-seat {
+          width: 120px;
+          height: 80px;
+          background: rgba(0,0,0,0.8);
+          border: 2px solid #666;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+        }
+        .player-seat.occupied {
+          border-color: #4CAF50;
+          background: rgba(76, 175, 80, 0.2);
+        }
+        .player-seat.current-turn {
+          border-color: #ffd700;
+          background: rgba(255, 215, 0, 0.2);
+          animation: pulse 1s infinite;
+        }
+        .seat-content {
+          color: white;
+          font-size: 12px;
+          text-align: center;
+          padding: 5px;
+        }
+        .player-info {
+          font-size: 10px;
+          opacity: 0.8;
+        }
+        @keyframes pulse {
+          0%, 100% { transform: translateX(-50%) scale(1); }
+          50% { transform: translateX(-50%) scale(1.05); }
+        }
+        .card {
+          width: 40px;
+          height: 60px;
+          background: white;
+          border: 1px solid #333;
+          border-radius: 5px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          font-weight: bold;
+          color: black;
+        }
+      </style>
     `;
     
     // Assembla la finestra
@@ -1928,7 +2030,385 @@ function onKeyUp(event) {
     `;
     document.head.appendChild(style);
     
-    console.log('Finra poker aperta - controlli mondo bloccati');
+    console.log('Finestra poker aperta - controlli mondo bloccati');
+    
+    // Inizializza il gioco del poker
+    initializePokerGame();
+  }
+  
+  // Funzioni di supporto per il poker
+  function generateRoomCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+  
+  function initializePokerGame() {
+    console.log('Inizializzazione sistema Texas Hold\'em...');
+    
+    // Genera e mostra il link condivisibile
+    const roomCode = document.getElementById('roomCode').textContent;
+    const shareLink = `${window.location.origin}${window.location.pathname}#${roomCode}`;
+    document.getElementById('shareLink').textContent = shareLink;
+    
+    // Setup eventi pulsanti
+    document.getElementById('copyLinkBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(shareLink).then(() => {
+        alert('Link copiato negli appunti!');
+      });
+    });
+    
+    // Chiedi nickname e assegna posto automatico
+    setTimeout(() => {
+      askNicknameAndAssignSeat();
+    }, 500);
+    
+    // Controlla se c'è un hash URL per entrare automaticamente
+    if (window.location.hash && window.location.hash.length > 1) {
+      const hashRoomCode = window.location.hash.substring(1);
+      document.getElementById('roomCode').textContent = hashRoomCode;
+      console.log('Accesso diretto alla sala:', hashRoomCode);
+    }
+  }
+  
+  function askNicknameAndAssignSeat() {
+    const nickname = prompt('Inserisci il tuo nickname per giocare a poker:');
+    if (!nickname) return;
+    
+    // Trova il primo posto disponibile
+    let assignedSeat = null;
+    for (let i = 1; i <= 5; i++) {
+      const seat = document.getElementById(`playerSeat${i}`);
+      if (!seat.classList.contains('occupied')) {
+        assignedSeat = i;
+        break;
+      }
+    }
+    
+    if (assignedSeat) {
+      occupySeat(assignedSeat, nickname);
+    } else {
+      alert('Tutti i posti sono occupati! Attendi che si liberi un posto.');
+    }
+  }
+  
+  function occupySeat(seatNumber, nickname) {
+    const seat = document.getElementById(`playerSeat${seatNumber}`);
+    seat.classList.add('occupied');
+    seat.innerHTML = `
+      <div class="seat-content">
+        <div style="font-size: 16px; margin-bottom: 5px;">👤</div>
+        <div style="font-weight: bold;">${nickname}</div>
+        <div class="player-info">10,000 fish</div>
+        <div class="player-info" style="margin-top: 5px;">🃏 🃏</div>
+      </div>
+    `;
+    
+    // Salva i dati del giocatore
+    seat.dataset.nickname = nickname;
+    seat.dataset.chips = '10000';
+    
+    console.log(`Giocatore ${nickname} seduto al posto ${seatNumber}`);
+    
+    // Controlla se tutti i posti sono occupati
+    checkAllPlayersReady();
+  }
+  
+  function checkAllPlayersReady() {
+    const occupiedSeats = document.querySelectorAll('.player-seat.occupied').length;
+    console.log(`Posti occupati: ${occupiedSeats}/5`);
+    
+    if (occupiedSeats >= 2) {
+      // Mostra pulsante PRONTO se ci sono almeno 2 giocatori
+      document.getElementById('readyBtn').style.display = 'inline-block';
+    }
+  }
+  
+  // Variabili globali per il gioco
+  let pokerGameState = {
+    players: [],
+    currentPlayer: 0,
+    pot: 0,
+    communityCards: [],
+    deck: [],
+    gamePhase: 'waiting', // waiting, preflop, flop, turn, river, showdown
+    turnTimer: 30,
+    timerInterval: null
+  };
+  
+  // Event listener per pulsante PRONTO
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'readyBtn') {
+      startPokerGame();
+    } else if (e.target && e.target.id === 'checkBtn') {
+      playerAction('check');
+    } else if (e.target && e.target.id === 'callBtn') {
+      playerAction('call');
+    } else if (e.target && e.target.id === 'raiseBtn') {
+      playerAction('raise');
+    } else if (e.target && e.target.id === 'foldBtn') {
+      playerAction('fold');
+    }
+  });
+  
+  function startPokerGame() {
+    console.log('Avvio partita Texas Hold\'em!');
+    
+    // Nascondi pulsante PRONTO
+    document.getElementById('readyBtn').style.display = 'none';
+    
+    // Blocca nuovi ingressi
+    const roomCode = document.getElementById('roomCode').textContent;
+    document.getElementById('shareLink').innerHTML = `<span style="color: #ff6b6b;">Partita in corso - Sala ${roomCode} chiusa</span>`;
+    
+    // Inizializza il mazzo e distribuisci le carte
+    initializeDeck();
+    dealInitialCards();
+    
+    // Inizia il primo turno
+    startBettingRound('preflop');
+    
+    // Avvia il timer del dealer
+    startDealerTimer();
+  }
+  
+  function initializeDeck() {
+    const suits = ['♠', '♥', '♦', '♣'];
+    const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+    
+    pokerGameState.deck = [];
+    for (let suit of suits) {
+      for (let rank of ranks) {
+        pokerGameState.deck.push({ suit, rank, value: getCardValue(rank) });
+      }
+    }
+    
+    // Mescola il mazzo
+    shuffleDeck();
+  }
+  
+  function getCardValue(rank) {
+    if (rank === 'A') return 14;
+    if (rank === 'K') return 13;
+    if (rank === 'Q') return 12;
+    if (rank === 'J') return 11;
+    return parseInt(rank);
+  }
+  
+  function shuffleDeck() {
+    for (let i = pokerGameState.deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pokerGameState.deck[i], pokerGameState.deck[j]] = [pokerGameState.deck[j], pokerGameState.deck[i]];
+    }
+    console.log('Mazzo mescolato dal dealer');
+  }
+  
+  function dealInitialCards() {
+    // Distribuisci 2 carte a ogni giocatore
+    const occupiedSeats = document.querySelectorAll('.player-seat.occupied');
+    occupiedSeats.forEach((seat, index) => {
+      const card1 = pokerGameState.deck.pop();
+      const card2 = pokerGameState.deck.pop();
+      
+      // Aggiorna le carte visualizzate
+      const cardDisplay = seat.querySelector('.player-info:last-child');
+      if (cardDisplay) {
+        cardDisplay.textContent = `${card1.rank}${card1.suit} ${card2.rank}${card2.suit}`;
+      }
+      
+      // Salva le carte del giocatore
+      seat.dataset.cards = JSON.stringify([card1, card2]);
+    });
+  }
+  
+  function startBettingRound(phase) {
+    pokerGameState.gamePhase = phase;
+    pokerGameState.currentPlayer = 0;
+    
+    // Mostra i pulsanti di azione
+    const actionButtons = ['checkBtn', 'callBtn', 'raiseBtn', 'foldBtn'];
+    actionButtons.forEach(btnId => {
+      document.getElementById(btnId).style.display = 'inline-block';
+    });
+    
+    // Evidenzia il primo giocatore
+    highlightCurrentPlayer();
+    
+    console.log(`Inizio turno di ${phase}`);
+  }
+  
+  function highlightCurrentPlayer() {
+    // Rimuovi evidenziazioni precedenti
+    document.querySelectorAll('.player-seat').forEach(seat => {
+      seat.classList.remove('current-turn');
+    });
+    
+    // Evidenzia il giocatore corrente
+    const occupiedSeats = document.querySelectorAll('.player-seat.occupied');
+    if (occupiedSeats[pokerGameState.currentPlayer]) {
+      occupiedSeats[pokerGameState.currentPlayer].classList.add('current-turn');
+    }
+  }
+  
+  function startDealerTimer() {
+    let timeLeft = 30;
+    document.getElementById('turnTimer').textContent = timeLeft;
+    
+    pokerGameState.timerInterval = setInterval(() => {
+      timeLeft--;
+      document.getElementById('turnTimer').textContent = timeLeft;
+      
+      if (timeLeft <= 0) {
+        // Auto-fold se il giocatore non agisce
+        playerAction('fold');
+      }
+    }, 1000);
+  }
+  
+  function playerAction(action) {
+    clearInterval(pokerGameState.timerInterval);
+    
+    console.log(`Giocatore ${pokerGameState.currentPlayer + 1} fa: ${action}`);
+    
+    // Processa l'azione
+    switch (action) {
+      case 'check':
+        // Passa al prossimo giocatore
+        break;
+      case 'call':
+        // Paga la puntata minima
+        addToPot(100);
+        break;
+      case 'raise':
+        // Raddoppia la puntata
+        addToPot(200);
+        break;
+      case 'fold':
+        // Il giocatore esce dalla mano
+        const currentPlayerSeat = document.querySelectorAll('.player-seat.occupied')[pokerGameState.currentPlayer];
+        currentPlayerSeat.style.opacity = '0.5';
+        break;
+    }
+    
+    // Passa al prossimo giocatore
+    nextPlayer();
+  }
+  
+  function addToPot(amount) {
+    pokerGameState.pot += amount;
+    document.getElementById('potAmount').textContent = pokerGameState.pot.toLocaleString();
+  }
+  
+  function nextPlayer() {
+    pokerGameState.currentPlayer++;
+    
+    const occupiedSeats = document.querySelectorAll('.player-seat.occupied');
+    
+    // Controlla se il turno è completato
+    if (pokerGameState.currentPlayer >= occupiedSeats.length) {
+      // Passa alla fase successiva
+      nextGamePhase();
+    } else {
+      // Continua con il prossimo giocatore
+      highlightCurrentPlayer();
+      startDealerTimer();
+    }
+  }
+  
+  function nextGamePhase() {
+    switch (pokerGameState.gamePhase) {
+      case 'preflop':
+        // Mostra 3 carte comunità (flop)
+        dealCommunityCards(3);
+        startBettingRound('flop');
+        break;
+      case 'flop':
+        // Mostra 1 carta comunità (turn)
+        dealCommunityCards(1);
+        startBettingRound('turn');
+        break;
+      case 'turn':
+        // Mostra 1 carta comunità (river)
+        dealCommunityCards(1);
+        startBettingRound('river');
+        break;
+      case 'river':
+        // Showdown - determina il vincitore
+        showdown();
+        break;
+    }
+  }
+  
+  function dealCommunityCards(count) {
+    const communityCardsDiv = document.getElementById('communityCards');
+    
+    for (let i = 0; i < count; i++) {
+      const card = pokerGameState.deck.pop();
+      const cardDiv = document.createElement('div');
+      cardDiv.className = 'card';
+      cardDiv.textContent = `${card.rank}${card.suit}`;
+      communityCardsDiv.appendChild(cardDiv);
+      
+      pokerGameState.communityCards.push(card);
+    }
+  }
+  
+  function showdown() {
+    console.log('SHOWDOWN - Determinazione vincitore');
+    
+    // Nascondi pulsanti di azione
+    const actionButtons = ['checkBtn', 'callBtn', 'raiseBtn', 'foldBtn'];
+    actionButtons.forEach(btnId => {
+      document.getElementById(btnId).style.display = 'none';
+    });
+    
+    // Determina il vincitore (semplificato)
+    const occupiedSeats = document.querySelectorAll('.player-seat.occupied:not([style*="opacity: 0.5"])');
+    if (occupiedSeats.length === 1) {
+      // Un solo giocatore rimasto
+      const winner = occupiedSeats[0];
+      const nickname = winner.dataset.nickname;
+      
+      // Mostra messaggio vincitore
+      alert(`🎉 ${nickname} vince ${pokerGameState.pot.toLocaleString()} fish!`);
+      
+      // Resetta il tavolo dopo 3 secondi
+      setTimeout(resetPokerTable, 3000);
+    }
+  }
+  
+  function resetPokerTable() {
+    console.log('Reset tavolo poker - nuova partita');
+    
+    // Pulisci le carte comunità
+    document.getElementById('communityCards').innerHTML = '';
+    
+    // Resetta lo stato del gioco
+    pokerGameState.pot = 0;
+    pokerGameState.communityCards = [];
+    pokerGameState.gamePhase = 'waiting';
+    document.getElementById('potAmount').textContent = '0';
+    
+    // Rimuovi tutti i giocatori
+    document.querySelectorAll('.player-seat').forEach(seat => {
+      seat.classList.remove('occupied', 'current-turn');
+      seat.innerHTML = '<div class="seat-content">🪑 Posto ' + seat.id.replace('playerSeat', '') + '</div>';
+      delete seat.dataset.nickname;
+      delete seat.dataset.chips;
+      delete seat.dataset.cards;
+    });
+    
+    // Riabilita nuovi ingressi
+    const roomCode = generateRoomCode();
+    document.getElementById('roomCode').textContent = roomCode;
+    const shareLink = `${window.location.origin}${window.location.pathname}#${roomCode}`;
+    document.getElementById('shareLink').innerHTML = `<div id="shareLink" style="color: #4CAF50; font-size: 10px; word-break: break-all;">${shareLink}</div>`;
+    
+    // Mostra nuovamente pulsante PRONTO
+    document.getElementById('readyBtn').style.display = 'inline-block';
   }
   
   function closePokerWindow() {
