@@ -1,11 +1,141 @@
 // Bridge per Serena Open World - Scena three.js semplice con controlli WASD
 (function() {
-  if (typeof window === 'undefined') return;
+  'use strict';
 
+  // Sistema Controller Stile Fortnite
+  class PlayerController {
+    constructor(playerMesh, camera) {
+      this.player = playerMesh;
+      this.camera = camera;
+      this.keys = { w: false, a: false, s: false, d: false };
+      this.velocity = new THREE.Vector3();
+      this.speed = 5; // Unità al secondo
+      this.rotationSpeed = 10; // Gradi al secondo
+      this.cameraOffset = new THREE.Vector3(0, 2, -5); // Offset relativo al giocatore
+      this.cameraDistance = 5;
+      this.cameraHeight = 2;
+      this.cameraAngle = 0; // Angolo orbitale della camera
+      this.mouseSensitivity = 0.002;
+      this.isMoving = false;
+    }
+    
+    update(deltaTime) {
+      // 1. Calcola la Direzione di Movimento basata sulla camera
+      const forwardVector = new THREE.Vector3();
+      const rightVector = new THREE.Vector3();
+      
+      // Usa la direzione della camera per movimento WASD
+      this.camera.getWorldDirection(forwardVector);
+      forwardVector.y = 0; // Mantieni movimento sul piano orizzontale
+      forwardVector.normalize();
+      
+      // Calcola vettore destra per movimento laterale
+      rightVector.crossVectors(forwardVector, new THREE.Vector3(0, 1, 0));
+      
+      let moveDirection = new THREE.Vector3(0, 0, 0);
+      
+      // WASD intelligence stile Fortnite
+      if (this.keys.w) {
+        moveDirection.add(forwardVector);
+      }
+      if (this.keys.s) {
+        moveDirection.sub(forwardVector);
+      }
+      if (this.keys.a) {
+        moveDirection.sub(rightVector);
+      }
+      if (this.keys.d) {
+        moveDirection.add(rightVector);
+      }
+      
+      // Normalizza per evitare movimento diagonale più veloce
+      if (moveDirection.lengthSq() > 0) {
+        moveDirection.normalize();
+        
+        // 2. Rotazione Morbida del Personaggio (slerp)
+        const targetQuaternion = new THREE.Quaternion();
+        const angle = Math.atan2(moveDirection.x, moveDirection.z);
+        targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        
+        // Interpolazione sferica per rotazione fluida
+        this.player.quaternion.slerp(targetQuaternion, this.rotationSpeed * deltaTime);
+        
+        // 3. Traslazione del Personaggio
+        this.player.position.addScaledVector(moveDirection, this.speed * deltaTime);
+        
+        this.isMoving = true;
+      } else {
+        this.isMoving = false;
+      }
+      
+      // 4. Posizionamento Orbitale della Telecamera
+      this.updateOrbitalCamera(deltaTime);
+      
+      // 5. Aggiorna animazioni basate sul movimento
+      this.updateAnimations();
+    }
+    
+    updateOrbitalCamera(deltaTime) {
+      // Calcola posizione target della camera in orbita
+      const targetPosition = new THREE.Vector3();
+      
+      // Posizione orbitale basata sull'angolo della camera
+      const orbitX = Math.sin(this.cameraAngle) * this.cameraDistance;
+      const orbitZ = Math.cos(this.cameraAngle) * this.cameraDistance;
+      
+      targetPosition.set(
+        this.player.position.x + orbitX,
+        this.player.position.y + this.cameraHeight,
+        this.player.position.z + orbitZ
+      );
+      
+      // Interpolazione lineare per movimento fluido della camera
+      this.camera.position.lerp(targetPosition, 5 * deltaTime);
+      this.camera.lookAt(this.player.position);
+    }
+    
+    updateAnimations() {
+      if (!window.poseAction || !walkAction) return;
+      
+      if (this.isMoving) {
+        // Transizione a camminata
+        if (currentAction !== walkAction) {
+          console.log('Transizione a camminata stile Fortnite');
+          
+          window.poseAction.fadeOut(0.15);
+          walkAction.reset().fadeIn(0.15).setEffectiveTimeScale(1.0);
+          walkAction.play();
+          
+          currentAction = walkAction;
+        }
+      } else {
+        // Transizione a pose
+        if (currentAction !== window.poseAction) {
+          console.log('Transizione a pose stile Fortnite');
+          
+          walkAction.fadeOut(0.15);
+          window.poseAction.reset().fadeIn(0.15);
+          window.poseAction.play();
+          
+          currentAction = window.poseAction;
+        }
+      }
+    }
+    
+    setKey(key, pressed) {
+      if (key in this.keys) {
+        this.keys[key] = pressed;
+      }
+    }
+    
+    updateCameraAngle(deltaX) {
+      this.cameraAngle += deltaX * this.mouseSensitivity;
+    }
+  }
+  
   // Variabili globali
-  let scene, camera, renderer;
-  let serenaModel;
-  let mixer;
+  let scene, camera, renderer, serenaModel, mixer, clock;
+  let playerController; // Controller Fortnite-style
   let clock = new THREE.Clock();
   let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
   let velocity = new THREE.Vector3();
@@ -94,6 +224,14 @@
 
     // Carica Claire
     loadClaire();
+
+    // Inizializza il controller Fortnite dopo il caricamento del modello
+    setTimeout(() => {
+      if (serenaModel && camera) {
+        playerController = new PlayerController(serenaModel, camera);
+        console.log('PlayerController Fortnite inizializzato!');
+      }
+    }, 1000);
 
     // Loop di rendering
     animate();
@@ -1208,133 +1346,105 @@
     const delta = (time - (animate.prevTime || time)) * 0.001;
     animate.prevTime = time;
 
-    // Movimento WASD basato sulla direzione della camera (dove guarda l'utente)
-    // Reset velocity per evitare accumulo
-    velocity.x = 0;
-    velocity.z = 0;
+    // Sistema Fortnite-style: usa il PlayerController se disponibile
+    if (playerController) {
+      // Aggiorna i tasti WASD nel controller
+      playerController.setKey('w', moveForward);
+      playerController.setKey('a', moveLeft);
+      playerController.setKey('s', moveBackward);
+      playerController.setKey('d', moveRight);
+      
+      // Aggiorna il controller con delta time
+      playerController.update(delta);
+    } else {
+      // Fallback al vecchio sistema se il controller non è ancora inizializzato
+      if (serenaModel) {
+        // Mantieni il vecchio sistema come fallback
+        velocity.x = 0;
+        velocity.z = 0;
 
-    if (moveForward || moveBackward || moveLeft || moveRight) {
-      // Calcola la direzione della camera (dove guarda l'utente)
-      const cameraDirection = new THREE.Vector3();
-      camera.getWorldDirection(cameraDirection);
-      
-      // Proietta la direzione della camera sul piano XZ (ignora Y)
-      cameraDirection.y = 0;
-      cameraDirection.normalize();
-      
-      // Calcola la direzione perpendicolare per movimento laterale
-      const rightDirection = new THREE.Vector3();
-      rightDirection.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
-      rightDirection.normalize();
-      
-      // Calcola la velocità con intelligenza avanzata per curve reattive
-      const forwardSpeed = 4.0; // Velocità avanti con W
-      const lateralSpeed = 1.2; // Aumentato da 0.8 a 1.2 per curve più reattive
-      
-      if (moveForward) {
-        velocity.addScaledVector(cameraDirection, forwardSpeed);
-        // A/D con intelligenza avanzata: curva proporzionale alla velocità
-        if (moveRight) {
-          const curveIntensity = Math.min(forwardSpeed * 0.4, 1.5); // Intensità proporzionale
-          velocity.addScaledVector(rightDirection, curveIntensity);
+        if (moveForward || moveBackward || moveLeft || moveRight) {
+          const cameraDirection = new THREE.Vector3();
+          camera.getWorldDirection(cameraDirection);
+          cameraDirection.y = 0;
+          cameraDirection.normalize();
+          
+          const rightDirection = new THREE.Vector3();
+          rightDirection.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
+          rightDirection.normalize();
+          
+          const forwardSpeed = 4.0;
+          
+          if (moveForward) {
+            velocity.addScaledVector(cameraDirection, forwardSpeed);
+            if (moveRight) {
+              const curveIntensity = Math.min(forwardSpeed * 0.4, 1.5);
+              velocity.addScaledVector(rightDirection, curveIntensity);
+            }
+            if (moveLeft) {
+              const curveIntensity = Math.min(forwardSpeed * 0.4, 1.5);
+              velocity.addScaledVector(rightDirection, -curveIntensity);
+            }
+          }
         }
-        if (moveLeft) {
-          const curveIntensity = Math.min(forwardSpeed * 0.4, 1.5); // Intensità proporzionale
-          velocity.addScaledVector(rightDirection, -curveIntensity);
-        }
-      }
-      // Se non si preme W, A/D non fanno nulla
-    }
-    
-    // Muovi Serena basandosi sulla velocity calcolata
-    if (serenaModel) {
-      serenaModel.position.x += velocity.x * delta;
-      serenaModel.position.z += velocity.z * delta;
-      
-      // Fai ruotare il modello con intelligenza avanzata per curve perfette
-      if (moveForward) {
-        // Calcola la direzione del movimento
-        const moveDirection = new THREE.Vector3(velocity.x, 0, velocity.z);
-        if (moveDirection.length() > 0.1) {
-          moveDirection.normalize();
-          // Calcola l'angolo di rotazione per far girare il modello verso la direzione
-          const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
-          // Rotazione ultra-reattiva per curve immediate
-          serenaModel.rotation.y = THREE.MathUtils.lerp(serenaModel.rotation.y, targetAngle, 0.25); // Aumentato da 0.15 a 0.25
-        }
-      }
-      
-      // Ground detection per mantenere Serena a terra
-      const groundLevel = 0;
-      if (serenaModel.position.y > groundLevel) {
-        serenaModel.position.y -= 0.05; // Legale gravità
-      }
-      if (serenaModel.position.y < groundLevel) {
-        serenaModel.position.y = groundLevel; // Non andare sotto terra
-      }
-
-      // Camera sempre attaccata al modello - segue Serena
-      const cameraAngle = serenaModel.rotation.y;
-      const cameraDistance = 3;
-      const cameraHeight = 2.2;
-      const shoulderOffset = 0.5;
-      
-      camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance + Math.cos(cameraAngle) * shoulderOffset;
-      camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance + Math.sin(cameraAngle) * shoulderOffset;
-      camera.position.y = serenaModel.position.y + cameraHeight;
-      camera.lookAt(serenaModel.position);
-
-      // Sistema animazioni smooth - fade ridotto per eliminare scatti
-      const isMoving = velocity.length() > 0.1;
-      const moveSpeed = velocity.length();
-      
-      if (window.poseAction && walkAction) {
-        console.log('Animazioni - walkAction:', !!walkAction, 'poseAction:', !!window.poseAction, 'isMoving:', isMoving, 'moveSpeed:', moveSpeed.toFixed(2));
         
-        if (isMoving && moveSpeed > 0.2) {
-          // Transizione rapida a camminata
-          if (currentAction !== walkAction) {
-            console.log('Transizione a camminata - velocità:', moveSpeed.toFixed(2));
-            
-            // Fade out pose - tempo ridotto
-            window.poseAction.fadeOut(0.2);
-            // Fade in walking - tempo ridotto
-            walkAction.reset().fadeIn(0.2).setEffectiveTimeScale(Math.min(moveSpeed / 4, 1.5));
-            walkAction.play();
-            
-            currentAction = walkAction;
-          }
-        } else {
-          // Transizione rapida a pose
-          if (currentAction !== window.poseAction) {
-            console.log('Transizione a pose (velocità < 0.2)');
-            
-            // Fade out walking - tempo ridotto
-            walkAction.fadeOut(0.2);
-            // Fade in pose - tempo ridotto
-            window.poseAction.reset().fadeIn(0.2);
-            window.poseAction.play();
-            
-            currentAction = window.poseAction;
+        serenaModel.position.x += velocity.x * delta;
+        serenaModel.position.z += velocity.z * delta;
+        
+        if (moveForward) {
+          const moveDirection = new THREE.Vector3(velocity.x, 0, velocity.z);
+          if (moveDirection.length() > 0.1) {
+            moveDirection.normalize();
+            const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
+            serenaModel.rotation.y = THREE.MathUtils.lerp(serenaModel.rotation.y, targetAngle, 0.25);
           }
         }
-      } else {
-        // Fallback: oscillazione semplice se le animazioni non sono caricate
-        if (isMoving) {
-          const time = Date.now() * 0.005;
-          serenaModel.position.y = Math.sin(time) * 0.15;
-          serenaModel.rotation.x = Math.sin(time * 2) * 0.05;
-          serenaModel.rotation.z = Math.sin(time * 1.5) * 0.03;
-        } else {
-          serenaModel.position.y = 0;
-          serenaModel.rotation.x = 0;
-          serenaModel.rotation.z = 0;
+        
+        // Ground detection
+        const groundLevel = 0;
+        if (serenaModel.position.y > groundLevel) {
+          serenaModel.position.y -= 0.05;
         }
-      }
-      
-      // Aggiorna il mixer con delta time corretto
-      if (mixer) {
-        mixer.update(clock.getDelta());
+        if (serenaModel.position.y < groundLevel) {
+          serenaModel.position.y = groundLevel;
+        }
+
+        // Camera fallback
+        const cameraAngle = serenaModel.rotation.y;
+        const cameraDistance = 3;
+        const cameraHeight = 2.2;
+        const shoulderOffset = 0.5;
+        
+        camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance + Math.cos(cameraAngle) * shoulderOffset;
+        camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance + Math.sin(cameraAngle) * shoulderOffset;
+        camera.position.y = serenaModel.position.y + cameraHeight;
+        camera.lookAt(serenaModel.position);
+
+        // Animazioni fallback
+        const isMoving = velocity.length() > 0.1;
+        const moveSpeed = velocity.length();
+        
+        if (window.poseAction && walkAction) {
+          if (isMoving && moveSpeed > 0.2) {
+            if (currentAction !== walkAction) {
+              window.poseAction.fadeOut(0.2);
+              walkAction.reset().fadeIn(0.2).setEffectiveTimeScale(Math.min(moveSpeed / 4, 1.5));
+              walkAction.play();
+              currentAction = walkAction;
+            }
+          } else {
+            if (currentAction !== window.poseAction) {
+              walkAction.fadeOut(0.2);
+              window.poseAction.reset().fadeIn(0.2);
+              window.poseAction.play();
+              currentAction = window.poseAction;
+            }
+          }
+        }
+        
+        if (mixer) {
+          mixer.update(clock.getDelta());
+        }
       }
     }
 
