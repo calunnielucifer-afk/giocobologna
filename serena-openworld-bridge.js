@@ -10,6 +10,7 @@
         this.keys = { w: false, a: false, s: false, d: false }; // WASD completo
         this.speed = 5; // Velocità in unità/sec
         this.rotationSpeed = 8; // Fattore di Slerp (più alto = più reattivo)
+        this.cameraAngle = 0; // Angolo orbitale della camera per mouse control
 
         // Telecamera in Terza Persona (Spring Arm)
         this.cameraOffset = new THREE.Vector3(0, 2, -5); // Offset relativo al giocatore (es. 2m sopra, 5m dietro)
@@ -104,16 +105,32 @@
         // Calcola la posizione target della telecamera rispetto al giocatore
         const targetCameraPosition = new THREE.Vector3();
         
+        // Posizione orbitale basata sull'angolo della camera (mouse control)
+        const orbitX = Math.sin(this.cameraAngle) * 5; // Distanza fissa di 5 unità
+        const orbitZ = Math.cos(this.cameraAngle) * 5;
+        
         // Otteniamo la posizione desiderata: Posizione_Giocatore + Offset_Telecamera
-        const offset = this.cameraOffset.clone();
-        offset.applyQuaternion(this.camera.quaternion); // Applica la rotazione della camera all'offset
-        targetCameraPosition.addVectors(this.player.position, offset);
+        targetCameraPosition.set(
+            this.player.position.x + orbitX,
+            this.player.position.y + 2, // Altezza fissa della camera
+            this.player.position.z + orbitZ
+        );
 
         // Interpolazione Lineare (lerp) per muovere la telecamera fluidamente verso la posizione target
         this.camera.position.lerp(targetCameraPosition, this.cameraFollowFactor * deltaTime);
         
         // La telecamera guarda sempre il giocatore
         this.camera.lookAt(this.player.position.x, this.player.position.y + 1, this.player.position.z);
+    }
+    
+    // Metodo per il controllo orbitale del mouse (compatibilità con vecchio sistema)
+    updateCameraAngle(deltaX) {
+        // Aggiorna l'angolo della camera per l'orbitale
+        if (!this.cameraAngle) {
+            this.cameraAngle = 0;
+        }
+        this.cameraAngle += deltaX * 0.001; // Sensibilità ridotta per movimento fluido
+        console.log('AdvancedPlayerController - Camera angle updated:', this.cameraAngle.toFixed(4));
     }
 }
 
