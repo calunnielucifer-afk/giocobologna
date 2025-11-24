@@ -260,15 +260,24 @@
         
         scene.add(object);
 
-        // Log dei mesh (rimosso bone logging per ridurre spam)
+        // Log dei mesh per capire il nuovo modello
+        console.log('=== DEBUG: Mesh names in claire@Walking.fbx model ===');
         object.traverse(function(child) {
           if (child.isMesh) {
-            console.log('Mesh:', child.name, 'Vertices:', child.geometry ? child.geometry.attributes.position.count : 'N/A');
+            console.log('Mesh found:', child.name, 'Type:', child.geometry?.type || 'No geometry');
+            // Check if mesh already has material
+            if (child.material) {
+              console.log('  Existing material:', child.material.type, child.material.name || 'unnamed');
+              console.log('  Material color:', child.material.color?.getHexString() || 'no color');
+              console.log('  Has texture map:', !!child.material.map);
+            }
           }
         });
+        console.log('=== END DEBUG ===');
 
-        // Applica texture
-        applyTexturesToModel(object);
+        // Applica texture (temporaneamente disabilitato per test)
+        // applyTexturesToModel(object);
+        console.log('Texture application disabilitata per test - controllo se il modello ha già texture');
 
         // Animazioni con setup corretto
         mixer = new THREE.AnimationMixer(object);
@@ -1214,12 +1223,12 @@
       rightDirection.normalize();
       
       // Calcola la velocità direttamente invece di accumulare
-      const moveSpeed = 8.0; // Velocità costante
+      const forwardSpeed = 6.0; // Velocità avanti con W
+      const lateralSpeed = 3.0; // Velocità laterale con A/D
       
-      if (moveForward) velocity.addScaledVector(cameraDirection, moveSpeed);
-      if (moveBackward) velocity.addScaledVector(cameraDirection, -moveSpeed);
-      if (moveRight) velocity.addScaledVector(rightDirection, moveSpeed);
-      if (moveLeft) velocity.addScaledVector(rightDirection, -moveSpeed);
+      if (moveForward) velocity.addScaledVector(cameraDirection, forwardSpeed);
+      if (moveRight) velocity.addScaledVector(rightDirection, lateralSpeed);
+      if (moveLeft) velocity.addScaledVector(rightDirection, -lateralSpeed);
     }
     
     // Muovi Serena basandosi sulla velocity calcolata
