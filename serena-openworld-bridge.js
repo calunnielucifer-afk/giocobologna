@@ -2,139 +2,7 @@
 (function() {
   'use strict';
 
-  // Nuovo sistema avanzato PlayerController
-  class AdvancedPlayerController {
-    constructor(playerMesh, camera) {
-        this.player = playerMesh;
-        this.camera = camera;
-        this.keys = { w: false, a: false, s: false, d: false }; // WASD completo
-        this.speed = 5; // Velocità in unità/sec
-        this.rotationSpeed = 8; // Fattore di Slerp (più alto = più reattivo)
-        this.cameraAngle = 0; // Angolo orbitale della camera per mouse control
-
-        // Telecamera in Terza Persona (Spring Arm)
-        this.cameraOffset = new THREE.Vector3(0, 2, -5); // Offset relativo al giocatore (es. 2m sopra, 5m dietro)
-        this.cameraFollowFactor = 5; // Fattore di Lerp per la telecamera (smoothing)
-    }
-
-    // Passa da un'animazione all'altra con una dissolvenza incrociata (cross-fade)
-    _changeAnimation(name) {
-        if (!window.poseAction || !window.walkAction) return;
-        
-        const targetAction = name === 'Walk' ? window.walkAction : window.poseAction;
-        const currentActionName = currentAction === window.walkAction ? 'Walk' : 'Pose';
-        
-        if (currentActionName === name) return;
-
-        console.log(`Transizione animazione: ${currentActionName} -> ${name}`);
-
-        // Dissolvenza incrociata tra le due animazioni
-        if (currentAction) {
-            currentAction.fadeOut(0.2);
-        }
-        
-        targetAction
-            .reset()
-            .setEffectiveTimeScale(1)
-            .setEffectiveWeight(1)
-            .fadeIn(0.2)
-            .play();
-
-        currentAction = targetAction;
-    }
-
-    update(deltaTime) {
-        // --- 1. Calcolo della Direzione di Movimento ---
-        const moveVector = new THREE.Vector3(0, 0, 0);
-        
-        // Otteniamo la direzione della telecamera
-        const cameraDirection = new THREE.Vector3();
-        this.camera.getWorldDirection(cameraDirection);
-        
-        // Rimuoviamo la componente Y per rimanere sul piano XZ (Movimento orizzontale)
-        cameraDirection.y = 0;
-        cameraDirection.normalize();
-
-        // Calcoliamo il vettore laterale ("destra")
-        const rightVector = new THREE.Vector3().crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
-
-        let isMoving = false;
-
-        if (this.keys.w) {
-            moveVector.add(cameraDirection);
-            isMoving = true;
-        }
-        if (this.keys.s) {
-            moveVector.sub(cameraDirection);
-            isMoving = true;
-        }
-        if (this.keys.a) {
-            moveVector.sub(rightVector);
-            isMoving = true;
-        }
-        if (this.keys.d) {
-            moveVector.add(rightVector);
-            isMoving = true;
-        }
-        
-        // --- 2. Traslazione e Rotazione ---
-        if (isMoving) {
-            moveVector.normalize(); // Assicura che W+A non sia più veloce di solo W
-
-            // a) Rotazione fluida (risolve il "loop nelle curve")
-            // Calcoliamo il Quaternion target (direzione in cui il personaggio deve guardare)
-            const targetAngle = Math.atan2(moveVector.x, moveVector.z);
-            const targetQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), targetAngle);
-            
-            // Interpolazione Sferica Lineare (slerp) per rotazione morbida
-            this.player.quaternion.slerp(targetQuaternion, this.rotationSpeed * deltaTime);
-
-            // b) Traslazione
-            this.player.position.addScaledVector(moveVector, this.speed * deltaTime);
-
-            // c) Animazione
-            this._changeAnimation('Walk');
-
-        } else {
-            // Animazione
-            this._changeAnimation('Idle');
-        }
-
-        // --- 3. Telecamera in Terza Persona con Smoothing ---
-        
-        // Calcola la posizione target della telecamera rispetto al giocatore
-        const targetCameraPosition = new THREE.Vector3();
-        
-        // Posizione orbitale basata sull'angolo della camera (mouse control)
-        const orbitX = Math.sin(this.cameraAngle) * 5; // Distanza fissa di 5 unità
-        const orbitZ = Math.cos(this.cameraAngle) * 5;
-        
-        // Otteniamo la posizione desiderata: Posizione_Giocatore + Offset_Telecamera
-        targetCameraPosition.set(
-            this.player.position.x + orbitX,
-            this.player.position.y + 2, // Altezza fissa della camera
-            this.player.position.z + orbitZ
-        );
-
-        // Interpolazione Lineare (lerp) per muovere la telecamera fluidamente verso la posizione target
-        this.camera.position.lerp(targetCameraPosition, this.cameraFollowFactor * deltaTime);
-        
-        // La telecamera guarda sempre il giocatore
-        this.camera.lookAt(this.player.position.x, this.player.position.y + 1, this.player.position.z);
-    }
-    
-    // Metodo per il controllo orbitale del mouse (compatibilità con vecchio sistema)
-    updateCameraAngle(deltaX) {
-        // Aggiorna l'angolo della camera per l'orbitale
-        if (!this.cameraAngle) {
-            this.cameraAngle = 0;
-        }
-        this.cameraAngle += deltaX * 0.01; // Sensibilità aumentata da 0.001 a 0.01
-        console.log('AdvancedPlayerController - Camera angle updated:', this.cameraAngle.toFixed(4));
-    }
-}
-
-// Funzioni di input per il nuovo sistema
+  // Funzioni di input per il nuovo sistema
 function onKeyDown(event) {
     // Gestisci prima l'interazione con E
     if (event.code === 'KeyE') {
@@ -189,7 +57,7 @@ function onKeyUp(event) {
 }
 
   // Sistema Controller Stile Fortnite
-  class PlayerController {
+  class AdvancedPlayerController {
     constructor(playerMesh, camera) {
       this.player = playerMesh;
       this.camera = camera;
