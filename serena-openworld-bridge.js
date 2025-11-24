@@ -376,15 +376,22 @@
           poseAnimation = poseObject.animations[0];
           
           // Aggiungi l'animazione di pose al mixer esistente
-          const poseAction = mixer.clipAction(poseAnimation);
-          poseAction.setEffectiveWeight(1);
-          poseAction.setEffectiveTimeScale(1);
-          poseAction.clampWhenFinished = false;
-          poseAction.setLoop(THREE.LoopRepeat);
-          
-          console.log('Animazione pose caricata nel mixer!');
+          try {
+            const poseAction = mixer.clipAction(poseAnimation);
+            poseAction.setEffectiveWeight(1);
+            poseAction.setEffectiveTimeScale(1);
+            poseAction.clampWhenFinished = false;
+            poseAction.setLoop(THREE.LoopRepeat);
+            
+            // Salva il riferimento per usarlo dopo
+            window.poseAction = poseAction;
+            
+            console.log('Animazione pose caricata nel mixer!');
+          } catch (error) {
+            console.error('Errore nel creare poseAction:', error);
+          }
         } else {
-          console.log('Nessuna animazione pose trovata');
+          console.log('Nessuna animazione pose trovata nel file');
         }
       },
       function(xhr) {
@@ -392,6 +399,7 @@
       },
       function(error) {
         console.error('Errore caricamento animazione pose:', error);
+        console.log('Il file pose esiste ma non può essere caricato, uso fallback');
       }
     );
   }
@@ -1349,19 +1357,31 @@
             walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.2, 1.0)); // Ridotto da 0.3 a 0.2 e max da 1.5 a 1.0
             walkAction.setLoop(THREE.LoopRepeat); // Assicura loop continuo
             currentAction = walkAction;
-          } else if (!isMoving && currentAction !== idleAction) {
-            // Transizione a idle - usa poseAnimation se disponibile
-            console.log('Transizione a idle (pose)');
+          } else if (moveSpeed < 0.2 && currentAction !== idleAction) {
+            // Transizione a pose quando velocità < 0.2
+            console.log('Transizione a pose (velocità < 0.2)');
+            console.log('poseAnimation disponibile:', !!poseAnimation);
+            console.log('window.poseAction disponibile:', !!window.poseAction);
+            
             walkAction.fadeOut(0.5); // Transizione più lunga
             
-            if (poseAnimation) {
-              // Usa l'animazione pose da fermo
+            if (window.poseAction) {
+              // Usa l'animazione pose da fermo (riferimento salvato)
+              console.log('Uso window.poseAction salvato');
+              window.poseAction.reset().fadeIn(0.5).play();
+              window.poseAction.setLoop(THREE.LoopRepeat);
+              currentAction = window.poseAction;
+            } else if (poseAnimation) {
+              // Ricrea l'azione pose se necessario
+              console.log('Ricreo poseAction da poseAnimation');
               const poseAction = mixer.clipAction(poseAnimation);
               poseAction.reset().fadeIn(0.5).play();
               poseAction.setLoop(THREE.LoopRepeat);
+              window.poseAction = poseAction; // Salva per futuro
               currentAction = poseAction;
             } else {
               // Fallback a idle normale
+              console.log('Fallback a idle normale - pose non disponibile');
               idleAction.reset().fadeIn(0.5).play();
               currentAction = idleAction;
             }
