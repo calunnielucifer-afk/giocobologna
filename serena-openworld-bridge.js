@@ -148,7 +148,7 @@ function onKeyUp(event) {
       const playerPosition = this.player.position.clone();
       playerPosition.y += this.cameraHeight; // Altezza testa
       
-      // Calcola offset della camera (dietro e sopra)
+      // Calcola offset della camera (dietro e sopra) - DISTANZA STATICA
       const cameraOffset = new THREE.Vector3();
       cameraOffset.x = Math.sin(this.cameraAngle) * this.cameraDistance;
       cameraOffset.y = -1.5; // Guarda leggermente dall'alto
@@ -161,20 +161,9 @@ function onKeyUp(event) {
       const lookTarget = playerPosition.clone();
       lookTarget.y += 0.2; // Guarda leggermente verso l'alto
       
-      // SMOOTH TRANSITION - Interpolazione esponenziale per movimento fluido
-      const smoothSpeed = 8.0; // Velocità di smooth (più alto = più reattivo)
-      
-      // Interpola posizione della camera
-      this.camera.position.lerp(targetCameraPosition, smoothSpeed * deltaTime);
-      
-      // Interpola look target per smooth following
-      const currentLookTarget = new THREE.Vector3();
-      this.camera.getWorldDirection(currentLookTarget);
-      currentLookTarget.add(this.camera.position);
-      currentLookTarget.lerp(lookTarget, smoothSpeed * deltaTime);
-      
-      // Applica il look smooth
-      this.camera.lookAt(currentLookTarget);
+      // FOLLOWING ISTANTANEO - stessa velocità di Serena, nessun ritardo
+      this.camera.position.copy(targetCameraPosition);
+      this.camera.lookAt(lookTarget);
     }
     
     updateAnimations() {
