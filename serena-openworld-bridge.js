@@ -97,10 +97,14 @@
     updateAnimations() {
       if (!window.poseAction || !walkAction) return;
       
+      // Aggiungi hysteresis per evitare switch continui
+      const moveThreshold = 0.3;
+      const stopThreshold = 0.1;
+      
       if (this.isMoving) {
-        // Transizione a camminata
+        // Transizione a camminata solo se supera la soglia
         if (currentAction !== walkAction) {
-          console.log('Transizione a camminata stile Fortnite');
+          console.log('Transizione a camminata stile Fortnite - MOVIMENTO DETECTED');
           
           window.poseAction.fadeOut(0.15);
           walkAction.reset().fadeIn(0.15).setEffectiveTimeScale(1.0);
@@ -109,9 +113,9 @@
           currentAction = walkAction;
         }
       } else {
-        // Transizione a pose
+        // Transizione a pose solo se sotto la soglia di stop
         if (currentAction !== window.poseAction) {
-          console.log('Transizione a pose stile Fortnite');
+          console.log('Transizione a pose stile Fortnite - FERMO');
           
           walkAction.fadeOut(0.15);
           window.poseAction.reset().fadeIn(0.15);
@@ -147,6 +151,11 @@
   let lookTouchActive = false;
   let currentLookTouch = null;
   let lookTouchStart = new THREE.Vector2();
+  
+  // Mouse orbitale senza click
+  let mouseX = 0, mouseY = 0;
+  let isMouseOrbiting = false;
+  const edgeThreshold = 50; // Pixel dal bordo per attivare l'orbitale
   
   // Animazioni Mixamo
   let walkAnimation;
@@ -719,20 +728,20 @@
     document.addEventListener('keydown', function(event) {
       switch (event.code) {
         case 'ArrowUp':
-        case 'KeyW':  // FIX: W ora è forward (su)
+        case 'KeyW':  // W = forward
           moveForward = true;
           break;
         case 'ArrowDown':
-        case 'KeyS':  // RIMOSSO: S non fa nulla
-          // Non fare nulla per S
+        case 'KeyS':  // S = backward (RIATTIVATO)
+          moveBackward = true;
           break;
         case 'ArrowLeft':
         case 'KeyA':
-          moveLeft = true;  // Corretto: A = sinistra
+          moveLeft = true;  // A = sinistra
           break;
         case 'ArrowRight':
         case 'KeyD':
-          moveRight = true;  // Corretto: D = destra
+          moveRight = true;  // D = destra
           break;
       }
     });
@@ -740,12 +749,12 @@
     document.addEventListener('keyup', function(event) {
       switch (event.code) {
         case 'ArrowUp':
-        case 'KeyW':  // FIX: W ora è forward (su)
+        case 'KeyW':
           moveForward = false;
           break;
         case 'ArrowDown':
-        case 'KeyS':  // RIMOSSO: S non fa nulla
-          // Non fare nulla per S
+        case 'KeyS':  // S = backward release
+          moveBackward = false;
           break;
         case 'ArrowLeft':
         case 'KeyA':
@@ -755,6 +764,37 @@
         case 'KeyD':
           moveRight = false;
           break;
+      }
+    });
+    
+    // Mouse orbitale senza click - attiva ai bordi dello schermo
+    document.addEventListener('mousemove', function(event) {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const x = event.clientX;
+      const y = event.clientY;
+      
+      // Controlla se il mouse è ai bordi
+      const nearLeftEdge = x < edgeThreshold;
+      const nearRightEdge = x > width - edgeThreshold;
+      
+      if (nearLeftEdge || nearRightEdge) {
+        isMouseOrbiting = true;
+        
+        // Calcola la velocità di orbitale basata sulla distanza dal bordo
+        let orbitSpeed = 0;
+        if (nearLeftEdge) {
+          orbitSpeed = -(edgeThreshold - x) / edgeThreshold * 0.05; // Sinistra = negativo
+        } else if (nearRightEdge) {
+          orbitSpeed = (x - (width - edgeThreshold)) / edgeThreshold * 0.05; // Destra = positivo
+        }
+        
+        // Aggiorna l'angolo della camera nel controller
+        if (playerController) {
+          playerController.updateCameraAngle(orbitSpeed);
+        }
+      } else {
+        isMouseOrbiting = false;
       }
     });
 
