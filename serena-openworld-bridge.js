@@ -2,24 +2,27 @@
 (function() {
   if (typeof window === 'undefined') return;
 
-  let scene, camera, renderer, serenaModel = null;
-  let mixer = null;
+  // Variabili globali
+  let scene, camera, renderer;
+  let serenaModel;
+  let mixer;
   let clock = new THREE.Clock();
   let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
-  let prevTime = performance.now();
   let velocity = new THREE.Vector3();
   let direction = new THREE.Vector3();
-  
-  // Touch controls per mobile
   let joystickActive = false;
-  let joystickVector = { x: 0, y: 0 };
-  let touchStartPos = { x: 0, y: 0 };
-  let joystickHandle = null;
-  
-  // Touch look per guardarsi attorno
+  let joystickVector = new THREE.Vector2();
+  let touchStartPos = new THREE.Vector2();
+  let joystickHandle;
   let lookTouchActive = false;
-  let lookTouchStart = { x: 0, y: 0 };
-  let currentLookTouch = null; // ID del touch attivo per look
+  let currentLookTouch = null;
+  let lookTouchStart = new THREE.Vector2();
+  
+  // Animazioni Mixamo
+  let walkAnimation;
+  let walkAction;
+  let idleAction;
+  let currentAction;
 
   // Inizializza la scena three.js
   function initScene() {
@@ -189,6 +192,74 @@
     return group;
   }
 
+  function loadWalkAnimation() {
+    console.log('Caricamento animazione di camminata Mixamo...');
+    
+    const colladaLoader = new THREE.ColladaLoader();
+    colladaLoader.load(
+      'openworld/modelpg/Lady_in_red_dress/Walking.dae',
+      function(collada) {
+        console.log('Animazione Mixamo caricata con successo!');
+        
+        // Estrai l'animazione dal file COLLADA
+        walkAnimation = collada.animations[0];
+        if (walkAnimation) {
+          // Crea l'azione di camminata
+          walkAction = mixer.clipAction(walkAnimation);
+          walkAction.setEffectiveWeight(1);
+          walkAction.setEffectiveTimeScale(1);
+          
+          // Crea un'animazione idle di base (fermo)
+          idleAction = mixer.clipAction(createIdleAnimation());
+          idleAction.setEffectiveWeight(1);
+          idleAction.setEffectiveTimeScale(1);
+          
+          // Inizia con l'animazione idle
+          idleAction.play();
+          currentAction = idleAction;
+          
+          console.log('Animazioni setup completate - Idle attivo');
+        } else {
+          console.log('Nessuna animazione trovata nel file DAE');
+        }
+      },
+      function(xhr) {
+        console.log('Animazione: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
+      },
+      function(error) {
+        console.error('Errore caricamento animazione:', error);
+      }
+    );
+  }
+  
+  function createIdleAnimation() {
+    // Crea un'animazione idle semplice (fermo)
+    const tracks = [];
+    const duration = 1.0;
+    const times = [0, duration];
+    
+    // Aggiungi track per ogni osso del modello per mantenerlo fermo
+    serenaModel.traverse(function(child) {
+      if (child.isBone) {
+        const name = child.name;
+        const positionTrack = new THREE.VectorKeyframeTrack(
+          name + '.position',
+          times,
+          [child.position.x, child.position.y, child.position.z, child.position.x, child.position.y, child.position.z]
+        );
+        const rotationTrack = new THREE.QuaternionKeyframeTrack(
+          name + '.quaternion',
+          times,
+          [child.quaternion.x, child.quaternion.y, child.quaternion.z, child.quaternion.w, 
+           child.quaternion.x, child.quaternion.y, child.quaternion.z, child.quaternion.w]
+        );
+        tracks.push(positionTrack, rotationTrack);
+      }
+    });
+    
+    return new THREE.AnimationClip('Idle', duration, tracks);
+  }
+
   function loadSerena() {
     console.log('Caricamento modello FBX di Serena...');
     
@@ -252,20 +323,9 @@
 
         // Animazioni con setup corretto
         mixer = new THREE.AnimationMixer(object);
-        if (object.animations.length > 0) {
-          console.log('Animazioni trovate:', object.animations.length);
-          object.animations.forEach((anim, index) => {
-            console.log('Animazione', index, ':', anim.name);
-          });
-          
-          const action = mixer.clipAction(object.animations[0]);
-          action.setEffectiveWeight(1);
-          action.setEffectiveTimeScale(1);
-          action.fadeIn(0.5);
-          action.play();
-        } else {
-          console.log('Nessuna animazione trovata nel modello');
-        }
+        
+        // Carica l'animazione di camminata Mixamo
+        loadWalkAnimation();
 
         console.log('Serena caricata con successo!');
       },
@@ -679,7 +739,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.9);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -689,8 +749,8 @@
     // Contenuto della finestra poker
     const pokerContent = document.createElement('div');
     pokerContent.style.cssText = `
-      background: #2d5f2d;
-      border: 4px solid #8B4513;
+      background: #1a1a1a;
+      border: 4px solid #ffd700;
       border-radius: 15px;
       padding: 20px;
       width: 90%;
@@ -698,7 +758,8 @@
       height: 90%;
       max-height: 600px;
       position: relative;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+      overflow: hidden;
     `;
     
     pokerContent.innerHTML = `
@@ -715,16 +776,16 @@
         ">✖ Chiudi</button>
       </div>
       
-      <div style="background: #1a4d1a; border-radius: 10px; padding: 20px; height: calc(100% - 80px); overflow-y: auto;">
+      <div style="background: #2a2a2a; border-radius: 10px; padding: 20px; height: calc(100% - 80px); overflow-y: auto;">
         <div style="text-align: center; color: white;">
           <h3>🃏 Texas Hold'em Poker 🃏</h3>
           
-          <div style="background: rgba(255,215,0,0.2); border: 2px solid #ffd700; border-radius: 10px; padding: 15px; margin: 15px 0;">
+          <div style="background: rgba(255,215,0,0.15); border: 2px solid #ffd700; border-radius: 10px; padding: 15px; margin: 15px 0;">
             <div style="color: #ffd700; font-weight: bold; margin-bottom: 10px;">🔗 Invita un amico al tavolo:</div>
             <div style="display: flex; gap: 10px; align-items: center;">
               <input id="inviteLink" type="text" readonly value="${window.location.origin}${window.location.pathname}#poker-table-ABC123" style="
                 flex: 1;
-                background: rgba(0,0,0,0.5);
+                background: rgba(0,0,0,0.7);
                 color: white;
                 border: 1px solid #ffd700;
                 padding: 8px;
@@ -745,8 +806,7 @@
             <div style="color: #ccc; font-size: 12px; margin-top: 5px;">📱 Condividi questo link per invitare amici al tavolo</div>
           </div>
           
-          <!-- Dealer Bot -->
-          <div style="background: rgba(139,69,19,0.3); border: 2px solid #8B4513; border-radius: 10px; padding: 15px; margin: 15px 0;">
+          <div style="background: rgba(139,69,19,0.4); border: 2px solid #8B4513; border-radius: 10px; padding: 15px; margin: 15px 0;">
             <div style="color: #ffd700; font-weight: bold; margin-bottom: 10px;">🤖 Dealer Bot Attivo</div>
             <div style="display: flex; align-items: center; gap: 15px;">
               <div style="
@@ -1119,34 +1179,33 @@
       camera.lookAt(serenaModel.position);
     }
 
-    // Animazioni migliorate
+    // Animazioni migliorate con Mixamo
     if (mixer && serenaModel) {
       // Velocità di movimento per animazione
       const moveSpeed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
       const isMoving = moveSpeed > 0.1;
       
-      // Controlla le animazioni disponibili
-      if (serenaModel.animations.length > 0) {
-        const walkAction = mixer.clipAction(serenaModel.animations[0]);
-        const idleAction = mixer.clipAction(serenaModel.animations[1] || serenaModel.animations[0]);
-        
-        if (isMoving) {
-          // Attiva animazione di camminata
-          if (!walkAction.isRunning()) {
-            walkAction.reset().fadeIn(0.2).play();
-            idleAction.fadeOut(0.2);
-          }
-          // Adatta la velocità dell'animazione al movimento
+      // Sistema di animazione Mixamo
+      if (walkAction && idleAction) {
+        if (isMoving && currentAction !== walkAction) {
+          // Transizione a camminata
+          console.log('Transizione a camminata');
+          idleAction.fadeOut(0.3);
+          walkAction.reset().fadeIn(0.3).play();
           walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
-        } else {
-          // Attiva animazione idle
-          if (!idleAction.isRunning()) {
-            idleAction.reset().fadeIn(0.2).play();
-            walkAction.fadeOut(0.2);
-          }
+          currentAction = walkAction;
+        } else if (!isMoving && currentAction !== idleAction) {
+          // Transizione a idle
+          console.log('Transizione a idle');
+          walkAction.fadeOut(0.3);
+          idleAction.reset().fadeIn(0.3).play();
+          currentAction = idleAction;
+        } else if (isMoving && currentAction === walkAction) {
+          // Aggiusta velocità camminata
+          walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
         }
       } else {
-        // Fallback: oscillazione semplice se non ci sono animazioni
+        // Fallback: oscillazione semplice se le animazioni Mixamo non sono caricate
         if (isMoving) {
           const time = Date.now() * 0.003;
           serenaModel.position.y = Math.sin(time) * 0.05; // Legale oscillazione verticale
@@ -1185,25 +1244,52 @@
   });
   
   // Gestisci il pulsante di chiusura del pannello info
-  document.addEventListener('DOMContentLoaded', function() {
+  function setupCloseInfoButton() {
     const closeInfoBtn = document.getElementById('closeInfo');
     const infoPanel = document.getElementById('info');
     
     if (closeInfoBtn && infoPanel) {
-      // Event listener per click (desktop)
-      closeInfoBtn.addEventListener('click', function() {
+      console.log('Pulsante chiudi info trovato, setup eventi...');
+      
+      // Rimuovi eventi precedenti per evitare duplicazioni
+      closeInfoBtn.removeEventListener('click', hideInfoPanel);
+      closeInfoBtn.removeEventListener('touchstart', hideInfoPanel);
+      closeInfoBtn.removeEventListener('touchend', hideInfoPanel);
+      
+      // Funzione unificata per nascondere il pannello
+      function hideInfoPanel(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         infoPanel.style.display = 'none';
-        console.log('Pannello info nascosto (click)');
+        console.log('Pannello info nascosto - evento:', e ? e.type : 'direct');
+      }
+      
+      // Event listener per click (desktop)
+      closeInfoBtn.addEventListener('click', hideInfoPanel);
+      
+      // Event listener per touch (mobile) - usa touchend per maggiore compatibilità
+      closeInfoBtn.addEventListener('touchend', hideInfoPanel);
+      
+      // Fallback con touchstart
+      closeInfoBtn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        setTimeout(hideInfoPanel, 100); // Piccolo ritardo per assicurarsi che il touch sia completato
       });
       
-      // Event listener per touch (mobile)
-      closeInfoBtn.addEventListener('touchstart', function(e) {
-        e.preventDefault(); // Previeni comportamento default
-        infoPanel.style.display = 'none';
-        console.log('Pannello info nascosto (touch)');
-      });
+      console.log('Eventi pulsante chiudi info configurati');
+    } else {
+      console.log('Pulsante chiudi info o pannello non trovati');
     }
-  });
+  }
+  
+  // Chiama la funzione sia al DOMContentLoaded che dopo un ritardo per mobile
+  document.addEventListener('DOMContentLoaded', setupCloseInfoButton);
+  
+  // Fallback per mobile - controlla anche dopo un ritardo
+  setTimeout(setupCloseInfoButton, 1000);
+  setTimeout(setupCloseInfoButton, 3000);
 
   console.log('Bridge Serena Open World inizializzato.');
 })();
