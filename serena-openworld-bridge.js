@@ -34,7 +34,7 @@
       
       let moveDirection = new THREE.Vector3(0, 0, 0);
       
-      // WASD intelligence stile Fortnite
+      // WASD intelligence stile Fortnite - ASD funzionano anche senza W
       if (this.keys.w) {
         moveDirection.add(forwardVector);
         console.log('W pressed - moving forward');
@@ -43,13 +43,14 @@
         moveDirection.sub(forwardVector);
         console.log('S pressed - moving backward');
       }
+      // A/D funzionano INDIPENDENTEMENTE da W (richiesto dall'utente)
       if (this.keys.a) {
         moveDirection.sub(rightVector);
-        console.log('A pressed - moving left');
+        console.log('A pressed - moving left (independent)');
       }
       if (this.keys.d) {
         moveDirection.add(rightVector);
-        console.log('D pressed - moving right');
+        console.log('D pressed - moving right (independent)');
       }
       
       // Normalizza per evitare movimento diagonale più veloce
@@ -251,13 +252,20 @@
     // Carica Claire
     loadClaire();
 
-    // Inizializza il controller Fortnite dopo il caricamento del modello
+    // Inizializza il controller Fortnite dopo il caricamento completo del modello
     setTimeout(() => {
-      if (serenaModel && camera) {
+      if (serenaModel && camera && window.poseAction && window.walkAction) {
         playerController = new PlayerController(serenaModel, camera);
-        console.log('PlayerController Fortnite inizializzato!');
+        console.log('PlayerController Fortnite inizializzato con tutte le animazioni!');
+      } else {
+        console.log('PlayerController non inizializzato - elementi mancanti:', {
+          serenaModel: !!serenaModel,
+          camera: !!camera,
+          poseAction: !!window.poseAction,
+          walkAction: !!window.walkAction
+        });
       }
-    }, 1000);
+    }, 2000); // Aumentato da 1000ms a 2000ms
 
     // Loop di rendering
     animate();
