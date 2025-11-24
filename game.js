@@ -1,32 +1,36 @@
-// Game variables
-let canvas, ctx;
-let gameRunning = false;
-let gamePaused = false;
-let score = 0;
-let lives = 3;
-let level = 1;
-let animationId;
-let currentDoor = null;
-let currentRiddle = null;
-let currentPuzzle = null;
-let draggedElement = null;
+// Serena Escape Game - Isolated scope to prevent conflicts
+(function() {
+  'use strict';
 
-// Shooting system
-let projectiles = [];
-let canShoot = true;
-let shootCooldown = 500; // milliseconds between shots
+  // Game variables - prefixed to avoid conflicts
+  let canvas, ctx;
+  let gameRunning = false;
+  let gamePaused = false;
+  let score = 0;
+  let lives = 3;
+  let level = 1;
+  let gameAnimationId; // Renamed from gameAnimationId
+  let currentDoor = null;
+  let currentRiddle = null;
+  let currentPuzzle = null;
+  let draggedElement = null;
 
-// 3D System
-let camera3D = {
+  // Shooting system
+  let projectiles = [];
+  let canShoot = true;
+  let shootCooldown = 500; // milliseconds between shots
+
+  // 3D System - renamed to avoid conflicts
+  let gameCamera3D = { // Renamed from gameCamera3D
     x: 0,
     y: 0,
     z: 500,
     rotation: 0
-};
+  };
 
-let is3DLevel = false;
-let perspective3D = 800;
-let objects3D = [];
+  let is3DLevel = false;
+  let perspective3D = 800;
+  let objects3D = [];
 
 // Game objects
 let serena = {
@@ -288,7 +292,7 @@ function pauseGame() {
 
 function restartGame() {
     gameRunning = false;
-    cancelAnimationFrame(animationId);
+    cancelAnimationFrame(gameAnimationId);
     
     // Hide all modals including intro dialog
     const gameOverModal = document.getElementById('gameOver');
@@ -877,7 +881,7 @@ function gameLoop() {
     update();
     draw();
     
-    animationId = requestAnimationFrame(gameLoop);
+    gameAnimationId = requestAnimationFrame(gameLoop);
 }
 
 function loseLife() {
@@ -897,7 +901,7 @@ function loseLife() {
 
 function gameOver() {
     gameRunning = false;
-    cancelAnimationFrame(animationId);
+    cancelAnimationFrame(gameAnimationId);
     
     const gameOverModal = document.getElementById('gameOver');
     if (gameOverModal) {
@@ -912,7 +916,7 @@ function gameOver() {
 
 function victory() {
     gameRunning = false;
-    cancelAnimationFrame(animationId);
+    cancelAnimationFrame(gameAnimationId);
     
     score += 1000;
 
@@ -1231,7 +1235,7 @@ function init() {
     serena.isJumping = false;
     
     // Reset 3D camera
-    camera3D = {
+    gameCamera3D = {
         x: 0,
         y: 0,
         z: 500,
@@ -1941,10 +1945,10 @@ function startMemoryGame() {
 
 // 3D Functions
 function project3D(x, y, z) {
-    const scale = perspective3D / (perspective3D + z - camera3D.z);
+    const scale = perspective3D / (perspective3D + z - gameCamera3D.z);
     return {
-        x: (x - camera3D.x) * scale + canvas.width / 2,
-        y: (y - camera3D.y) * scale + canvas.height / 2,
+        x: (x - gameCamera3D.x) * scale + canvas.width / 2,
+        y: (y - gameCamera3D.y) * scale + canvas.height / 2,
         scale: scale
     };
 }
@@ -2119,9 +2123,9 @@ function update3DObjects() {
 function update3DCamera() {
     if (is3DLevel) {
         // Smooth camera follow
-        camera3D.x += (serena.x - 400 - camera3D.x) * 0.1;
-        camera3D.y += (serena.y - 200 - camera3D.y) * 0.1;
-        camera3D.z = 500 + Math.sin(Date.now() * 0.001) * 20; // Subtle breathing effect
+        gameCamera3D.x += (serena.x - 400 - gameCamera3D.x) * 0.1;
+        gameCamera3D.y += (serena.y - 200 - gameCamera3D.y) * 0.1;
+        gameCamera3D.z = 500 + Math.sin(Date.now() * 0.001) * 20; // Subtle breathing effect
     }
 }
 
@@ -4478,7 +4482,7 @@ function gameLoop() {
     update();
     draw();
     
-    animationId = requestAnimationFrame(gameLoop);
+    gameAnimationId = requestAnimationFrame(gameLoop);
 }
 
 // Start game
@@ -4510,7 +4514,7 @@ function pauseGame() {
 // Restart game
 function restartGame() {
     gameRunning = false;
-    cancelAnimationFrame(animationId);
+    cancelAnimationFrame(gameAnimationId);
     document.getElementById('gameOver').classList.add('hidden');
     document.getElementById('victory').classList.add('hidden');
     startGame();
@@ -4522,4 +4526,12 @@ function gameOver() {
     document.getElementById('gameOver').classList.remove('hidden');
 }
 
-}
+// Expose necessary functions to global scope for HTML event handlers
+window.SerenaGame = {
+    startGame,
+    pauseGame,
+    restartGame,
+    gameOver
+};
+
+})(); // Close IIFE
