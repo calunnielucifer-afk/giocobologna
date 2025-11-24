@@ -1509,6 +1509,7 @@ function createLevel2() {
     
     // Reset prima notifica del passo
     firstStepNotified = false;
+    console.log('🔔 RESET firstStepNotified = false per livello 2');
     
     // Clear all elements for open world experience
     obstacles = [];
@@ -2847,8 +2848,10 @@ function update() {
         
         // Controlla primo passo nel livello 2 (open world)
         if (level === 2 && !firstStepNotified && hasMoved) {
+            console.log('🚶‍♀️ PRIMO PASSO RILEVATO! Livello:', level, 'firstStepNotified:', firstStepNotified, 'hasMoved:', hasMoved);
             firstStepNotified = true;
             setTimeout(() => {
+                console.log('🔔 AVVIO MESSAGGIO PRINCIPE...');
                 showPrinceMessage();
                 playNotificationSound();
             }, 500); // Mezzo secondo di delay per far apprezzare il movimento
@@ -4412,6 +4415,8 @@ function drawClouds() {
 }
 
 function showPrinceMessage() {
+    console.log('🤴 showPrinceMessage() CHIAMATA!');
+    
     // Crea un elemento HTML per il messaggio del principe
     const messageDiv = document.createElement('div');
     messageDiv.style.cssText = `
@@ -4439,6 +4444,8 @@ function showPrinceMessage() {
         <div style="margin-top: 20px; font-size: 14px; opacity: 0.8;">Esplora il villaggio per scoprirlo!</div>
     `;
     
+    console.log('🤴 Messaggio creato, aggiungo al DOM...');
+    
     // Aggiungi animazione CSS
     const style = document.createElement('style');
     style.textContent = `
@@ -4451,11 +4458,13 @@ function showPrinceMessage() {
     document.head.appendChild(style);
     
     document.body.appendChild(messageDiv);
+    console.log('🤴 Messaggio aggiunto al body!');
     
     // Auto-chiusura dopo 5 secondi
     setTimeout(() => {
         if (messageDiv.parentNode) {
             document.body.removeChild(messageDiv);
+            console.log('🤴 Messaggio rimosso dal DOM');
         }
         if (style.parentNode) {
             document.head.removeChild(style);
@@ -4464,9 +4473,12 @@ function showPrinceMessage() {
 }
 
 function playNotificationSound() {
+    console.log('🔔 playNotificationSound() CHIAMATA!');
+    
     try {
         // Crea contesto audio per suono notifica
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('🔔 AudioContext creato:', audioContext);
         
         // Suono notifica misterioso (triangolo wave con envelope)
         const oscillator = audioContext.createOscillator();
@@ -4488,6 +4500,8 @@ function playNotificationSound() {
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.5);
         
+        console.log('🔔 Prima nota suonata!');
+        
         // Seconda nota per enfatizzare
         setTimeout(() => {
             const oscillator2 = audioContext.createOscillator();
@@ -4505,6 +4519,8 @@ function playNotificationSound() {
             
             oscillator2.start(audioContext.currentTime);
             oscillator2.stop(audioContext.currentTime + 0.3);
+            
+            console.log('🔔 Seconda nota suonata!');
         }, 600);
         
         console.log('🔔 Suono notifica misterioso avviato!');
