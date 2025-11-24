@@ -1203,32 +1203,29 @@
   let reticle = null; // Mirino visibile davanti al modello
 
   function createReticle() {
-    // Crea un mirino semplice (anello)
-    const geometry = new THREE.RingGeometry(0.3, 0.4, 32);
+    // Crea un mirino semplice (pallino)
+    const geometry = new THREE.SphereGeometry(0.15, 16, 16); // Pallino piccolo
     const material = new THREE.MeshBasicMaterial({ 
       color: 0xff0000, 
-      side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.7
+      opacity: 0.8
     });
     reticle = new THREE.Mesh(geometry, material);
-    reticle.rotation.x = -Math.PI / 2; // Ruota per essere orizzontale a terra
     scene.add(reticle);
   }
 
   function updateReticle() {
     if (reticle && serenaModel) {
-      // Posiziona il mirino davanti al modello alla sua altezza
-      const distance = 3; // Distanza davanti al modello
-      const height = 1.6; // Altezza circa della testa
+      // Posiziona il mirino davanti al modello alla sua altezza, meglio centrato
+      const distance = 2.5; // Distanza davanti al modello
+      const height = 1.7; // Altezza occhi/testa
       
       // Calcola posizione davanti al modello basandosi sulla sua rotazione
       reticle.position.x = serenaModel.position.x + Math.sin(serenaModel.rotation.y) * distance;
       reticle.position.z = serenaModel.position.z + Math.cos(serenaModel.rotation.y) * distance;
       reticle.position.y = serenaModel.position.y + height;
       
-      // Il mirino guarda sempre verso l'alto
-      reticle.rotation.z = serenaModel.rotation.y;
+      // Il pallino non ha bisogno di rotazione
     }
   }
 
