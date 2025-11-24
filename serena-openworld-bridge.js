@@ -32,6 +32,13 @@ function onKeyDown(event) {
             case 'KeyD':
                 playerController.keys.d = true;
                 break;
+            // FRECCE per camera rotation
+            case 'ArrowLeft':
+                playerController.updateCameraAngle(-0.05); // Rotazione sinistra
+                break;
+            case 'ArrowRight':
+                playerController.updateCameraAngle(0.05); // Rotazione destra
+                break;
         }
     }
 }
@@ -67,7 +74,7 @@ function onKeyUp(event) {
       this.rotationSpeed = 10; // Gradi al secondo
       this.cameraOffset = new THREE.Vector3(0, 2, -5); // Offset relativo al giocatore
       this.cameraDistance = 5;
-      this.cameraHeight = 2;
+      this.cameraHeight = 3; // Camera più alta
       this.cameraAngle = 0; // Angolo orbitale della camera
       this.mouseSensitivity = 0.001; // Sensibilità normale (ridotto da 0.002)
       this.isMoving = false;
@@ -599,10 +606,13 @@ function onKeyUp(event) {
           console.log('Animazione Serena walking FBX 7.4 trovata:', walkingObject.animations.length);
           walkAnimation = walkingObject.animations[0];
           
+          // ACCORCIA DURATA ANIMAZIONE del 20% per eliminare mezzo passo in più
+          walkAnimation.duration = walkAnimation.duration * 0.8;
+          
           // Crea l'azione walking nel mixer del modello pose
           walkAction = mixer.clipAction(walkAnimation);
           walkAction.setEffectiveWeight(1);
-          walkAction.setEffectiveTimeScale(1);
+          walkAction.setEffectiveTimeScale(1); // Torna a velocità normale
           walkAction.clampWhenFinished = false;
           walkAction.setLoop(THREE.LoopRepeat);
           
