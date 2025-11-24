@@ -455,6 +455,27 @@ function onKeyUp(event) {
   function loadClaire() {
     console.log('Caricamento modello Serena pose FBX 7.4 di default...');
     
+    // FALLBACK IMMEDIATO - crea un placeholder geometrico per testare movement
+    if (!serenaModel) {
+      console.log('Creazione placeholder geometrico per Serena...');
+      const geometry = new THREE.CapsuleGeometry(0.3, 1.2, 4, 8);
+      const material = new THREE.MeshStandardMaterial({ 
+        color: 0xff69b4, // Rosa
+        metalness: 0.1,
+        roughness: 0.7
+      });
+      serenaModel = new THREE.Mesh(geometry, material);
+      serenaModel.position.set(0, 1, 0);
+      serenaModel.castShadow = true;
+      serenaModel.receiveShadow = true;
+      scene.add(serenaModel);
+      
+      console.log('Placeholder Serena aggiunto alla scena!');
+      
+      // Crea animazioni di fallback immediate
+      createFallbackAnimations();
+    }
+    
     const fbxLoader = new THREE.FBXLoader();
     
     // Carica il modello SERENA POSE FBX 7.4 come default
