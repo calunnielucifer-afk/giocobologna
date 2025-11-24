@@ -241,12 +241,39 @@
   }
 
   function loadWalkAnimation() {
-    console.log('Caricamento animazione di camminata Mixamo... DISABILITATO per evitare errori');
+    console.log('Caricamento animazione Walking.dae per Claire...');
     
-    // Disabilitato perché causa PropertyBinding errors
-    // Le animazioni Mixamo non sono compatibili con la struttura delle ossa del modello FBX
-    console.log('Usando solo animazioni fallback...');
-    return;
+    const colladaLoader = new THREE.ColladaLoader();
+    colladaLoader.load(
+      'openworld/modelpg/Lady_in_red_dress/Walking.dae',
+      function(collada) {
+        console.log('Animazione Walking.dae caricata con successo!');
+        console.log('Animations found:', collada.animations.length);
+        
+        if (collada.animations.length > 0) {
+          walkAnimation = collada.animations[0];
+          console.log('Walk animation name:', walkAnimation.name);
+          console.log('Walk animation duration:', walkAnimation.duration);
+          
+          // Crea l'azione di camminata
+          walkAction = mixer.clipAction(walkAnimation);
+          walkAction.setEffectiveWeight(1);
+          walkAction.setEffectiveTimeScale(1);
+          walkAction.clampWhenFinished = true;
+          
+          console.log('Animazione Walking.dae setup completata!');
+        } else {
+          console.log('Nessuna animazione trovata in Walking.dae');
+        }
+      },
+      function(xhr) {
+        console.log('Walking.dae: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
+      },
+      function(error) {
+        console.error('Errore caricamento Walking.dae:', error);
+        console.log('Mantenendo solo animazioni fallback...');
+      }
+    );
   }
   
   function createSimpleWalkAnimation() {
@@ -393,9 +420,8 @@
         // Crea subito animazioni di fallback per assicurarsi che funzionino
         createFallbackAnimations();
         
-        // Poi prova a caricare l'animazione Mixamo
-        // DISABILITATO: loadWalkAnimation() causa PropertyBinding errors
-        console.log('Mixamo animations disabled - using fallback only');
+        // Poi prova a caricare l'animazione Walking.dae
+        loadWalkAnimation();
 
         console.log('Claire caricata con successo!');
       },
@@ -1280,7 +1306,7 @@
     velocity.z -= velocity.z * 10.0 * delta;
 
     if (moveForward || moveBackward || moveLeft || moveRight) {
-      // Calcola la direzione della camera
+      // Calcola la direzione della camera (dove guarda l'utente)
       const cameraDirection = new THREE.Vector3();
       camera.getWorldDirection(cameraDirection);
       
@@ -1288,24 +1314,20 @@
       cameraDirection.y = 0;
       cameraDirection.normalize();
       
+      // Calcola la direzione perpendicolare per movimento laterale
+      const rightDirection = new THREE.Vector3();
+      rightDirection.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
+      rightDirection.normalize();
+      
+      // Applica il movimento basato sulla visuale della camera
+      if (moveForward) velocity.addScaledVector(cameraDirection, 400.0 * delta);
+      if (moveBackward) velocity.addScaledVector(cameraDirection, -400.0 * delta);
+      if (moveRight) velocity.addScaledVector(rightDirection, 400.0 * delta);
+      if (moveLeft) velocity.addScaledVector(rightDirection, -400.0 * delta);
+    }
+    
+    // Muovi Serena basandosi sulla velocity calcolata
     if (serenaModel) {
-      // Calcola la direzione di movimento basata sulla rotazione di Serena
-      direction.z = Number(moveForward) - Number(moveBackward);
-      direction.x = Number(moveRight) - Number(moveLeft);
-      direction.normalize(); // Normalizza per velocità costante
-
-      // Applica la direzione rispetto alla rotazione di Serena
-      const moveDirection = new THREE.Vector3(direction.x, 0, direction.z);
-      moveDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), serenaModel.rotation.y);
-
-      // Aggiorna la velocità
-      velocity.x -= velocity.x * 10.0 * delta; // Freno
-      velocity.z -= velocity.z * 10.0 * delta; // Freno
-
-      if (moveForward || moveBackward) velocity.z -= moveDirection.z * 400.0 * delta;
-      if (moveLeft || moveRight) velocity.x -= moveDirection.x * 400.0 * delta;
-
-      // Muovi Serena
       serenaModel.position.x += velocity.x * delta;
       serenaModel.position.z += velocity.z * delta;
       
@@ -1341,22 +1363,38 @@
         console.log('Animazioni - walkAction:', !!walkAction, 'idleAction:', !!idleAction, 'isMoving:', isMoving, 'moveSpeed:', moveSpeed);
       }
       
-      // Sistema di animazione Mixamo
-      // DISABILITATO: Sistema animazioni Mixamo causa PropertyBinding errors
-      // Usa solo il sistema fallback oscillazione semplice
-      
-      // Fallback: oscillazione semplice se le animazioni Mixamo non sono caricate
+      // Sistema di animazione completo
+      if (walkAction && idleAction) {
+        if (isMoving && currentAction !== walkAction) {
+          // Transizione a camminata
+          console.log('Transizione a camminata - velocità:', moveSpeed);
+          idleAction.fadeOut(0.3);
+          walkAction.reset().fadeIn(0.3).play();
+          walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
+          currentAction = walkAction;
+        } else if (!isMoving && currentAction !== idleAction) {
+          // Transizione a idle
+          console.log('Transizione a idle');
+          walkAction.fadeOut(0.3);
+          idleAction.reset().fadeIn(0.3).play();
+          currentAction = idleAction;
+        } else if (isMoving && currentAction === walkAction) {
+          // Aggiusta velocità camminata
+          walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
+        }
+      } else {
+        // Fallback: oscillazione semplice se le animazioni non sono caricate
         if (isMoving) {
           const time = Date.now() * 0.005;
-          serenaModel.position.y = Math.sin(time) * 0.15; // Aumentato da 0.05 a 0.15 per visibilità
-          serenaModel.rotation.x = Math.sin(time * 2) * 0.05; // Aumentato da 0.02 a 0.05
-          serenaModel.rotation.z = Math.sin(time * 1.5) * 0.03; // Aggiunto rotazione Z per camminata più naturale
+          serenaModel.position.y = Math.sin(time) * 0.15;
+          serenaModel.rotation.x = Math.sin(time * 2) * 0.05;
+          serenaModel.rotation.z = Math.sin(time * 1.5) * 0.03;
         } else {
-          // Resetta la posizione quando fermo
           serenaModel.position.y = 0;
           serenaModel.rotation.x = 0;
           serenaModel.rotation.z = 0;
         }
+      }
       
       mixer.update(clock.getDelta());
     }
