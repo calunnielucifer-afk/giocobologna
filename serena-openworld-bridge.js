@@ -20,6 +20,7 @@
   
   // Animazioni Mixamo
   let walkAnimation;
+  let poseAnimation;
   let walkAction;
   let idleAction;
   let currentAction;
@@ -304,6 +305,9 @@
         // Crea subito animazioni di fallback per assicurarsi che funzionino
         createFallbackAnimations();
 
+        // Carica anche l'animazione pose da fermo
+        loadPoseAnimation();
+
         console.log('Claire caricata con successo!');
       },
       function(xhr) {
@@ -356,6 +360,38 @@
             console.error('Errore anche con DAE:', error);
           }
         );
+      }
+    );
+  }
+  
+  function loadPoseAnimation() {
+    console.log('Caricamento animazione pose...');
+    
+    const fbxLoader = new THREE.FBXLoader();
+    fbxLoader.load(
+      'openworld/modelpg/Lady_in_red_dress/claire@Pose.fbx',
+      function(poseObject) {
+        if (poseObject.animations.length > 0) {
+          console.log('Animazione pose trovata:', poseObject.animations.length);
+          poseAnimation = poseObject.animations[0];
+          
+          // Aggiungi l'animazione di pose al mixer esistente
+          const poseAction = mixer.clipAction(poseAnimation);
+          poseAction.setEffectiveWeight(1);
+          poseAction.setEffectiveTimeScale(1);
+          poseAction.clampWhenFinished = false;
+          poseAction.setLoop(THREE.LoopRepeat);
+          
+          console.log('Animazione pose caricata nel mixer!');
+        } else {
+          console.log('Nessuna animazione pose trovata');
+        }
+      },
+      function(xhr) {
+        console.log('Pose animation: ' + (xhr.loaded / xhr.total * 100) + '% caricato');
+      },
+      function(error) {
+        console.error('Errore caricamento animazione pose:', error);
       }
     );
   }
@@ -1314,11 +1350,21 @@
             walkAction.setLoop(THREE.LoopRepeat); // Assicura loop continuo
             currentAction = walkAction;
           } else if (!isMoving && currentAction !== idleAction) {
-            // Transizione a idle
-            console.log('Transizione a idle');
+            // Transizione a idle - usa poseAnimation se disponibile
+            console.log('Transizione a idle (pose)');
             walkAction.fadeOut(0.5); // Transizione più lunga
-            idleAction.reset().fadeIn(0.5).play(); // Transizione più lunga
-            currentAction = idleAction;
+            
+            if (poseAnimation) {
+              // Usa l'animazione pose da fermo
+              const poseAction = mixer.clipAction(poseAnimation);
+              poseAction.reset().fadeIn(0.5).play();
+              poseAction.setLoop(THREE.LoopRepeat);
+              currentAction = poseAction;
+            } else {
+              // Fallback a idle normale
+              idleAction.reset().fadeIn(0.5).play();
+              currentAction = idleAction;
+            }
           } else if (isMoving && currentAction === walkAction) {
             // Aggiusta velocità camminata in modo più fluido
             const targetTimeScale = Math.min(moveSpeed * 0.2, 1.0); // Ridotto da 0.3 a 0.2 e max da 1.5 a 1.0
