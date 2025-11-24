@@ -1224,8 +1224,8 @@
       rightDirection.normalize();
       
       // Calcola la velocità direttamente invece di accumulare
-      const forwardSpeed = 4.0; // Ridotto da 6.0 a 4.0 per camminata più lenta
-      const lateralSpeed = 1.5; // Ridotto da 3.0 a 1.5 per rotazione più lenta
+      const forwardSpeed = 4.0; // Velocità avanti con W
+      const lateralSpeed = 0.8; // Ridotto da 1.5 a 0.8 per curve molto lente
       
       if (moveForward) velocity.addScaledVector(cameraDirection, forwardSpeed);
       if (moveRight) velocity.addScaledVector(rightDirection, lateralSpeed);
@@ -1237,7 +1237,7 @@
       serenaModel.position.x += velocity.x * delta;
       serenaModel.position.z += velocity.z * delta;
       
-      // Fai ruotare il modello nella direzione del movimento
+      // Fai ruotare il modello nella direzione del movimento - più reattivo
       if (moveForward || moveLeft || moveRight) {
         // Calcola la direzione del movimento
         const moveDirection = new THREE.Vector3(velocity.x, 0, velocity.z);
@@ -1245,8 +1245,8 @@
           moveDirection.normalize();
           // Calcola l'angolo di rotazione per far girare il modello verso la direzione
           const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
-          // Applica la rotazione molto più lentamente per evitare scatti
-          serenaModel.rotation.y = THREE.MathUtils.lerp(serenaModel.rotation.y, targetAngle, 0.05); // Ridotto da 0.1 a 0.05
+          // Applica la rotazione più velocemente per sincronizzare con camera
+          serenaModel.rotation.y = THREE.MathUtils.lerp(serenaModel.rotation.y, targetAngle, 0.15); // Aumentato da 0.05 a 0.15
         }
       }
       
@@ -1259,29 +1259,13 @@
         serenaModel.position.y = groundLevel; // Non andare sotto terra
       }
 
-      // Camera che segue Serena (visuale terza persona ravvicinata over-the-shoulder)
-      // Usa la direzione del movimento invece della rotazione del modello per evitare scatti
-      let cameraAngle;
+      // Camera fissa alle spalle del modello - sempre attaccata
+      const cameraAngle = serenaModel.rotation.y; // Usa sempre la rotazione del modello
+      const cameraDistance = 3; // Distanza fissa
+      const cameraHeight = 2.2; // Altezza spalle
+      const shoulderOffset = 0.5; // Offset spalla destra
       
-      if (moveForward || moveLeft || moveRight) {
-        // Calcola la direzione del movimento per la camera
-        const moveDirection = new THREE.Vector3(velocity.x, 0, velocity.z);
-        if (moveDirection.length() > 0.1) {
-          moveDirection.normalize();
-          cameraAngle = Math.atan2(moveDirection.x, moveDirection.z);
-        } else {
-          // Se non c'è movimento, usa la rotazione del modello
-          cameraAngle = serenaModel.rotation.y;
-        }
-      } else {
-        // Se fermo, usa la rotazione del modello
-        cameraAngle = serenaModel.rotation.y;
-      }
-      
-      const cameraDistance = 3; // Ridotto da 8 a 3 per visuale ravvicinata
-      const cameraHeight = 2.2; // Ridotto da 4 a 2.2 per altezza spalle
-      const shoulderOffset = 0.5; // Slight offset to the right for over-the-shoulder
-      
+      // Camera sempre attaccata al modello
       camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance + Math.cos(cameraAngle) * shoulderOffset;
       camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance + Math.sin(cameraAngle) * shoulderOffset;
       camera.position.y = serenaModel.position.y + cameraHeight;
