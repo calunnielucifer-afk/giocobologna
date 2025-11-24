@@ -129,7 +129,7 @@
         if (!this.cameraAngle) {
             this.cameraAngle = 0;
         }
-        this.cameraAngle += deltaX * 0.001; // Sensibilità ridotta per movimento fluido
+        this.cameraAngle += deltaX * 0.01; // Sensibilità aumentata da 0.001 a 0.01
         console.log('AdvancedPlayerController - Camera angle updated:', this.cameraAngle.toFixed(4));
     }
 }
@@ -996,21 +996,7 @@ function onKeyUp(event) {
       }
     });
     
-    // Mouse orbitale senza click + click look - unificato in un solo listener
-    let isMouseDown = false;
-    
-    document.addEventListener('mousedown', function(event) {
-      if (event.button === 0) { // Solo click sinistro
-        isMouseDown = true;
-        document.body.style.cursor = 'grabbing';
-      }
-    });
-
-    document.addEventListener('mouseup', function() {
-      isMouseDown = false;
-      document.body.style.cursor = 'default';
-    });
-
+    // Mouse orbitale senza click (solo ai bordi)
     document.addEventListener('mousemove', function(event) {
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -1049,27 +1035,6 @@ function onKeyUp(event) {
         }
       } else {
         isMouseOrbiting = false;
-      }
-      
-      // 2. MOUSE CLICK LOOK (con click premuto)
-      if (isMouseDown) {
-        const deltaX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-        const deltaY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
-        
-        if (serenaModel) {
-          // Ruota Serena con il mouse
-          serenaModel.rotation.y -= deltaX * 0.005;
-          
-          // Aggiorna camera per guardarsi intorno
-          const cameraAngle = serenaModel.rotation.y;
-          const cameraDistance = 5;
-          const cameraHeight = 3;
-          
-          camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance;
-          camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance;
-          camera.position.y = serenaModel.position.y + cameraHeight;
-          camera.lookAt(serenaModel.position);
-        }
       }
     });
 
