@@ -4475,47 +4475,6 @@ function updateUI() {
     document.getElementById('level').textContent = level;
 }
 
-// Start game
-function startGame() {
-    console.log('Start game called, gameRunning:', gameRunning);
-    if (gameRunning) return;
-    
-    console.log('Initializing game...');
-    init();
-    gameRunning = true;
-    gamePaused = false;
-    
-    const gameOverModal = document.getElementById('gameOver');
-    const victoryModal = document.getElementById('victory');
-    
-    if (gameOverModal) gameOverModal.classList.add('hidden');
-    if (victoryModal) victoryModal.classList.add('hidden');
-    
-    console.log('Starting game loop...');
-    gameLoop();
-}
-
-// Pause game
-function pauseGame() {
-    gamePaused = !gamePaused;
-    document.getElementById('pauseBtn').textContent = gamePaused ? 'Riprendi' : 'Pausa';
-}
-
-// Restart game
-function restartGame() {
-    gameRunning = false;
-    cancelAnimationFrame(gameAnimationId);
-    document.getElementById('gameOver').classList.add('hidden');
-    document.getElementById('victory').classList.add('hidden');
-    startGame();
-}
-
-// Game over
-function gameOver() {
-    gameRunning = false;
-    document.getElementById('gameOver').classList.remove('hidden');
-}
-
 // Expose necessary functions to global scope for HTML event handlers
 window.SerenaGame = {
     startGame,
