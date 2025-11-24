@@ -512,9 +512,9 @@ function onKeyUp(event) {
     const fbxLoader = new THREE.FBXLoader();
     
     // Carica il modello SERENA POSE FBX 7.4 come default
-    console.log('🔍 Inizio caricamento FBX da:', 'modelpg/Lady_in_red_dress/SerenaPose.fbx');
+    console.log('🔍 Inizio caricamento FBX da:', 'openworld/modelpg/Lady_in_red_dress/SerenaPose.fbx');
     fbxLoader.load(
-      'modelpg/Lady_in_red_dress/SerenaPose.fbx',
+      'openworld/modelpg/Lady_in_red_dress/SerenaPose.fbx',
       function(object) {
         console.log('✅ FBX SerenaPose caricato con successo!', object);
         
@@ -602,7 +602,7 @@ function onKeyUp(event) {
     
     const fbxLoader = new THREE.FBXLoader();
     fbxLoader.load(
-      'modelpg/Lady_in_red_dress/SerenaWalking.fbx',
+      'openworld/modelpg/Lady_in_red_dress/SerenaWalking.fbx',
       function(walkingObject) {
         // Salva il modello walking e la sua animazione
         window.walkingModel = walkingObject;
