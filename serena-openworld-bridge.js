@@ -1331,13 +1331,31 @@ function onKeyUp(event) {
     const joystickBase = document.querySelector('.joystick-base');
     joystickHandle = document.querySelector('.joystick-handle');
     
+    // Setup event listeners per touch
+    joystickBase.addEventListener('touchstart', handleTouchStart, { passive: false });
+    joystickBase.addEventListener('touchmove', handleTouchMove, { passive: false });
+    joystickBase.addEventListener('touchend', handleTouchEnd, { passive: false });
+    
+    // Fallback mouse events per testing desktop
+    joystickBase.addEventListener('mousedown', handleMouseDown);
+    joystickBase.addEventListener('mousemove', handleMouseMove);
+    joystickBase.addEventListener('mouseup', handleMouseUp);
+    joystickBase.addEventListener('mouseleave', handleMouseUp);
+  }
+  
+  function handleTouchStart(e) {
+    if (!joystickActive) return;
+    e.preventDefault();
+    
     const touch = e.touches[0];
-    const rect = e.target.getBoundingClientRect();
+    const joystickBase = document.querySelector('.joystick-base');
+    const rect = joystickBase.getBoundingClientRect();
+    
     touchStartPos.x = touch.clientX - rect.left - rect.width / 2;
     touchStartPos.y = touch.clientY - rect.top - rect.height / 2;
     joystickActive = true;
   }
-  
+
   function handleTouchMove(e) {
     if (!joystickActive) return;
     e.preventDefault();
