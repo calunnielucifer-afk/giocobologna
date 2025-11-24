@@ -37,15 +37,19 @@
       // WASD intelligence stile Fortnite
       if (this.keys.w) {
         moveDirection.add(forwardVector);
+        console.log('W pressed - moving forward');
       }
       if (this.keys.s) {
         moveDirection.sub(forwardVector);
+        console.log('S pressed - moving backward');
       }
       if (this.keys.a) {
         moveDirection.sub(rightVector);
+        console.log('A pressed - moving left');
       }
       if (this.keys.d) {
         moveDirection.add(rightVector);
+        console.log('D pressed - moving right');
       }
       
       // Normalizza per evitare movimento diagonale più veloce
@@ -64,8 +68,10 @@
         this.player.position.addScaledVector(moveDirection, this.speed * deltaTime);
         
         this.isMoving = true;
+        console.log('MOVEMENT ACTIVE - isMoving = true');
       } else {
         this.isMoving = false;
+        console.log('MOVEMENT STOPPED - isMoving = false');
       }
       
       // 4. Posizionamento Orbitale della Telecamera
@@ -767,14 +773,29 @@
       }
     });
     
-    // Mouse orbitale senza click - attiva ai bordi dello schermo
+    // Mouse orbitale senza click + click look - unificato in un solo listener
+    let isMouseDown = false;
+    
+    document.addEventListener('mousedown', function(event) {
+      if (event.button === 0) { // Solo click sinistro
+        isMouseDown = true;
+        document.body.style.cursor = 'grabbing';
+      }
+    });
+
+    document.addEventListener('mouseup', function() {
+      isMouseDown = false;
+      document.body.style.cursor = 'default';
+    });
+
     document.addEventListener('mousemove', function(event) {
       const width = window.innerWidth;
       const height = window.innerHeight;
       const x = event.clientX;
       const y = event.clientY;
       
-      // Calcola la distanza dai bordi (dal centro verso i bordi)
+      // 1. MOUSE ORBITALE SENZA CLICK (ai bordi)
+      // Calcola la distanza dai bordi
       const fromLeftEdge = x; // Distanza dal bordo sinistro
       const fromRightEdge = width - x; // Distanza dal bordo destro
       const edgeZone = 100; // Zona sensibile ai bordi
@@ -789,11 +810,11 @@
         // Calcola la velocità di orbitale basata sulla distanza dal bordo
         let orbitSpeed = 0;
         if (nearLeftEdge) {
-          // Più sei vicino al bordo sinistro, più veloce giri a sinistra
-          orbitSpeed = -(1 - fromLeftEdge / edgeZone) * 0.02; // Sensibilità normale
+          orbitSpeed = -(1 - fromLeftEdge / edgeZone) * 0.02;
+          console.log('Mouse orbitale SINISTRA - speed:', orbitSpeed.toFixed(4));
         } else if (nearRightEdge) {
-          // Più sei vicino al bordo destro, più veloce giri a destra
-          orbitSpeed = (1 - fromRightEdge / edgeZone) * 0.02; // Sensibilità normale
+          orbitSpeed = (1 - fromRightEdge / edgeZone) * 0.02;
+          console.log('Mouse orbitale DESTRA - speed:', orbitSpeed.toFixed(4));
         }
         
         // Aggiorna l'angolo della camera nel controller
@@ -803,25 +824,8 @@
       } else {
         isMouseOrbiting = false;
       }
-    });
-
-    // Mouse look per guardarsi intorno
-    let mouseX = 0, mouseY = 0;
-    let isMouseDown = false;
-
-    document.addEventListener('mousedown', function(event) {
-      if (event.button === 0) { // Solo click sinistro
-        isMouseDown = true;
-        document.body.style.cursor = 'grabbing';
-      }
-    });
-
-    document.addEventListener('mouseup', function() {
-      isMouseDown = false;
-      document.body.style.cursor = 'default';
-    });
-
-    document.addEventListener('mousemove', function(event) {
+      
+      // 2. MOUSE CLICK LOOK (con click premuto)
       if (isMouseDown) {
         const deltaX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
         const deltaY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
