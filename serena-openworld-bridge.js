@@ -1291,7 +1291,6 @@
           serenaModel.position.y = 0;
           serenaModel.rotation.x = 0;
         }
-      }
       
       mixer.update(clock.getDelta());
     }
