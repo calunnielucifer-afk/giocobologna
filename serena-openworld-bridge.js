@@ -1224,8 +1224,8 @@
       rightDirection.normalize();
       
       // Calcola la velocità direttamente invece di accumulare
-      const forwardSpeed = 6.0; // Velocità avanti con W
-      const lateralSpeed = 3.0; // Velocità laterale con A/D
+      const forwardSpeed = 4.0; // Ridotto da 6.0 a 4.0 per camminata più lenta
+      const lateralSpeed = 1.5; // Ridotto da 3.0 a 1.5 per rotazione più lenta
       
       if (moveForward) velocity.addScaledVector(cameraDirection, forwardSpeed);
       if (moveRight) velocity.addScaledVector(rightDirection, lateralSpeed);
@@ -1238,15 +1238,15 @@
       serenaModel.position.z += velocity.z * delta;
       
       // Fai ruotare il modello nella direzione del movimento
-      if (moveForward || moveBackward || moveLeft || moveRight) {
+      if (moveForward || moveLeft || moveRight) {
         // Calcola la direzione del movimento
         const moveDirection = new THREE.Vector3(velocity.x, 0, velocity.z);
         if (moveDirection.length() > 0.1) {
           moveDirection.normalize();
           // Calcola l'angolo di rotazione per far girare il modello verso la direzione
           const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
-          // Applica la rotazione smoothly
-          serenaModel.rotation.y = THREE.MathUtils.lerp(serenaModel.rotation.y, targetAngle, 0.1);
+          // Applica la rotazione molto più lentamente per evitare scatti
+          serenaModel.rotation.y = THREE.MathUtils.lerp(serenaModel.rotation.y, targetAngle, 0.05); // Ridotto da 0.1 a 0.05
         }
       }
       
@@ -1288,7 +1288,7 @@
             console.log('Transizione a camminata - velocità:', moveSpeed);
             idleAction.fadeOut(0.5); // Transizione più lunga
             walkAction.reset().fadeIn(0.5).play(); // Transizione più lunga
-            walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.3, 1.5)); // Velocità più bassa e sincronizzata
+            walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.2, 1.0)); // Ridotto da 0.3 a 0.2 e max da 1.5 a 1.0
             walkAction.setLoop(THREE.LoopRepeat); // Assicura loop continuo
             currentAction = walkAction;
           } else if (!isMoving && currentAction !== idleAction) {
@@ -1299,10 +1299,10 @@
             currentAction = idleAction;
           } else if (isMoving && currentAction === walkAction) {
             // Aggiusta velocità camminata in modo più fluido
-            const targetTimeScale = Math.min(moveSpeed * 0.3, 1.5);
+            const targetTimeScale = Math.min(moveSpeed * 0.2, 1.0); // Ridotto da 0.3 a 0.2 e max da 1.5 a 1.0
             const currentTimeScale = walkAction.getEffectiveTimeScale();
-            // Interpolazione smooth per evitare scatti
-            walkAction.setEffectiveTimeScale(currentTimeScale + (targetTimeScale - currentTimeScale) * 0.1);
+            // Interpolazione molto smooth per evitare scatti
+            walkAction.setEffectiveTimeScale(currentTimeScale + (targetTimeScale - currentTimeScale) * 0.05); // Ridotto da 0.1 a 0.05
           }
         } else {
           // Fallback: oscillazione semplice se le animazioni non sono caricate
