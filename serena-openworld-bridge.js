@@ -2474,9 +2474,19 @@ function onKeyUp(event) {
     
     // Setup pulsante X per interagire
     if (xButton) {
+      // Touch start - per feedback immediato
       xButton.addEventListener('touchstart', function(e) {
         e.preventDefault();
+        console.log('📱 Touch START sul pulsante X rilevato!');
+      });
+      
+      // Touch end - quando l'utente rilascia il dito
+      xButton.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        console.log('📱 Touch END sul pulsante X - eseguo azione!');
+        
         if (nearbyInteractable && nearbyInteractable.userData.isPokerTable) {
+          console.log('📱 X premuto vicino al tavolo poker - apro finestra');
           openPokerWindow();
         } else if (window.closeWeddingMessage) {
           window.closeWeddingMessage();
@@ -2484,12 +2494,18 @@ function onKeyUp(event) {
           window.closeLoveMessage();
         } else if (playerController && playerController instanceof AdvancedPlayerController) {
           playerController.collectLoveNote();
+        } else {
+          console.log('📱 X premuto ma nessuna interazione disponibile');
         }
       });
       
+      // Click fallback per desktop/testing
       xButton.addEventListener('click', function(e) {
         e.preventDefault();
+        console.log('🖱️ Click sul pulsante X');
+        
         if (nearbyInteractable && nearbyInteractable.userData.isPokerTable) {
+          console.log('🖱️ Click vicino al tavolo poker - apro finestra');
           openPokerWindow();
         } else if (window.closeWeddingMessage) {
           window.closeWeddingMessage();
@@ -2497,6 +2513,8 @@ function onKeyUp(event) {
           window.closeLoveMessage();
         } else if (playerController && playerController instanceof AdvancedPlayerController) {
           playerController.collectLoveNote();
+        } else {
+          console.log('🖱️ Click ma nessuna interazione disponibile');
         }
       });
     }
