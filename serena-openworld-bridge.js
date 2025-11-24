@@ -1861,8 +1861,30 @@ function onKeyUp(event) {
     
     document.addEventListener('touchstart', function(e) {
       if (e.touches.length === 1 && !movementJoystickActive) {
+        // Verifica se il touch è sopra l'area del joystick
+        const touch = e.touches[0];
+        const joystickElement = document.getElementById('movementJoystick');
+        if (joystickElement) {
+          const rect = joystickElement.getBoundingClientRect();
+          const joystickCenterX = rect.left + rect.width / 2;
+          const joystickCenterY = rect.top + rect.height / 2;
+          const joystickRadius = rect.width / 2;
+          
+          // Calcola distanza dal centro del joystick
+          const distance = Math.sqrt(
+            Math.pow(touch.clientX - joystickCenterX, 2) + 
+            Math.pow(touch.clientY - joystickCenterY, 2)
+          );
+          
+          // Se il touch è dentro l'area del joystick, non attivare camera rotation
+          if (distance <= joystickRadius + 20) { // +20px per margine
+            console.log('📱 Touch su joystick - nessuna camera rotation');
+            return;
+          }
+        }
+        
         console.log('📱 Touch camera rotation START - joystick non attivo');
-        touchStartX = e.touches[0].clientX;
+        touchStartX = touch.clientX;
         isRotatingCamera = true;
       }
     });
