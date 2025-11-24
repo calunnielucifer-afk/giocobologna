@@ -2072,8 +2072,16 @@ function onKeyUp(event) {
     // Inizializza sistema multiplayer
     pokerMultiplayer = new PokerMultiplayer();
     
-    // Genera e mostra il link condivisibile
-    const roomCode = document.getElementById('roomCode').textContent;
+    // Controlla se c'è un hash URL per entrare automaticamente PRIMA di generare
+    let roomCode = document.getElementById('roomCode').textContent;
+    if (window.location.hash && window.location.hash.length > 1) {
+      const hashRoomCode = window.location.hash.substring(1);
+      roomCode = hashRoomCode;
+      document.getElementById('roomCode').textContent = hashRoomCode;
+      console.log('Accesso diretto alla sala:', hashRoomCode);
+    }
+    
+    // Genera e mostra il link condivisibile SOLO se non c'è già un roomCode
     const shareLink = `${window.location.origin}${window.location.pathname}#${roomCode}`;
     document.getElementById('shareLink').textContent = shareLink;
     
@@ -2091,18 +2099,6 @@ function onKeyUp(event) {
     setTimeout(() => {
       askNicknameAndAssignSeat();
     }, 500);
-    
-    // Controlla se c'è un hash URL per entrare automaticamente
-    if (window.location.hash && window.location.hash.length > 1) {
-      const hashRoomCode = window.location.hash.substring(1);
-      document.getElementById('roomCode').textContent = hashRoomCode;
-      console.log('Accesso diretto alla sala:', hashRoomCode);
-      
-      // Unisciti alla stanza specificata nell'URL
-      if (pokerMultiplayer) {
-        pokerMultiplayer.createOrJoinRoom(hashRoomCode);
-      }
-    }
     
     // Avvia sincronizzazione multiplayer
     if (pokerMultiplayer) {
@@ -2231,7 +2227,7 @@ function onKeyUp(event) {
         // Crea nuova stanza (host)
         this.isHost = true;
         const roomData = {
-          type: 'room_created',
+          type: 'room_info',
           roomCode: roomCode,
           host: this.playerId,
           players: [],
@@ -2239,11 +2235,44 @@ function onKeyUp(event) {
           timestamp: Date.now()
         };
         localStorage.setItem(roomKey, JSON.stringify(roomData));
-        console.log('🏠 Stanza creata:', roomCode);
+        console.log('🏠 Stanza creata:', roomCode, 'da host:', this.playerId);
       } else {
         // Unisciti a stanza esistente
         this.isHost = false;
-        console.log('🚪 Unione alla stanza:', roomCode);
+        try {
+          const roomData = JSON.parse(existingRoom);
+          console.log('🚪 Unione alla stanza esistente:', roomCode, 'host:', roomData.host);
+          console.log('👥 Giocatori attuali:', roomData.players?.length || 0);
+          
+          // Carica i giocatori esistenti nell'interfaccia
+          if (roomData.players && roomData.players.length > 0) {
+            console.log('🔄 Caricamento giocatori esistenti...');
+            roomData.players.forEach(player => {
+              if (player.playerId !== this.playerId) {
+                const seat = document.getElementById(`playerSeat${player.seatNumber}`);
+                if (seat && !seat.classList.contains('occupied')) {
+                  // Mostra i giocatori esistenti senza notificare (sono già nella stanza)
+                  seat.classList.add('occupied');
+                  seat.innerHTML = `
+                    <div class="seat-content">
+                      <div style="font-size: ${isMobile ? '14px' : '16px'}; margin-bottom: 5px;">👤</div>
+                      <div style="font-weight: bold;">${player.nickname}</div>
+                      <div class="player-info">10,000 fish</div>
+                      <div class="player-info" style="margin-top: 5px;" id="playerCards${player.seatNumber}">🎴 🎴</div>
+                    </div>
+                  `;
+                  seat.dataset.nickname = player.nickname;
+                  seat.dataset.chips = '10000';
+                  seat.dataset.seatNumber = player.seatNumber;
+                  console.log(`✅ Caricato giocatore esistente: ${player.nickname} al posto ${player.seatNumber}`);
+                }
+              }
+            });
+          }
+          
+        } catch (error) {
+          console.error('Errore parsing stanza esistente:', error);
+        }
       }
     }
     
@@ -2285,10 +2314,41 @@ function onKeyUp(event) {
       
       console.log(`👋 Giocatore ${data.nickname} si è unito al posto ${data.seatNumber}`);
       
-      // Aggiorna l'interfaccia con il nuovo giocatore
-      const seat = document.getElementById(`playerSeat${data.seatNumber}`);
-      if (seat && !seat.classList.contains('occupied')) {
-        occupySeat(data.seatNumber, data.nickname);
+      // Aggiorna la stanza con il nuovo giocatore
+      const roomKey = `poker_${this.roomCode}`;
+      const currentRoom = localStorage.getItem(roomKey);
+      
+      if (currentRoom) {
+        try {
+          const roomData = JSON.parse(currentRoom);
+          
+          // Aggiungi il giocatore alla lista
+          if (!roomData.players) roomData.players = [];
+          
+          // Controlla se il giocatore è già nella lista
+          const existingPlayer = roomData.players.find(p => p.playerId === data.playerId);
+          if (!existingPlayer) {
+            roomData.players.push({
+              playerId: data.playerId,
+              nickname: data.nickname,
+              seatNumber: data.seatNumber,
+              timestamp: Date.now()
+            });
+            
+            // Salva la stanza aggiornata
+            localStorage.setItem(roomKey, JSON.stringify(roomData));
+            console.log('📝 Stanza aggiornata con nuovo giocatore');
+          }
+          
+          // Aggiorna l'interfaccia con il nuovo giocatore
+          const seat = document.getElementById(`playerSeat${data.seatNumber}`);
+          if (seat && !seat.classList.contains('occupied')) {
+            occupySeat(data.seatNumber, data.nickname);
+          }
+          
+        } catch (error) {
+          console.error('Errore aggiornamento stanza:', error);
+        }
       }
     }
     
