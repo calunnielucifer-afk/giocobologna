@@ -2,6 +2,165 @@
 (function() {
   'use strict';
 
+  // Nuovo sistema avanzato PlayerController
+  class AdvancedPlayerController {
+    constructor(playerMesh, camera) {
+        this.player = playerMesh;
+        this.camera = camera;
+        this.keys = { w: false, a: false, d: false }; // Stato WASD (escluso S come richiesto)
+        this.speed = 5; // Velocità in unità/sec
+        this.rotationSpeed = 8; // Fattore di Slerp (più alto = più reattivo)
+
+        // Telecamera in Terza Persona (Spring Arm)
+        this.cameraOffset = new THREE.Vector3(0, 2, -5); // Offset relativo al giocatore (es. 2m sopra, 5m dietro)
+        this.cameraFollowFactor = 5; // Fattore di Lerp per la telecamera (smoothing)
+    }
+
+    // Passa da un'animazione all'altra con una dissolvenza incrociata (cross-fade)
+    _changeAnimation(name) {
+        if (!window.poseAction || !window.walkAction) return;
+        
+        const targetAction = name === 'Walk' ? window.walkAction : window.poseAction;
+        const currentActionName = currentAction === window.walkAction ? 'Walk' : 'Pose';
+        
+        if (currentActionName === name) return;
+
+        console.log(`Transizione animazione: ${currentActionName} -> ${name}`);
+
+        // Dissolvenza incrociata tra le due animazioni
+        if (currentAction) {
+            currentAction.fadeOut(0.2);
+        }
+        
+        targetAction
+            .reset()
+            .setEffectiveTimeScale(1)
+            .setEffectiveWeight(1)
+            .fadeIn(0.2)
+            .play();
+
+        currentAction = targetAction;
+    }
+
+    update(deltaTime) {
+        // --- 1. Calcolo della Direzione di Movimento ---
+        const moveVector = new THREE.Vector3(0, 0, 0);
+        
+        // Otteniamo la direzione della telecamera
+        const cameraDirection = new THREE.Vector3();
+        this.camera.getWorldDirection(cameraDirection);
+        
+        // Rimuoviamo la componente Y per rimanere sul piano XZ (Movimento orizzontale)
+        cameraDirection.y = 0;
+        cameraDirection.normalize();
+
+        // Calcoliamo il vettore laterale ("destra")
+        const rightVector = new THREE.Vector3().crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
+
+        let isMoving = false;
+
+        if (this.keys.w) {
+            moveVector.add(cameraDirection);
+            isMoving = true;
+        }
+        if (this.keys.a) {
+            moveVector.sub(rightVector);
+            isMoving = true;
+        }
+        if (this.keys.d) {
+            moveVector.add(rightVector);
+            isMoving = true;
+        }
+        
+        // --- 2. Traslazione e Rotazione ---
+        if (isMoving) {
+            moveVector.normalize(); // Assicura che W+A non sia più veloce di solo W
+
+            // a) Rotazione fluida (risolve il "loop nelle curve")
+            // Calcoliamo il Quaternion target (direzione in cui il personaggio deve guardare)
+            const targetAngle = Math.atan2(moveVector.x, moveVector.z);
+            const targetQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), targetAngle);
+            
+            // Interpolazione Sferica Lineare (slerp) per rotazione morbida
+            this.player.quaternion.slerp(targetQuaternion, this.rotationSpeed * deltaTime);
+
+            // b) Traslazione
+            this.player.position.addScaledVector(moveVector, this.speed * deltaTime);
+
+            // c) Animazione
+            this._changeAnimation('Walk');
+
+        } else {
+            // Animazione
+            this._changeAnimation('Idle');
+        }
+
+        // --- 3. Telecamera in Terza Persona con Smoothing ---
+        
+        // Calcola la posizione target della telecamera rispetto al giocatore
+        const targetCameraPosition = new THREE.Vector3();
+        
+        // Otteniamo la posizione desiderata: Posizione_Giocatore + Offset_Telecamera
+        const offset = this.cameraOffset.clone();
+        offset.applyQuaternion(this.camera.quaternion); // Applica la rotazione della camera all'offset
+        targetCameraPosition.addVectors(this.player.position, offset);
+
+        // Interpolazione Lineare (lerp) per muovere la telecamera fluidamente verso la posizione target
+        this.camera.position.lerp(targetCameraPosition, this.cameraFollowFactor * deltaTime);
+        
+        // La telecamera guarda sempre il giocatore
+        this.camera.lookAt(this.player.position.x, this.player.position.y + 1, this.player.position.z);
+    }
+}
+
+// Funzioni di input per il nuovo sistema
+function onKeyDown(event) {
+    // Gestisci prima l'interazione con E
+    if (event.code === 'KeyE') {
+        if (nearbyInteractable) {
+            console.log('E pressed - interacting with:', nearbyInteractable.userData);
+            if (nearbyInteractable.userData.isPokerTable) {
+                openPokerWindow();
+            }
+        } else {
+            console.log('E pressed - no nearby interactable object');
+        }
+        return;
+    }
+    
+    // Gestisci WASD con il nuovo controller se disponibile
+    if (playerController && playerController instanceof AdvancedPlayerController) {
+        switch (event.code) {
+            case 'KeyW':
+                playerController.keys.w = true;
+                break;
+            case 'KeyA':
+                playerController.keys.a = true;
+                break;
+            case 'KeyD':
+                playerController.keys.d = true;
+                break;
+        }
+    }
+}
+
+function onKeyUp(event) {
+    // Gestisci WASD con il nuovo controller se disponibile
+    if (playerController && playerController instanceof AdvancedPlayerController) {
+        switch (event.code) {
+            case 'KeyW':
+                playerController.keys.w = false;
+                break;
+            case 'KeyA':
+                playerController.keys.a = false;
+                break;
+            case 'KeyD':
+                playerController.keys.d = false;
+                break;
+        }
+    }
+}
+
   // Sistema Controller Stile Fortnite
   class PlayerController {
     constructor(playerMesh, camera) {
@@ -259,10 +418,11 @@
     // Inizializza il controller Fortnite dopo il caricamento completo del modello
     setTimeout(() => {
       if (serenaModel && camera && window.poseAction && window.walkAction) {
-        playerController = new PlayerController(serenaModel, camera);
-        console.log('PlayerController Fortnite inizializzato con tutte le animazioni!');
+        // Usa il nuovo sistema AdvancedPlayerController
+        playerController = new AdvancedPlayerController(serenaModel, camera);
+        console.log('AdvancedPlayerController inizializzato con tutte le animazioni!');
       } else {
-        console.log('PlayerController non inizializzato - elementi mancanti:', {
+        console.log('AdvancedPlayerController non inizializzato - elementi mancanti:', {
           serenaModel: !!serenaModel,
           camera: !!camera,
           poseAction: !!window.poseAction,
@@ -1372,20 +1532,12 @@
   function animate() {
     requestAnimationFrame(animate);
     
-    const time = performance.now();
-    const delta = (time - (animate.prevTime || time)) * 0.001;
-    animate.prevTime = time;
+    // Calcola il deltaTime usando THREE.Clock per consistenza
+    const deltaTime = clock.getDelta();
 
-    // Sistema Fortnite-style: usa il PlayerController se disponibile
-    if (playerController) {
-      // Aggiorna i tasti WASD nel controller
-      playerController.setKey('w', moveForward);
-      playerController.setKey('a', moveLeft);
-      playerController.setKey('s', moveBackward);
-      playerController.setKey('d', moveRight);
-      
-      // Aggiorna il controller con delta time
-      playerController.update(delta);
+    // Nuovo sistema AdvancedPlayerController
+    if (playerController && playerController instanceof AdvancedPlayerController) {
+      playerController.update(deltaTime);
     } else {
       // Fallback al vecchio sistema se il controller non è ancora inizializzato
       if (serenaModel) {
@@ -1418,8 +1570,8 @@
           }
         }
         
-        serenaModel.position.x += velocity.x * delta;
-        serenaModel.position.z += velocity.z * delta;
+        serenaModel.position.x += velocity.x * deltaTime;
+        serenaModel.position.z += velocity.z * deltaTime;
         
         if (moveForward) {
           const moveDirection = new THREE.Vector3(velocity.x, 0, velocity.z);
@@ -1454,17 +1606,17 @@
         const isMoving = velocity.length() > 0.1;
         const moveSpeed = velocity.length();
         
-        if (window.poseAction && walkAction) {
+        if (window.poseAction && window.walkAction) {
           if (isMoving && moveSpeed > 0.2) {
-            if (currentAction !== walkAction) {
+            if (currentAction !== window.walkAction) {
               window.poseAction.fadeOut(0.2);
-              walkAction.reset().fadeIn(0.2).setEffectiveTimeScale(Math.min(moveSpeed / 4, 1.5));
-              walkAction.play();
-              currentAction = walkAction;
+              window.walkAction.reset().fadeIn(0.2).setEffectiveTimeScale(Math.min(moveSpeed / 4, 1.5));
+              window.walkAction.play();
+              currentAction = window.walkAction;
             }
           } else {
             if (currentAction !== window.poseAction) {
-              walkAction.fadeOut(0.2);
+              window.walkAction.fadeOut(0.2);
               window.poseAction.reset().fadeIn(0.2);
               window.poseAction.play();
               currentAction = window.poseAction;
@@ -1473,7 +1625,7 @@
         }
         
         if (mixer) {
-          mixer.update(clock.getDelta());
+          mixer.update(deltaTime);
         }
       }
     }
