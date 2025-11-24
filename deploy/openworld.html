@@ -65,41 +65,6 @@
       transition: none;
     }
     
-    /* Mirino centrale */
-    #crosshair {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 30px;
-      height: 30px;
-      z-index: 1000;
-      pointer-events: none;
-      opacity: 1;
-    }
-    
-    #crosshair::before,
-    #crosshair::after {
-      content: '';
-      position: absolute;
-      background: #ff0000;
-      box-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
-    }
-    
-    #crosshair::before {
-      width: 2px;
-      height: 30px;
-      left: 14px;
-      top: 0;
-    }
-    
-    #crosshair::after {
-      width: 30px;
-      height: 2px;
-      left: 0;
-      top: 14px;
-    }
-    
     /* Pulsante fullscreen */
     #fullscreenBtn {
       position: fixed;
@@ -177,11 +142,6 @@
         font-size: 12px;
       }
       
-      /* Nascondi mirino su mobile */
-      #crosshair {
-        display: none;
-      }
-      
       /* Pulsante chiudi info mobile */
       #closeInfo {
         background: rgba(255, 67, 54, 0.9) !important;
@@ -246,9 +206,6 @@
   <!-- Canvas WebGL per Serena -->
   <canvas id="openworldCanv"></canvas>
   
-  <!-- Mirino centrale -->
-  <div id="crosshair"></div>
-  
   <!-- Controlli touch per mobile -->
   <div id="touchControls">
     <div class="joystick-container">
@@ -265,7 +222,6 @@
   <div id="info">
     <h3>🌸 Serena Open World</h3>
     <p><strong>Desktop:</strong> W=Avanti A=Sinistra S=Indietro D=Destra</p>
-    <p>🎯 Mirino: centro visuale, WASD si basa sul mirino</p>
     <p>🖱️ Mouse ai bordi per ruotare la telecamera</p>
     <p><strong>Mobile:</strong> Joystick per muoverti, slide per guardarti intorno</p>
     <p>🎰 Tavola Poker: vai a coordinate (5,5) e clicca la tavola verde</p>
@@ -282,13 +238,16 @@
     ">✖ Chiudi Info</button>
   </div>
 
-  <!-- Libreria three.js -->
+  <!-- Libreria three.js - Working version r128 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
+  
+  <!-- fflate library required by FBXLoader -->
   <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.0/umd/index.js"></script>
   <script>window.fflate = fflate;</script>
+  
+  <!-- Loaders per Three.js r128 - working versions -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
   
   <!-- Bridge per Serena -->
   <script src="serena-openworld-bridge.js"></script>
