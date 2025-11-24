@@ -85,7 +85,7 @@
       // Calcola posizione target della camera in orbita
       const targetPosition = new THREE.Vector3();
       
-      // Posizione orbitale basata sull'angolo della camera
+      // Posizione orbitale basata sull'angolo della camera (AGGIORNATO!)
       const orbitX = Math.sin(this.cameraAngle) * this.cameraDistance;
       const orbitZ = Math.cos(this.cameraAngle) * this.cameraDistance;
       
@@ -98,6 +98,11 @@
       // Interpolazione lineare per movimento fluido della camera
       this.camera.position.lerp(targetPosition, 5 * deltaTime);
       this.camera.lookAt(this.player.position);
+      
+      // Debug per verificare che la camera si stia muovendo
+      if (Math.abs(orbitX) > 0.01 || Math.abs(orbitZ) > 0.01) {
+        console.log('Camera orbitale - angle:', this.cameraAngle.toFixed(3), 'orbitX:', orbitX.toFixed(3), 'orbitZ:', orbitZ.toFixed(3));
+      }
     }
     
     updateAnimations() {
