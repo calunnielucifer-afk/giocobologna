@@ -1,5 +1,5 @@
 // Serena Escape Game - Isolated scope to prevent conflicts
-(function() {
+;(function() {
   'use strict';
 
   // Game variables - prefixed to avoid conflicts
@@ -4477,10 +4477,10 @@ function updateUI() {
 
 // Expose necessary functions to global scope for HTML event handlers
 window.SerenaGame = {
-    startGame,
-    pauseGame, 
-    restartGame,
-    gameOver
+    startGame: startGame,
+    pauseGame: pauseGame, 
+    restartGame: restartGame,
+    gameOver: gameOver
 };
 
 })(); // Close IIFE
