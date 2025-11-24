@@ -660,11 +660,11 @@
     document.addEventListener('keydown', function(event) {
       switch (event.code) {
         case 'ArrowUp':
-        case 'KeyW':
+        case 'KeyS':  // FIX: S ora è forward (su)
           moveForward = true;
           break;
         case 'ArrowDown':
-        case 'KeyS':
+        case 'KeyW':  // FIX: W ora è backward (giù)
           moveBackward = true;
           break;
         case 'ArrowLeft':
@@ -681,11 +681,11 @@
     document.addEventListener('keyup', function(event) {
       switch (event.code) {
         case 'ArrowUp':
-        case 'KeyW':
+        case 'KeyS':  // FIX: S ora è forward (su)
           moveForward = false;
           break;
         case 'ArrowDown':
-        case 'KeyS':
+        case 'KeyW':  // FIX: W ora è backward (giù)
           moveBackward = false;
           break;
         case 'ArrowLeft':
@@ -1347,13 +1347,15 @@
       
       // Fallback: oscillazione semplice se le animazioni Mixamo non sono caricate
         if (isMoving) {
-          const time = Date.now() * 0.003;
-          serenaModel.position.y = Math.sin(time) * 0.05; // Legale oscillazione verticale
-          serenaModel.rotation.x = Math.sin(time * 2) * 0.02; // Legale inclinazione
+          const time = Date.now() * 0.005;
+          serenaModel.position.y = Math.sin(time) * 0.15; // Aumentato da 0.05 a 0.15 per visibilità
+          serenaModel.rotation.x = Math.sin(time * 2) * 0.05; // Aumentato da 0.02 a 0.05
+          serenaModel.rotation.z = Math.sin(time * 1.5) * 0.03; // Aggiunto rotazione Z per camminata più naturale
         } else {
           // Resetta la posizione quando fermo
           serenaModel.position.y = 0;
           serenaModel.rotation.x = 0;
+          serenaModel.rotation.z = 0;
         }
       
       mixer.update(clock.getDelta());
