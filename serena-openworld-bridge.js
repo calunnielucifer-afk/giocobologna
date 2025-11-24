@@ -224,6 +224,15 @@ function onKeyUp(event) {
   let scene, camera, renderer, serenaModel, mixer;
   let playerController = null; // Nuovo sistema - usa solo AdvancedPlayerController
   let clock = new THREE.Clock();
+  
+  // Dual joystick system
+  let movementJoystickActive = false;
+  let cameraJoystickActive = false;
+  let movementVector = new THREE.Vector2();
+  let cameraVector = new THREE.Vector2();
+  let movementStartPos = new THREE.Vector2();
+  let cameraStartPos = new THREE.Vector2();
+  
   let joystickActive = false;
   let joystickVector = new THREE.Vector2();
   let touchStartPos = new THREE.Vector2();
@@ -325,8 +334,7 @@ function onKeyUp(event) {
         playerController = new AdvancedPlayerController(serenaModel, camera);
         console.log('AdvancedPlayerController inizializzato con tutte le animazioni!');
         
-        // Adesso setup il mouse orbitale DOPO che il controller è pronto
-        setupMouseOrbitale();
+        // Adesso setup il controller Fortnite con retry loop finché tutto è pronto
       } else {
         console.log('AdvancedPlayerController non ancora pronto - elementi mancanti:', {
           serenaModel: !!serenaModel,
@@ -885,39 +893,6 @@ function onKeyUp(event) {
     console.log('Tutte le texture applicate al modello Serena');
   }
 
-  function setupMouseOrbitale() {
-    console.log('Setup mouse orbitale DOPO inizializzazione AdvancedPlayerController');
-    
-    // Mouse orbitale globale unificato
-    document.addEventListener('mousemove', function(event) {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      const x = event.clientX;
-      const y = event.clientY;
-      
-      // MOUSE ORBITALE SENZA CLICK (ai bordi)
-      const fromLeftEdge = x;
-      const fromRightEdge = width - x;
-      const edgeZone = 100;
-      
-      const nearLeftEdge = fromLeftEdge < edgeZone;
-      const nearRightEdge = fromRightEdge < edgeZone;
-      
-      if (nearLeftEdge || nearRightEdge) {
-        let orbitSpeed = 0;
-        if (nearLeftEdge) {
-          orbitSpeed = -(1 - fromLeftEdge / edgeZone) * 0.02;
-        } else if (nearRightEdge) {
-          orbitSpeed = (1 - fromRightEdge / edgeZone) * 0.02;
-        }
-        
-        if (playerController && playerController instanceof AdvancedPlayerController) {
-          playerController.updateCameraAngle(orbitSpeed);
-        }
-      }
-    });
-  }
-
   function setupControls() {
     // Sistema unificato globale - usa solo AdvancedPlayerController
     document.addEventListener('keydown', onKeyDown, false);
@@ -1263,40 +1238,69 @@ function onKeyUp(event) {
   }
 
   function setupTouchJoystick() {
-    const joystickContainer = document.querySelector('.joystick-container');
-    const joystickBase = document.querySelector('.joystick-base');
-    joystickHandle = document.querySelector('.joystick-handle');
+    const movementJoystick = document.querySelector('#movementJoystick .joystick-base');
+    const cameraJoystick = document.querySelector('#cameraJoystick .joystick-base');
+    const movementHandle = document.querySelector('#movementJoystick .joystick-handle');
+    const cameraHandle = document.querySelector('#cameraJoystick .joystick-handle');
     
-    // Setup event listeners per touch
-    joystickBase.addEventListener('touchstart', handleTouchStart, { passive: false });
-    joystickBase.addEventListener('touchmove', handleTouchMove, { passive: false });
-    joystickBase.addEventListener('touchend', handleTouchEnd, { passive: false });
+    // Setup event listeners per movement joystick
+    movementJoystick.addEventListener('touchstart', function(e) { handleTouchStart(e, 'movement'); }, { passive: false });
+    movementJoystick.addEventListener('touchmove', function(e) { handleTouchMove(e, 'movement'); }, { passive: false });
+    movementJoystick.addEventListener('touchend', function(e) { handleTouchEnd(e, 'movement'); }, { passive: false });
+    
+    // Setup event listeners per camera joystick
+    cameraJoystick.addEventListener('touchstart', function(e) { handleTouchStart(e, 'camera'); }, { passive: false });
+    cameraJoystick.addEventListener('touchmove', function(e) { handleTouchMove(e, 'camera'); }, { passive: false });
+    cameraJoystick.addEventListener('touchend', function(e) { handleTouchEnd(e, 'camera'); }, { passive: false });
     
     // Fallback mouse events per testing desktop
-    joystickBase.addEventListener('mousedown', handleMouseDown);
-    joystickBase.addEventListener('mousemove', handleMouseMove);
-    joystickBase.addEventListener('mouseup', handleMouseUp);
-    joystickBase.addEventListener('mouseleave', handleMouseUp);
+    movementJoystick.addEventListener('mousedown', function(e) { handleMouseDown(e, 'movement'); });
+    movementJoystick.addEventListener('mousemove', function(e) { handleMouseMove(e, 'movement'); });
+    movementJoystick.addEventListener('mouseup', function(e) { handleMouseUp(e, 'movement'); });
+    movementJoystick.addEventListener('mouseleave', function(e) { handleMouseUp(e, 'movement'); });
+    
+    cameraJoystick.addEventListener('mousedown', function(e) { handleMouseDown(e, 'camera'); });
+    cameraJoystick.addEventListener('mousemove', function(e) { handleMouseMove(e, 'camera'); });
+    cameraJoystick.addEventListener('mouseup', function(e) { handleMouseUp(e, 'camera'); });
+    cameraJoystick.addEventListener('mouseleave', function(e) { handleMouseUp(e, 'camera'); });
   }
   
-  function handleTouchStart(e) {
+  function handleTouchStart(e, type) {
     e.preventDefault();
     
     const touch = e.touches[0];
-    const joystickBase = document.querySelector('.joystick-base');
+    const joystickBase = type === 'movement' ? 
+      document.querySelector('#movementJoystick .joystick-base') : 
+      document.querySelector('#cameraJoystick .joystick-base');
+    const handle = type === 'movement' ? 
+      document.querySelector('#movementJoystick .joystick-handle') : 
+      document.querySelector('#cameraJoystick .joystick-handle');
     const rect = joystickBase.getBoundingClientRect();
     
-    touchStartPos.x = touch.clientX - rect.left - rect.width / 2;
-    touchStartPos.y = touch.clientY - rect.top - rect.height / 2;
-    joystickActive = true;
+    // Imposta stato joystick attivo
+    if (type === 'movement') {
+      movementJoystickActive = true;
+      movementStartPos.x = touch.clientX - rect.left - rect.width / 2;
+      movementStartPos.y = touch.clientY - rect.top - rect.height / 2;
+    } else {
+      cameraJoystickActive = true;
+      cameraStartPos.x = touch.clientX - rect.left - rect.width / 2;
+      cameraStartPos.y = touch.clientY - rect.top - rect.height / 2;
+    }
   }
 
-  function handleTouchMove(e) {
-    if (!joystickActive) return;
+  function handleTouchMove(e, type) {
+    const isActive = type === 'movement' ? movementJoystickActive : cameraJoystickActive;
+    if (!isActive) return;
     e.preventDefault();
     
     const touch = e.touches[0];
-    const joystickBase = document.querySelector('.joystick-base');
+    const joystickBase = type === 'movement' ? 
+      document.querySelector('#movementJoystick .joystick-base') : 
+      document.querySelector('#cameraJoystick .joystick-base');
+    const handle = type === 'movement' ? 
+      document.querySelector('#movementJoystick .joystick-handle') : 
+      document.querySelector('#cameraJoystick .joystick-handle');
     const rect = joystickBase.getBoundingClientRect();
     
     const centerX = rect.left + rect.width / 2;
@@ -1313,103 +1317,86 @@ function onKeyUp(event) {
       deltaY = (deltaY / distance) * maxDistance;
     }
     
-    joystickHandle.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+    handle.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
     
-    joystickVector.x = deltaX / maxDistance;
-    joystickVector.y = -deltaY / maxDistance; // Invert Y per coordinate 3D
-    
-    // Aggiorna controlli movimento (nuovo sistema)
-    if (playerController && playerController instanceof AdvancedPlayerController) {
-      playerController.keys.w = joystickVector.y > 0.3;
-      playerController.keys.s = joystickVector.y < -0.3;
-      // A/D funzionano indipendentemente nel nuovo sistema
-      playerController.keys.a = joystickVector.x < -0.3;
-      playerController.keys.d = joystickVector.x > 0.3;
+    if (type === 'movement') {
+      movementVector.x = deltaX / maxDistance;
+      movementVector.y = -deltaY / maxDistance; // Invert Y per coordinate 3D
+      
+      // Aggiorna controlli movimento WASD
+      if (playerController && playerController instanceof AdvancedPlayerController) {
+        playerController.keys.w = movementVector.y > 0.3;
+        playerController.keys.s = movementVector.y < -0.3;
+        playerController.keys.a = movementVector.x < -0.3;
+        playerController.keys.d = movementVector.x > 0.3;
+      }
+    } else {
+      // Camera joystick - gestisce rotazione camera
+      cameraVector.x = deltaX / maxDistance;
+      cameraVector.y = deltaY / maxDistance;
+      
+      // Aggiorna angolo camera
+      if (playerController && playerController instanceof AdvancedPlayerController) {
+        playerController.updateCameraAngle(cameraVector.x * 0.05);
+      }
     }
   }
   
-  function handleTouchEnd(e) {
-    if (!joystickActive) return;
+  function handleTouchEnd(e, type) {
+    const isActive = type === 'movement' ? movementJoystickActive : cameraJoystickActive;
+    if (!isActive) return;
     e.preventDefault();
     
-    joystickActive = false;
-    joystickVector.x = 0;
-    joystickVector.y = 0;
+    const handle = type === 'movement' ? 
+      document.querySelector('#movementJoystick .joystick-handle') : 
+      document.querySelector('#cameraJoystick .joystick-handle');
     
-    if (joystickHandle) {
-      joystickHandle.style.transform = 'translate(0, 0)';
+    if (type === 'movement') {
+      movementJoystickActive = false;
+      movementVector.x = 0;
+      movementVector.y = 0;
+      
+      // Resetta controlli movimento WASD
+      if (playerController && playerController instanceof AdvancedPlayerController) {
+        playerController.keys.w = false;
+        playerController.keys.a = false;
+        playerController.keys.s = false;
+        playerController.keys.d = false;
+      }
+    } else {
+      cameraJoystickActive = false;
+      cameraVector.x = 0;
+      cameraVector.y = 0;
     }
     
-    // Resetta controlli movimento (nuovo sistema)
-    if (playerController && playerController instanceof AdvancedPlayerController) {
-      playerController.keys.w = false;
-      playerController.keys.a = false;
-      playerController.keys.s = false;
-      playerController.keys.d = false;
+    if (handle) {
+      handle.style.transform = 'translate(0, 0)';
     }
   }
   
   // Mouse events per testing
-  function handleMouseDown(e) {
+  function handleMouseDown(e, type) {
     const rect = e.target.getBoundingClientRect();
-    touchStartPos.x = e.clientX - rect.left - rect.width / 2;
-    touchStartPos.y = e.clientY - rect.top - rect.height / 2;
-    joystickActive = true;
-  }
-  
-  function handleMouseMove(e) {
-    if (!joystickActive) return;
-    
-    const joystickBase = document.querySelector('.joystick-base');
-    const rect = joystickBase.getBoundingClientRect();
-    
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    
-    let deltaX = e.clientX - centerX;
-    let deltaY = e.clientY - centerY;
-    
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    const maxDistance = rect.width / 2 - 30;
-    
-    if (distance > maxDistance) {
-      deltaX = (deltaX / distance) * maxDistance;
-      deltaY = (deltaY / distance) * maxDistance;
-    }
-    
-    joystickHandle.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-    
-    joystickVector.x = deltaX / maxDistance;
-    joystickVector.y = -deltaY / maxDistance;
-    
-    // Aggiorna controlli movimento (nuovo sistema)
-    if (playerController && playerController instanceof AdvancedPlayerController) {
-      playerController.keys.w = joystickVector.y > 0.3;
-      playerController.keys.s = joystickVector.y < -0.3;
-      // A/D funzionano indipendentemente nel nuovo sistema
-      playerController.keys.a = joystickVector.x < -0.3;
-      playerController.keys.d = joystickVector.x > 0.3;
+    if (type === 'movement') {
+      movementStartPos.x = e.clientX - rect.left - rect.width / 2;
+      movementStartPos.y = e.clientY - rect.top - rect.height / 2;
+      movementJoystickActive = true;
+    } else {
+      cameraStartPos.x = e.clientX - rect.left - rect.width / 2;
+      cameraStartPos.y = e.clientY - rect.top - rect.height / 2;
+      cameraJoystickActive = true;
     }
   }
   
-  function handleMouseUp(e) {
-    if (!joystickActive) return;
+  function handleMouseMove(e, type) {
+    const isActive = type === 'movement' ? movementJoystickActive : cameraJoystickActive;
+    if (!isActive) return;
     
-    joystickActive = false;
-    joystickVector.x = 0;
-    joystickVector.y = 0;
-    
-    if (joystickHandle) {
-      joystickHandle.style.transform = 'translate(0, 0)';
-    }
-    
-    // Resetta controlli movimento (nuovo sistema)
-    if (playerController && playerController instanceof AdvancedPlayerController) {
-      playerController.keys.w = false;
-      playerController.keys.a = false;
-      playerController.keys.s = false;
-      playerController.keys.d = false;
-    }
+    handleTouchMove(e, type);
+  }
+  
+  function handleMouseUp(e, type) {
+    handleTouchEnd(e, type);
   }
 
   function animate() {

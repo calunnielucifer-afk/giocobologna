@@ -30,8 +30,11 @@
     #touchControls {
       position: fixed;
       bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
       z-index: 1000;
       display: none;
     }
@@ -40,6 +43,26 @@
       position: relative;
       width: 150px;
       height: 150px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    #movementJoystick {
+      align-self: flex-start;
+    }
+    
+    #cameraJoystick {
+      align-self: flex-end;
+    }
+    
+    .joystick-label {
+      position: absolute;
+      bottom: -25px;
+      font-size: 12px;
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+      font-weight: bold;
     }
     
     .joystick-base {
@@ -208,10 +231,17 @@
   
   <!-- Controlli touch per mobile -->
   <div id="touchControls">
-    <div class="joystick-container">
+    <div class="joystick-container" id="movementJoystick">
       <div class="joystick-base">
         <div class="joystick-handle"></div>
       </div>
+      <div class="joystick-label">WASD</div>
+    </div>
+    <div class="joystick-container" id="cameraJoystick">
+      <div class="joystick-base">
+        <div class="joystick-handle"></div>
+      </div>
+      <div class="joystick-label">Camera</div>
     </div>
   </div>
   
@@ -250,7 +280,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
   
   <!-- Bridge per Serena -->
-  <script src="serena-openworld-bridge.js?v=202411241735FIXED&t=888888888"></script>
+  <script src="serena-openworld-bridge.js?v=202411241740DUAL&t=999999999"></script>
   
   <!-- Mobile controls script -->
   <script>
