@@ -1197,6 +1197,8 @@
     moveRight = false;
   }
 
+  let cameraAngle = 0; // Angolo separato per camera per evitare zoom durante rotazione modello
+
   function animate() {
     requestAnimationFrame(animate);
     
@@ -1260,7 +1262,15 @@
       }
 
       // Camera che segue Serena (visuale terza persona ravvicinata over-the-shoulder)
-      const cameraAngle = serenaModel.rotation.y;
+      // Usa angolo globale per evitare che la camera segua la rotazione graduale del modello
+      
+      // Aggiorna l'angolo della camera solo se il modello si sta muovendo in avanti
+      if (moveForward) {
+        // Allinea la camera con il modello solo quando cammina in avanti
+        cameraAngle = serenaModel.rotation.y;
+      }
+      // Altrimenti mantiene l'ultimo angolo per evitare zoom
+      
       const cameraDistance = 3; // Ridotto da 8 a 3 per visuale ravvicinata
       const cameraHeight = 2.2; // Ridotto da 4 a 2.2 per altezza spalle
       const shoulderOffset = 0.5; // Slight offset to the right for over-the-shoulder
