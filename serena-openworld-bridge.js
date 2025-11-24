@@ -1353,13 +1353,14 @@
         serenaModel.position.y = groundLevel; // Non andare sotto terra
       }
 
-      // Camera che segue Serena
+      // Camera che segue Serena (visuale terza persona ravvicinata over-the-shoulder)
       const cameraAngle = serenaModel.rotation.y;
-      const cameraDistance = 8; // Aumentato da 5 a 8
-      const cameraHeight = 4; // Aumentato da 3 a 4
+      const cameraDistance = 3; // Ridotto da 8 a 3 per visuale ravvicinata
+      const cameraHeight = 2.2; // Ridotto da 4 a 2.2 per altezza spalle
+      const shoulderOffset = 0.5; // Slight offset to the right for over-the-shoulder
       
-      camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance;
-      camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance;
+      camera.position.x = serenaModel.position.x - Math.sin(cameraAngle) * cameraDistance + Math.cos(cameraAngle) * shoulderOffset;
+      camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance + Math.sin(cameraAngle) * shoulderOffset;
       camera.position.y = serenaModel.position.y + cameraHeight;
       camera.lookAt(serenaModel.position);
       
