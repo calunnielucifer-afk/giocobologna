@@ -400,14 +400,10 @@
         
         scene.add(object);
 
-        // Log dei mesh e delle ossa
-        console.log('Mesh nel modello Serena:');
+        // Log dei mesh (rimosso bone logging per ridurre spam)
         object.traverse(function(child) {
           if (child.isMesh) {
             console.log('Mesh:', child.name, 'Vertices:', child.geometry ? child.geometry.attributes.position.count : 'N/A');
-          }
-          if (child.isBone) {
-            console.log('Bone:', child.name, 'Position:', child.position);
           }
         });
 
@@ -483,14 +479,6 @@
     const textureLoader = new THREE.TextureLoader();
     const basePath = 'openworld/modelpg/Lady_in_red_dress/textures/';
 
-    console.log('=== DEBUG: Mesh names in Claire model ===');
-    model.traverse(function(child) {
-      if (child.isMesh) {
-        console.log('Mesh found:', child.name, 'Type:', child.geometry?.type || 'No geometry');
-      }
-    });
-    console.log('=== END DEBUG ===');
-
     model.traverse(function(child) {
       if (child.isMesh) {
         const name = child.name.toLowerCase();
@@ -506,25 +494,55 @@
           const normal = textureLoader.load(basePath + 'Girl01_normal.jpg');
           material = new THREE.MeshStandardMaterial({ 
             map: diffuse, 
-            specularMap: specular,
+            roughnessMap: specular, // specularMap non esiste
             normalMap: normal,
             skinning: true 
           });
           console.log('Texture abito Claire applicate');
         }
-        // Pelle corpo (Claire)
-        else if (name.includes('cc_base_body')) {
-          console.log('Caricando texture pelle Claire...');
+        // Corpo Claire
+        else if (name.includes('girl_body_geo')) {
+          console.log('Caricando texture corpo Claire...');
           const diffuse = textureLoader.load(basePath + 'Girl01_FacialAnimMap.png');
           const normal = textureLoader.load(basePath + 'Girl01_normal.jpg');
           const specular = textureLoader.load(basePath + 'Girl01_spec.jpg');
           material = new THREE.MeshStandardMaterial({ 
             map: diffuse, 
+            roughnessMap: specular,
             normalMap: normal,
-            specularMap: specular,
             skinning: true 
           });
-          console.log('Texture pelle Claire applicate');
+          console.log('Texture corpo Claire applicate');
+        }
+        // Occhi Claire
+        else if (name.includes('girl_eyes_geo')) {
+          console.log('Caricando texture occhi Claire...');
+          const diffuse = textureLoader.load(basePath + 'Girl01_FacialAnimMap.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: diffuse,
+            skinning: true 
+          });
+          console.log('Texture occhi Claire applicate');
+        }
+        // Bocca Claire
+        else if (name.includes('girl_mouth_geo')) {
+          console.log('Caricando texture bocca Claire...');
+          const diffuse = textureLoader.load(basePath + 'Girl01_FacialAnimMap.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: diffuse,
+            skinning: true 
+          });
+          console.log('Texture bocca Claire applicate');
+        }
+        // Sopracciglia Claire
+        else if (name.includes('girl_brows_geo')) {
+          console.log('Caricando texture sopracciglia Claire...');
+          const diffuse = textureLoader.load(basePath + 'Girl01_FacialAnimMap.png');
+          material = new THREE.MeshStandardMaterial({ 
+            map: diffuse,
+            skinning: true 
+          });
+          console.log('Texture sopracciglia Claire applicate');
         }
         // Capelli
         else if (name.includes('long_bangs') || name.includes('messy_high') || name.includes('hair') || name.includes('ponytail')) {
@@ -660,7 +678,7 @@
             material = new THREE.MeshStandardMaterial({ 
               map: diffuse,
               normalMap: normal,
-              specularMap: specular,
+              roughnessMap: specular, // specularMap non esiste in MeshStandardMaterial
               skinning: true 
             });
             console.log(`Fallback Girl01 applicato a ${child.name}`);
