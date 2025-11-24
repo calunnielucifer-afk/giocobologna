@@ -624,6 +624,10 @@ function onKeyUp(event) {
           walkAction.clampWhenFinished = false;
           walkAction.setLoop(THREE.LoopRepeat, Infinity); // Loop infinito seamless
           
+          // IMPOSTAZIONE CRUCIALE: Abilita zero threshold per loop continuo
+          walkAction.zeroSlopeAtEnd = true; // Evita salto alla fine
+          walkAction.zeroSlopeAtStart = true; // Evita salto all'inizio
+          
           // Imposta zero threshold per evitare salti al loop
           walkAction.fadeIn(0.1); // Fade in più smooth
           
@@ -1287,7 +1291,6 @@ function onKeyUp(event) {
   }
   
   function handleTouchStart(e) {
-    if (!joystickActive) return;
     e.preventDefault();
     
     const touch = e.touches[0];
@@ -1428,6 +1431,15 @@ function onKeyUp(event) {
 
     // Aggiorna il mixer per le animazioni FBX
     if (mixer) {
+      // GESTIONE LOOP SEAMLESS PER WALKING
+      if (window.walkAction && currentAction === window.walkAction && walkAnimation) {
+        // Quando l'animazione sta per finire, assicurati che il loop sia fluido
+        if (window.walkAction.time >= walkAnimation.duration * 0.95) {
+          // Riavvia l'animazione leggermente prima che finisca per evitare il salto
+          window.walkAction.time = walkAnimation.duration * 0.05;
+        }
+      }
+      
       mixer.update(deltaTime);
     }
 
