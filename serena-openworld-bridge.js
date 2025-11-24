@@ -1349,54 +1349,53 @@
       camera.position.z = serenaModel.position.z - Math.cos(cameraAngle) * cameraDistance;
       camera.position.y = serenaModel.position.y + cameraHeight;
       camera.lookAt(serenaModel.position);
-    }
-  }
-
-    // Animazioni migliorate con Mixamo
-    if (mixer && serenaModel) {
-      // Velocità di movimento per animazione
-      const moveSpeed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-      const isMoving = moveSpeed > 0.1;
       
-      // Debug: stato animazioni
-      if (Math.random() < 0.01) { // Solo occasionalmente per non spam
-        console.log('Animazioni - walkAction:', !!walkAction, 'idleAction:', !!idleAction, 'isMoving:', isMoving, 'moveSpeed:', moveSpeed);
-      }
-      
-      // Sistema di animazione completo
-      if (walkAction && idleAction) {
-        if (isMoving && currentAction !== walkAction) {
-          // Transizione a camminata
-          console.log('Transizione a camminata - velocità:', moveSpeed);
-          idleAction.fadeOut(0.3);
-          walkAction.reset().fadeIn(0.3).play();
-          walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
-          currentAction = walkAction;
-        } else if (!isMoving && currentAction !== idleAction) {
-          // Transizione a idle
-          console.log('Transizione a idle');
-          walkAction.fadeOut(0.3);
-          idleAction.reset().fadeIn(0.3).play();
-          currentAction = idleAction;
-        } else if (isMoving && currentAction === walkAction) {
-          // Aggiusta velocità camminata
-          walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
+      // Animazioni migliorate
+      if (mixer) {
+        // Velocità di movimento per animazione
+        const moveSpeed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+        const isMoving = moveSpeed > 0.1;
+        
+        // Debug: stato animazioni
+        if (Math.random() < 0.01) { // Solo occasionalmente per non spam
+          console.log('Animazioni - walkAction:', !!walkAction, 'idleAction:', !!idleAction, 'isMoving:', isMoving, 'moveSpeed:', moveSpeed);
         }
-      } else {
-        // Fallback: oscillazione semplice se le animazioni non sono caricate
-        if (isMoving) {
-          const time = Date.now() * 0.005;
-          serenaModel.position.y = Math.sin(time) * 0.15;
-          serenaModel.rotation.x = Math.sin(time * 2) * 0.05;
-          serenaModel.rotation.z = Math.sin(time * 1.5) * 0.03;
+        
+        // Sistema di animazione completo
+        if (walkAction && idleAction) {
+          if (isMoving && currentAction !== walkAction) {
+            // Transizione a camminata
+            console.log('Transizione a camminata - velocità:', moveSpeed);
+            idleAction.fadeOut(0.3);
+            walkAction.reset().fadeIn(0.3).play();
+            walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
+            currentAction = walkAction;
+          } else if (!isMoving && currentAction !== idleAction) {
+            // Transizione a idle
+            console.log('Transizione a idle');
+            walkAction.fadeOut(0.3);
+            idleAction.reset().fadeIn(0.3).play();
+            currentAction = idleAction;
+          } else if (isMoving && currentAction === walkAction) {
+            // Aggiusta velocità camminata
+            walkAction.setEffectiveTimeScale(Math.min(moveSpeed * 0.5, 2));
+          }
         } else {
-          serenaModel.position.y = 0;
-          serenaModel.rotation.x = 0;
-          serenaModel.rotation.z = 0;
+          // Fallback: oscillazione semplice se le animazioni non sono caricate
+          if (isMoving) {
+            const time = Date.now() * 0.005;
+            serenaModel.position.y = Math.sin(time) * 0.15;
+            serenaModel.rotation.x = Math.sin(time * 2) * 0.05;
+            serenaModel.rotation.z = Math.sin(time * 1.5) * 0.03;
+          } else {
+            serenaModel.position.y = 0;
+            serenaModel.rotation.x = 0;
+            serenaModel.rotation.z = 0;
+          }
         }
+        
+        mixer.update(clock.getDelta());
       }
-      
-      mixer.update(clock.getDelta());
     }
 
     // Renderizza sempre la scena
