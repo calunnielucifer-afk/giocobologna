@@ -490,12 +490,15 @@ function onKeyUp(event) {
     const fbxLoader = new THREE.FBXLoader();
     
     // Carica il modello SERENA POSE FBX 7.4 come default
+    console.log('🔍 Inizio caricamento FBX da:', 'modelpg/Lady_in_red_dress/SerenaPose.fbx');
     fbxLoader.load(
       'modelpg/Lady_in_red_dress/SerenaPose.fbx',
       function(object) {
+        console.log('✅ FBX SerenaPose caricato con successo!', object);
+        
         // Rimuovi il placeholder se esiste
         if (serenaModel && serenaModel.isMesh) {
-          console.log('Rimuovendo placeholder Serena...');
+          console.log('🔄 Rimuovendo placeholder Serena...');
           scene.remove(serenaModel);
         }
         
@@ -566,7 +569,8 @@ function onKeyUp(event) {
         console.log((xhr.loaded / xhr.total * 100) + '% caricato');
       },
       function(error) {
-        console.error('Errore caricamento FBX Serena pose:', error);
+        console.error('❌ Errore caricamento FBX Serena pose:', error);
+        console.error('❌ Dettagli errore:', error.message, error.stack);
       }
     );
   }
