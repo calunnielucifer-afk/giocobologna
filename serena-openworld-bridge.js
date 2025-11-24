@@ -366,9 +366,10 @@
         const height = box.max.y - box.min.y;
         
         // Posiziona il modello così che i piedi toccano terra
-        object.position.y = -box.min.y * object.scale.y;
+        // FIX per Claire: aggiungi offset extra per evitare che sia sepolta
+        object.position.y = (-box.min.y * object.scale.y) + 0.5;
         
-        console.log('Altezza modello:', height, 'Posizione Y:', object.position.y);
+        console.log('Altezza modello Claire:', height, 'Bounding box min Y:', box.min.y, 'Posizione Y:', object.position.y);
         
         scene.add(object);
 
@@ -425,7 +426,8 @@
             
             // Calcola bounding box
             const box = new THREE.Box3().setFromObject(serenaModel);
-            serenaModel.position.y = -box.min.y * serenaModel.scale.y;
+            // FIX per Claire DAE: aggiungi offset extra
+            serenaModel.position.y = (-box.min.y * serenaModel.scale.y) + 0.5;
             
             // Setup ombre
             serenaModel.traverse(function(child) {
@@ -454,6 +456,14 @@
   function applyTexturesToModel(model) {
     const textureLoader = new THREE.TextureLoader();
     const basePath = 'openworld/modelpg/Lady_in_red_dress/textures/';
+
+    console.log('=== DEBUG: Mesh names in Claire model ===');
+    model.traverse(function(child) {
+      if (child.isMesh) {
+        console.log('Mesh found:', child.name, 'Type:', child.geometry?.type || 'No geometry');
+      }
+    });
+    console.log('=== END DEBUG ===');
 
     model.traverse(function(child) {
       if (child.isMesh) {
@@ -614,13 +624,27 @@
           });
           console.log('Texture unghie applicate');
         }
-        // Default rosa per parti non riconosciute
+        // Fallback generico con texture Girl01 se disponibili
         else {
-          console.log(`Usando colore rosa di default per: ${child.name}`);
-          material = new THREE.MeshStandardMaterial({ 
-            color: 0xFFB6C1, 
-            skinning: true 
-          });
+          console.log(`Mesh non riconosciuta: ${child.name}, uso fallback texture Girl01`);
+          try {
+            const diffuse = textureLoader.load(basePath + 'Girl01_diffuse.jpg');
+            const normal = textureLoader.load(basePath + 'Girl01_normal.jpg');
+            const specular = textureLoader.load(basePath + 'Girl01_spec.jpg');
+            material = new THREE.MeshStandardMaterial({ 
+              map: diffuse,
+              normalMap: normal,
+              specularMap: specular,
+              skinning: true 
+            });
+            console.log(`Fallback Girl01 applicato a ${child.name}`);
+          } catch (error) {
+            console.log(`Fallback Girl01 fallito, uso colore rosa per ${child.name}`);
+            material = new THREE.MeshStandardMaterial({ 
+              color: 0xFFB6C1, 
+              skinning: true 
+            });
+          }
         }
 
         child.material = material;
