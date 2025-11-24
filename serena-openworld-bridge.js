@@ -1260,7 +1260,24 @@
       }
 
       // Camera che segue Serena (visuale terza persona ravvicinata over-the-shoulder)
-      const cameraAngle = serenaModel.rotation.y;
+      // Usa la direzione del movimento invece della rotazione del modello per evitare scatti
+      let cameraAngle;
+      
+      if (moveForward || moveLeft || moveRight) {
+        // Calcola la direzione del movimento per la camera
+        const moveDirection = new THREE.Vector3(velocity.x, 0, velocity.z);
+        if (moveDirection.length() > 0.1) {
+          moveDirection.normalize();
+          cameraAngle = Math.atan2(moveDirection.x, moveDirection.z);
+        } else {
+          // Se non c'è movimento, usa la rotazione del modello
+          cameraAngle = serenaModel.rotation.y;
+        }
+      } else {
+        // Se fermo, usa la rotazione del modello
+        cameraAngle = serenaModel.rotation.y;
+      }
+      
       const cameraDistance = 3; // Ridotto da 8 a 3 per visuale ravvicinata
       const cameraHeight = 2.2; // Ridotto da 4 a 2.2 per altezza spalle
       const shoulderOffset = 0.5; // Slight offset to the right for over-the-shoulder
