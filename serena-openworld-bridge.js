@@ -134,7 +134,7 @@
   }
   
   // Variabili globali
-  let scene, camera, renderer, serenaModel, mixer, clock;
+  let scene, camera, renderer, serenaModel, mixer;
   let playerController; // Controller Fortnite-style
   let clock = new THREE.Clock();
   let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
