@@ -445,6 +445,9 @@ function onKeyUp(event) {
         // Usa il nuovo sistema AdvancedPlayerController
         playerController = new AdvancedPlayerController(serenaModel, camera);
         console.log('AdvancedPlayerController inizializzato con tutte le animazioni!');
+        
+        // Adesso setup il mouse orbitale DOPO che il controller è pronto
+        setupMouseOrbitale();
       } else {
         console.log('AdvancedPlayerController non inizializzato - elementi mancanti:', {
           serenaModel: !!serenaModel,
@@ -940,10 +943,8 @@ function onKeyUp(event) {
     console.log('Tutte le texture applicate al modello Serena');
   }
 
-  function setupControls() {
-    // Sistema unificato globale - usa solo AdvancedPlayerController
-    document.addEventListener('keydown', onKeyDown, false);
-    document.addEventListener('keyup', onKeyUp, false);
+  function setupMouseOrbitale() {
+    console.log('Setup mouse orbitale DOPO inizializzazione AdvancedPlayerController');
     
     // Mouse orbitale globale unificato
     document.addEventListener('mousemove', function(event) {
@@ -952,40 +953,33 @@ function onKeyUp(event) {
       const x = event.clientX;
       const y = event.clientY;
       
-      // 1. MOUSE ORBITALE SENZA CLICK (ai bordi)
-      // Calcola la distanza dai bordi
-      const fromLeftEdge = x; // Distanza dal bordo sinistro
-      const fromRightEdge = width - x; // Distanza dal bordo destro
-      const edgeZone = 100; // Zona sensibile ai bordi
+      // MOUSE ORBITALE SENZA CLICK (ai bordi)
+      const fromLeftEdge = x;
+      const fromRightEdge = width - x;
+      const edgeZone = 100;
       
-      // Controlla se il mouse è nella zona sensibile ai bordi
       const nearLeftEdge = fromLeftEdge < edgeZone;
       const nearRightEdge = fromRightEdge < edgeZone;
       
       if (nearLeftEdge || nearRightEdge) {
-        isMouseOrbiting = true;
-        
-        // Calcola la velocità di orbitale basata sulla distanza dal bordo
         let orbitSpeed = 0;
         if (nearLeftEdge) {
           orbitSpeed = -(1 - fromLeftEdge / edgeZone) * 0.02;
-          console.log('Mouse orbitale SINISTRA - speed:', orbitSpeed.toFixed(4));
         } else if (nearRightEdge) {
           orbitSpeed = (1 - fromRightEdge / edgeZone) * 0.02;
-          console.log('Mouse orbitale DESTRA - speed:', orbitSpeed.toFixed(4));
         }
         
-        // Aggiorna l'angolo della camera nel controller
-        if (playerController) {
-          console.log('Calling updateCameraAngle with speed:', orbitSpeed.toFixed(4));
+        if (playerController && playerController instanceof AdvancedPlayerController) {
           playerController.updateCameraAngle(orbitSpeed);
-        } else {
-          console.log('PlayerController not available for mouse orbitale');
         }
-      } else {
-        isMouseOrbiting = false;
       }
     });
+  }
+
+  function setupControls() {
+    // Sistema unificato globale - usa solo AdvancedPlayerController
+    document.addEventListener('keydown', onKeyDown, false);
+    document.addEventListener('keyup', onKeyUp, false);
 
     // Touch multi-touch per mobile - joystick + look
     document.addEventListener('touchstart', function(event) {
