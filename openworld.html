@@ -248,15 +248,16 @@
   <!-- Pulsante fullscreen -->
   <button id="fullscreenBtn">📱 Fullscreen</button>
   
-  <!-- Pulsante toggle camera -->
-  <button id="toggleCameraBtn" style="position: fixed; top: 20px; right: 20px; z-index: 1001; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.4); padding: 10px 15px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer;">📷 Camera: ON</button>
+  <!-- Pulsante toggle camera - NASCOSTO (sempre attivo) -->
+  <button id="toggleCameraBtn" style="display: none;">📷 Camera: ON</button>
   
   <!-- Info panel -->
   <div id="info">
     <h3>🌸 Serena Open World</h3>
     <p><strong>Desktop:</strong> W=Avanti A=Sinistra S=Indietro D=Destra</p>
-    <p>🖱️ Mouse ai bordi per ruotare la telecamera</p>
-    <p><strong>Mobile:</strong> Joystick per muoverti, slide per guardarti intorno</p>
+    <p>⬅️➡️ Frecce per guardarti attorno</p>
+    <p><strong>Mobile:</strong> Joystick sinistro=movimento, joystick destro=camera</p>
+    <p>💕 Premi X per raccogliere bigliettini d'amore</p>
     <p>🎰 Tavola Poker: vai a coordinate (5,5) e clicca la tavola verde</p>
     <p>📱 Premi Fullscreen per modalità APK</p>
     <button id="closeInfo" style="
@@ -283,7 +284,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
   
   <!-- Bridge per Serena -->
-  <script src="serena-openworld-bridge.js?v=202411241745TOGGLE&t=101010101"></script>
+  <script src="serena-openworld-bridge.js?v=202411241755ARROW&t=131313131"></script>
   
   <!-- Mobile controls script -->
   <script>

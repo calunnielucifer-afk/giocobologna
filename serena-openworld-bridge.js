@@ -17,6 +17,18 @@ function onKeyDown(event) {
         return;
     }
     
+    // Gestisci X per raccogliere bigliettini d'amore
+    if (event.code === 'KeyX') {
+        if (window.closeLoveMessage) {
+            // Chiudi il messaggio d'amore
+            window.closeLoveMessage();
+        } else if (playerController && playerController instanceof AdvancedPlayerController) {
+            // Raccogli il bigliettino
+            playerController.collectLoveNote();
+        }
+        return;
+    }
+    
     // Gestisci WASD con il nuovo controller se disponibile
     if (playerController && playerController instanceof AdvancedPlayerController) {
         switch (event.code) {
@@ -141,6 +153,9 @@ function onKeyUp(event) {
       
       // 5. Aggiorna animazioni basate sul movimento
       this.updateAnimations();
+      
+      // 6. Check prossimità bigliettini d'amore
+      this.checkLoveNoteProximity();
     }
     
     updateThirdPersonCamera(deltaTime) {
@@ -232,6 +247,94 @@ function onKeyUp(event) {
     isFollowCameraEnabled() {
       return followCameraEnabled;
     }
+    
+    checkLoveNoteProximity() {
+      if (!loveNotes || loveNotes.length === 0) return;
+      
+      const playerPosition = this.player.position;
+      const interactionDistance = 2.0; // Distanza per interagire
+      
+      nearbyNote = null;
+      
+      for (let note of loveNotes) {
+        if (note.userData.collected) continue;
+        
+        const distance = playerPosition.distanceTo(note.position);
+        if (distance < interactionDistance) {
+          nearbyNote = note;
+          break;
+        }
+      }
+    }
+    
+    collectLoveNote() {
+      if (!nearbyNote || nearbyNote.userData.collected) return false;
+      
+      // Rimuovi il bigliettino dalla scena
+      scene.remove(nearbyNote);
+      nearbyNote.userData.collected = true;
+      collectedNotes++;
+      
+      // Mostra il messaggio d'amore
+      this.showLoveMessage(nearbyNote.userData.message);
+      
+      console.log(`Bigliettino d'amore raccolto! (${collectedNotes}/${loveNotes.length})`);
+      return true;
+    }
+    
+    showLoveMessage(message) {
+      // Crea un elemento HTML per mostrare il messaggio
+      const messageDiv = document.createElement('div');
+      messageDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(255, 182, 193, 0.95), rgba(255, 218, 224, 0.95));
+        color: #8B0000;
+        padding: 30px 40px;
+        border-radius: 20px;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        z-index: 10000;
+        box-shadow: 0 10px 30px rgba(139, 0, 0, 0.3);
+        border: 3px solid #ff69b4;
+        max-width: 400px;
+        animation: loveMessage 0.5s ease-out;
+      `;
+      messageDiv.innerHTML = `
+        <div style="font-size: 24px; margin-bottom: 15px;">💕 Bigliettino d'Amore 💕</div>
+        <div style="line-height: 1.5;">${message}</div>
+        <div style="margin-top: 20px; font-size: 14px; opacity: 0.8;">Premi X per chiudere</div>
+      `;
+      
+      // Aggiungi animazione CSS
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes loveMessage {
+          from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+          to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      document.body.appendChild(messageDiv);
+      
+      // Funzione per chiudere il messaggio
+      window.closeLoveMessage = function() {
+        if (messageDiv.parentNode) {
+          document.body.removeChild(messageDiv);
+        }
+        if (style.parentNode) {
+          document.head.removeChild(style);
+        }
+        delete window.closeLoveMessage;
+      };
+      
+      // Auto-chiusura dopo 10 secondi
+      setTimeout(window.closeLoveMessage, 10000);
+    }
   }
   
   // Variabili globali
@@ -241,6 +344,11 @@ function onKeyUp(event) {
   
   // Toggle follow camera system
   let followCameraEnabled = true; // SEMPRE ATTIVA
+  
+  // Love notes system
+  let loveNotes = [];
+  let collectedNotes = 0;
+  let nearbyNote = null;
   
   // Dual joystick system
   let movementJoystickActive = false;
@@ -335,6 +443,9 @@ function onKeyUp(event) {
     // Tavola da poker
     createPokerTable();
     
+    // Bigliettini d'amore
+    createLoveNotes();
+    
     // Controlli tastiera e touch
     setupControls();
 
@@ -374,6 +485,121 @@ function onKeyUp(event) {
     console.log('Scena inizializzata con successo!');
   }
 
+  function createLoveNotes() {
+    console.log('Creazione bigliettini d\'amore sparsi nella mappa...');
+    
+    // Frasi d'amore tipo biscotti cinesi
+    const loveMessages = [
+      "🌸 Il tuo sorriso illumina il mondo come un fiore di ciliegio",
+      "💕 Ogni passo con te è una danza nel cuore della primavera",
+      "🌙 La tua bellezza supera quella di mille notti stellate",
+      "🦋 Sei la farfalla che colora il giardino del mio cuore",
+      "🌺 Il tuo amore è il fiore più raro di questo mondo",
+      "✨ Nelle tue occhi trovi tutta la magia dell'universo",
+      "🌸 Tu sei la primavera che portava nel mio cuore",
+      "💖 Il tuo nome è la melodia più dolce che conosco",
+      "🌷 Insieme a te, ogni momento è un fiore che sboccia",
+      "🦢 Sei il cigno che nuova eleganza nel lago del mio anima"
+    ];
+    
+    // Posizioni nascoste nella mappa (dietro alberi, tra cespugli)
+    const notePositions = [
+      { x: 8, z: 3, rotation: Math.PI / 4 },      // Dietro un albero
+      { x: -6, z: 7, rotation: -Math.PI / 3 },     // Tra i cespugli
+      { x: 12, z: -4, rotation: Math.PI / 6 },     // Nascosto nel verde
+      { x: -9, z: -2, rotation: Math.PI / 2 },      // Dietro un cespuglio
+      { x: 4, z: 10, rotation: -Math.PI / 4 },     // Sotto un albero
+      { x: -3, z: -8, rotation: Math.PI / 8 },     // Tra le foglie
+      { x: 15, z: 2, rotation: -Math.PI / 6 },     // Nascosto nel giardino
+      { x: -11, z: 5, rotation: Math.PI / 5 },     // Dietro un fiore
+      { x: 7, z: -6, rotation: -Math.PI / 8 },     // Tra i cespugli
+      { x: -4, z: 9, rotation: Math.PI / 3 }       // Sotto un albero
+    ];
+    
+    notePositions.forEach((pos, index) => {
+      // Crea il bigliettino (piccolo piano)
+      const noteGeometry = new THREE.PlaneGeometry(0.3, 0.2);
+      const noteMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0xffe6e6, // Rosa chiaro
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.9
+      });
+      
+      const note = new THREE.Mesh(noteGeometry, noteMaterial);
+      note.position.set(pos.x, 0.5, pos.z); // leggermente sopra terra
+      note.rotation.y = pos.rotation;
+      note.userData = {
+        isLoveNote: true,
+        message: loveMessages[index],
+        id: index,
+        collected: false
+      };
+      
+      // Aggiungi un piccolo bordo dorato
+      const borderGeometry = new THREE.EdgesGeometry(noteGeometry);
+      const borderMaterial = new THREE.LineBasicMaterial({ color: 0xffd700, linewidth: 2 });
+      const border = new THREE.LineSegments(borderGeometry, borderMaterial);
+      note.add(border);
+      
+      // Aggiungi animazione fluttuante
+      note.userData.floatOffset = Math.random() * Math.PI * 2;
+      note.userData.floatSpeed = 1 + Math.random() * 0.5;
+      
+      scene.add(note);
+      loveNotes.push(note);
+    });
+    
+    console.log('✅ Creati', loveNotes.length, 'bigliettini d\'amore sparsi nella mappa!');
+  }
+  
+  function showLoveNoteIndicator() {
+    if (!nearbyNote || nearbyNote.userData.collected) return;
+    
+    // Crea indicatore "Premi X"
+    let indicator = document.getElementById('loveNoteIndicator');
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.id = 'loveNoteIndicator';
+      indicator.style.cssText = `
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 105, 180, 0.9);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        z-index: 1000;
+        animation: pulse 1s infinite;
+        border: 2px solid #ff69b4;
+        box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+      `;
+      document.body.appendChild(indicator);
+      
+      // Aggiungi animazione pulse
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes pulse {
+          0%, 100% { transform: translateX(-50%) scale(1); }
+          50% { transform: translateX(-50%) scale(1.05); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    indicator.innerHTML = `💕 Premi X per raccogliere il bigliettino d'amore 💕`;
+  }
+  
+  function hideLoveNoteIndicator() {
+    const indicator = document.getElementById('loveNoteIndicator');
+    if (indicator) {
+      document.body.removeChild(indicator);
+    }
+  }
+  
   function createPokerTable() {
     // Crea un piano per la tavola da poker
     const tableGeometry = new THREE.PlaneGeometry(8, 4);
@@ -1439,6 +1665,28 @@ function onKeyUp(event) {
     // Sistema unificato - usa solo AdvancedPlayerController
     if (playerController && playerController instanceof AdvancedPlayerController) {
       playerController.update(deltaTime);
+    }
+    
+    // Animazione fluttuante bigliettini d'amore
+    if (loveNotes && loveNotes.length > 0) {
+      const time = clock.getElapsedTime();
+      loveNotes.forEach(note => {
+        if (!note.userData.collected) {
+          // Fluttuazione delicata
+          const floatY = Math.sin(time * note.userData.floatSpeed + note.userData.floatOffset) * 0.1;
+          note.position.y = 0.5 + floatY;
+          
+          // Rotazione leggera
+          note.rotation.y += 0.005;
+        }
+      });
+      
+      // Mostra/nascondi indicatore bigliettino
+      if (nearbyNote) {
+        showLoveNoteIndicator();
+      } else {
+        hideLoveNoteIndicator();
+      }
     }
     
     // Rendering
