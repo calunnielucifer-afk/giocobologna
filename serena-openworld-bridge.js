@@ -462,37 +462,33 @@
 
         console.log(`Applicando texture a: ${child.name}`);
 
-        // Abito (QiPao)
+        // Abito (Claire)
         if (name.includes('miao_new_suit') || name.includes('suit') || name.includes('dress')) {
-          console.log('Caricando texture abito...');
-          const diffuse = textureLoader.load(basePath + 'QiPao_Diffuse.png');
-          const metallic = textureLoader.load(basePath + 'QiPao_metallic.png');
-          const roughness = textureLoader.load(basePath + 'QiPao_roughness.png');
-          const normal = textureLoader.load(basePath + 'QiPao_Normal.png');
+          console.log('Caricando texture abito Claire...');
+          const diffuse = textureLoader.load(basePath + 'Girl01_diffuse.jpg');
+          const specular = textureLoader.load(basePath + 'Girl01_spec.jpg');
+          const normal = textureLoader.load(basePath + 'Girl01_normal.jpg');
           material = new THREE.MeshStandardMaterial({ 
             map: diffuse, 
-            metalnessMap: metallic,
-            roughnessMap: roughness,
+            specularMap: specular,
             normalMap: normal,
             skinning: true 
           });
-          console.log('Texture abito applicate');
+          console.log('Texture abito Claire applicate');
         }
-        // Pelle corpo
+        // Pelle corpo (Claire)
         else if (name.includes('cc_base_body')) {
-          console.log('Caricando texture pelle corpo...');
-          const metallicAlpha = textureLoader.load(basePath + 'Std_Skin_Body_MetallicAlpha.png');
-          const normal = textureLoader.load(basePath + 'Std_Skin_Body_Normal.png');
-          const ao = textureLoader.load(basePath + 'Std_Skin_Body_ao.png');
-          const roughness = textureLoader.load(basePath + 'Std_Skin_Body_roughness.png');
+          console.log('Caricando texture pelle Claire...');
+          const diffuse = textureLoader.load(basePath + 'Girl01_FacialAnimMap.png');
+          const normal = textureLoader.load(basePath + 'Girl01_normal.jpg');
+          const specular = textureLoader.load(basePath + 'Girl01_spec.jpg');
           material = new THREE.MeshStandardMaterial({ 
-            map: metallicAlpha, 
+            map: diffuse, 
             normalMap: normal,
-            aoMap: ao,
-            roughnessMap: roughness,
+            specularMap: specular,
             skinning: true 
           });
-          console.log('Texture pelle corpo applicate');
+          console.log('Texture pelle Claire applicate');
         }
         // Capelli
         else if (name.includes('long_bangs') || name.includes('messy_high') || name.includes('hair') || name.includes('ponytail')) {
