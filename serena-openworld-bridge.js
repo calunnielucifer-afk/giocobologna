@@ -2231,8 +2231,8 @@ function onKeyUp(event) {
       this.isHost = false;
       this.syncInterval = null;
       
-      // URL del backend Droplet
-      this.backendURL = 'http://167.172.168.69:3001/poker-api';
+      // URL del backend Droplet HTTPS
+      this.backendURL = 'https://167.172.168.69:8443/poker-api';
       
       // Inizializza ascoltatore eventi
       this.setupEventListener();
